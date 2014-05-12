@@ -19,16 +19,11 @@ class Turbot::Command::Base
   end
 
   def app
-    @app ||= if options[:confirm].is_a?(String)
-      if options[:app] && (options[:app] != options[:confirm])
-        error("Mismatch between --app and --confirm")
-      end
-      options[:confirm]
-    elsif options[:app].is_a?(String)
+    @app ||= if options[:app].is_a?(String)
       options[:app]
-    elsif ENV.has_key?('HEROKU_APP')
-      ENV['HEROKU_APP']
-    elsif app_from_dir = extract_app_in_dir(Dir.pwd)
+    elsif ENV.has_key?('TURBOT_BOT')
+      ENV['TURBOT_BOT']
+    elsif app_from_dir = extract_app_from_dir(Dir.pwd)
       app_from_dir
     else
       # raise instead of using error command to enable rescuing when app is optional
@@ -36,42 +31,8 @@ class Turbot::Command::Base
     end
   end
 
-  def org
-    @nil = false
-    options[:ignore_no_app] = true
-
-    @org ||= if skip_org?
-      nil
-    elsif options[:org].is_a?(String)
-      options[:org]
-    elsif options[:personal] || @nil
-      nil
-    elsif org_from_app = extract_org_from_app
-      org_from_app
-    else
-      response = org_api.get_orgs.body
-      default = response['user']['default_organization']
-      if default
-        options[:using_default_org] = true
-        default
-      elsif options[:ignore_no_org]
-        nil
-      else
-        # raise instead of using error command to enable rescuing when app is optional
-        raise Turbot::Command::CommandFailed.new("No org specified.\nRun this command from an app folder which belongs to an org or specify which org to use with --org ORG.")
-      end
-    end
-
-    @nil = true if @org == nil
-    @org
-  end
-
   def api
     Turbot::Auth.api
-  end
-
-  def org_api
-    Turbot::Client::Organizations.api
   end
 
   def turbot
@@ -211,72 +172,10 @@ protected
     Turbot::Command.validate_arguments!
   end
 
-  def extract_app_in_dir(dir)
-    return unless remotes = git_remotes(dir)
-
-    if remote = options[:remote]
-      remotes[remote]
-    elsif remote = extract_app_from_git_config
-      remotes[remote]
-    else
-      apps = remotes.values.uniq
-      if apps.size == 1
-        apps.first
-      else
-        raise(Turbot::Command::CommandFailed, "Multiple apps in folder and no app specified.\nSpecify app with --app APP.") unless options[:ignore_no_app]
-      end
-    end
-  end
-
-  def extract_app_from_git_config
-    remote = git("config turbot.remote")
-    remote == "" ? nil : remote
-  end
-
-  def extract_org_from_app
-    return unless app
-
-    begin
-      owner = api.get_app(app).body["owner_email"].split("@")
-      if owner.last == Turbot::Helpers.org_host
-        owner.first
-      else
-        nil
-      end
-    rescue
-      nil
-    end
-  end
-
-  def org_from_app!
-    options[:org] = extract_org_from_app
-    options[:personal] = true unless options[:org]
-  end
-
-  def skip_org?
-    return false if ENV['HEROKU_CLOUD'].nil? || ENV['HEROKU_MANAGER_URL']
-
-    !%w{default production prod}.include? ENV['HEROKU_CLOUD']
-  end
-
-  def git_remotes(base_dir=Dir.pwd)
-    remotes = {}
-    original_dir = Dir.pwd
-    Dir.chdir(base_dir)
-
-    return unless File.exists?(".git")
-    git("remote -v").split("\n").each do |remote|
-      name, url, method = remote.split(/\s/)
-      if url =~ /^git@#{Turbot::Auth.git_host}(?:[\.\w]*):([\w\d-]+)\.git$/
-        remotes[name] = $1
-      end
-    end
-
-    Dir.chdir(original_dir)
-    if remotes.empty?
-      nil
-    else
-      remotes
+  def extract_app_from_dir(dir)
+    manifest = `find #{dir} -name manifest.yml`.strip
+    if manifest
+      dir.split("/").last
     end
   end
 
