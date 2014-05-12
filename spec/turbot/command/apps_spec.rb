@@ -6,7 +6,6 @@ module Turbot::Command
 
     before(:each) do
       stub_core
-      stub_organizations
     end
 
     context("info") do

@@ -1,7 +1,6 @@
 require "fileutils"
 require "turbot/auth"
 require "turbot/client/rendezvous"
-require "turbot/client/organizations"
 require "turbot/command"
 
 class Turbot::Command::Base

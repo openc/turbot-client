@@ -177,16 +177,6 @@ def stub_cisaurus
   end
 end
 
-def stub_organizations
-  @stub_organizations ||= begin
-    stub_organizations = nil
-    any_instance_of(Turbot::Client::Organizations) do |organizations|
-      stub_organizations = stub(organizations)
-    end
-    stub_organizations
-  end
-end
-
 def with_blank_git_repository(&block)
   sandbox = File.join(Dir.tmpdir, "turbot", Process.pid.to_s)
   FileUtils.mkdir_p(sandbox)
