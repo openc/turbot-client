@@ -218,7 +218,6 @@ module Turbot
         object.send(method)
       rescue Interrupt, StandardError, SystemExit => error
         # load likely error classes, as they may not be loaded yet due to defered loads
-        require 'turbot-api'
         require 'rest_client'
         raise(error)
       end

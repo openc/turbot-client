@@ -34,12 +34,25 @@ module Turbot
       return "some-api-key"
     end
 
-    def get_ssh_keys
+    def get_keys
       # return an array of ssh keys
     end
 
-    def post_ssh_key
+    def post_key(key)
       # receive ssh key and associate with account
+    end
+
+    def delete_keys
+      # Do it!
+    end
+
+    def post_app(app)
+      # save an "app" - we'll replace this with the bot stuff chris did
+    end
+
+    def delete_app(app)
+      # dlete an "app" - we'll replace this with the bot stuff chris did
+      # actually, not sure you're allowed to do this
     end
   end
 end

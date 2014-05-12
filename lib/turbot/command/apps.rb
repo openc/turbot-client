@@ -8,10 +8,6 @@ class Turbot::Command::Apps < Turbot::Command::Base
   #
   # list your apps
   #
-  # -o, --org ORG  # the org to list the apps for
-  # -A, --all      # list all apps in the org. Not just joined apps
-  # -p, --personal # list apps in personal account when a default org is set
-  #
   #Example:
   #
   # $ turbot apps
@@ -24,51 +20,21 @@ class Turbot::Command::Apps < Turbot::Command::Base
   #
   def index
     validate_arguments!
-    options[:ignore_no_org] = true
-
-    apps = if org
-      org_api.get_apps(org).body
-    else
-      api.get_apps.body.select { |app| options[:all] ? true : !org?(app["owner_email"]) }
-    end
 
     unless apps.empty?
-      if org
-        joined, unjoined = apps.partition { |app| app['joined'] == true }
+      my_apps, collaborated_apps = apps.partition { |app| app["owner_email"] == Turbot::Auth.user }
 
-        styled_header("Apps joined in organization #{org}")
-        unless joined.empty?
-          styled_array(joined.map {|app| regionized_app_name(app) + (app['locked'] ? ' (locked)' : '') })
-        else
-          display("You haven't joined any apps.")
-          display("Use --all to see unjoined apps.") unless options[:all]
-          display
-        end
+      unless my_apps.empty?
+        styled_header("My Apps")
+        styled_array(my_apps.map { |app| regionized_app_name(app) })
+      end
 
-        if options[:all]
-          styled_header("Apps available to join in organization #{org}")
-          unless unjoined.empty?
-            styled_array(unjoined.map {|app| regionized_app_name(app) + (app['locked'] ? ' (locked)' : '') })
-          else
-            display("There are no apps to join.")
-            display
-          end
-        end
-      else
-        my_apps, collaborated_apps = apps.partition { |app| app["owner_email"] == Turbot::Auth.user }
-
-        unless my_apps.empty?
-          styled_header("My Apps")
-          styled_array(my_apps.map { |app| regionized_app_name(app) })
-        end
-
-        unless collaborated_apps.empty?
-          styled_header("Collaborated Apps")
-          styled_array(collaborated_apps.map { |app| [regionized_app_name(app), app_owner(app["owner_email"])] })
-        end
+      unless collaborated_apps.empty?
+        styled_header("Collaborated Apps")
+        styled_array(collaborated_apps.map { |app| [regionized_app_name(app), app_owner(app["owner_email"])] })
       end
     else
-      org ? display("There are no apps in organization #{org}.") : display("You have no apps.")
+      display("You have no apps.")
     end
   end
 
@@ -104,11 +70,6 @@ class Turbot::Command::Apps < Turbot::Command::Base
     addons_data = api.get_addons(app).body.map {|addon| addon['name']}.sort
     collaborators_data = api.get_collaborators(app).body.map {|collaborator| collaborator["email"]}.sort
     collaborators_data.reject! {|email| email == app_data["owner_email"]}
-
-    if org? app_data['owner_email']
-      app_data['owner'] = app_owner(app_data['owner_email'])
-      app_data.delete("owner_email")
-    end
 
     if options[:shell]
       if app_data['domain_name']
@@ -225,7 +186,6 @@ class Turbot::Command::Apps < Turbot::Command::Base
   def create
     name    = shift_argument || options[:app] || ENV['HEROKU_APP']
     validate_arguments!
-    options[:ignore_no_org] = true
 
     params = {
       "name" => name,
@@ -234,14 +194,10 @@ class Turbot::Command::Apps < Turbot::Command::Base
       "locked" => options[:locked]
     }
 
-    info = if org
-      org_api.post_app(params, org).body
-    else
-      api.post_app(params).body
-    end
+    api.post_app(params).body
 
     begin
-      action("Creating #{info['name']}", :org => !!org) do
+      action("Creating #{info['name']}") do
         if info['create_status'] == 'creating'
           Timeout::timeout(options[:timeout].to_i) do
             loop do
@@ -375,76 +331,6 @@ class Turbot::Command::Apps < Turbot::Command::Base
 
   alias_command "destroy", "apps:destroy"
   alias_command "apps:delete", "apps:destroy"
-
-  # apps:join --app APP
-  #
-  # add yourself to an organization app
-  #
-  # -a, --app APP  # the app
-  def join
-    begin
-      action("Joining application #{app}") do
-        org_api.join_app(app)
-      end
-    rescue Turbot::API::Errors::NotFound
-      error("Application does not exist or does not belong to an org that you have access to.")
-    end
-  end
-
-  alias_command "join", "apps:join"
-
-  # apps:leave --app APP
-  #
-  # remove yourself from an organization app
-  #
-  # -a, --app APP  # the app
-  def leave
-    begin
-      action("Leaving application #{app}") do
-        if org_from_app = extract_org_from_app
-          org_api.leave_app(app)
-        else
-          api.delete_collaborator(app, Turbot::Auth.user)
-        end
-      end
-    end
-  end
-
-  alias_command "leave", "apps:leave"
-
-  # apps:lock
-  #
-  # lock an organization app to restrict access
-  #
-  def lock
-    begin
-      action("Locking #{app}") {
-        org_api.lock_app(app)
-      }
-      display("Organization members must be invited this app.")
-    rescue Excon::Errors::NotFound
-      error("#{app} was not found")
-    end
-  end
-
-  alias_command "lock", "apps:lock"
-
-  # apps:unlock
-  #
-  # unlock an organization app so that any org member can join it
-  #
-  def unlock
-    begin
-      action("Unlocking #{app}") {
-        org_api.unlock_app(app)
-      }
-      display("All organization members can join this app.")
-    rescue Excon::Errors::NotFound
-      error("#{app} was not found")
-    end
-  end
-
-  alias_command "unlock", "apps:unlock"
 
   # apps:upgrade TIER
   #
