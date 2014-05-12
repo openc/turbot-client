@@ -18,7 +18,6 @@ module Turbot::Command
       it "tries to find a key if no key filename is supplied" do
         Turbot::Auth.should_receive(:ask).and_return("y")
         Turbot::Auth.should_receive(:generate_ssh_key)
-        File.should_receive(:exists?).with('.git').and_return(false)
         File.should_receive(:exists?).with('/.ssh/id_rsa.pub').and_return(true)
         File.should_receive(:read).with('/.ssh/id_rsa.pub').and_return(KEY)
         stderr, stdout = execute("keys:add")
@@ -31,7 +30,6 @@ STDOUT
       end
 
       it "adds a key from a specified keyfile path" do
-        File.should_receive(:exists?).with('.git').and_return(false)
         File.should_receive(:exists?).with('/my/key.pub').and_return(true)
         File.should_receive(:read).with('/my/key.pub').and_return(KEY)
         stderr, stdout = execute("keys:add /my/key.pub")

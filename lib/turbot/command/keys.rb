@@ -24,7 +24,7 @@ module Turbot::Command
     #
     def index
       validate_arguments!
-      keys = api.get_keys.body
+      keys = api.get_keys
       if keys.length > 0
         styled_header("#{Turbot::Auth.user} Keys")
         keys = if options[:long]
