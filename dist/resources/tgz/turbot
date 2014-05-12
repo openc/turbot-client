@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+# encoding: UTF-8
+
+# resolve bin path, ignoring symlinks
+require "pathname"
+bin_file = Pathname.new(__FILE__).realpath
+
+# add locally vendored gems to libpath
+gem_dir = File.expand_path("../../vendor/gems", bin_file)
+Dir["#{gem_dir}/**/lib"].each do |libdir|
+  $:.unshift libdir
+end
+
+# add self to libpath
+$:.unshift File.expand_path("../../lib", bin_file)
+
+# inject any code in ~/.turbot/client over top
+require "turbot/updater"
+Turbot::Updater.inject_libpath
+
+# start up the CLI
+require "turbot/cli"
+Turbot.user_agent = "turbot-toolbelt/#{Turbot::VERSION} (#{RUBY_PLATFORM}) ruby/#{RUBY_VERSION}"
+Turbot::CLI.start(*ARGV)

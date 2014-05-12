@@ -1,0 +1,45 @@
+#!/bin/sh
+
+usershell=$SHELL
+
+startup_files() {
+  case $(basename $usershell) in
+    zsh)
+      echo ".zlogin .zshrc .zprofile .zshenv"
+      ;;
+    bash)
+      echo ".bashrc .bash_profile .bash_login .profile"
+      ;;
+    *)
+      echo ".bash_profile .zshrc .profile"
+      ;;
+  esac
+}
+
+install_path() {
+  for file in $(startup_files); do
+    [ -f $HOME/$file ] || continue
+    (grep "Added by the Turbot" $HOME/$file >/dev/null) && break
+
+    cat <<MESSAGE >>$HOME/$file
+
+### Added by the Turbot Toolbelt
+export PATH="/usr/local/turbot/bin:\$PATH"
+MESSAGE
+
+    # done after we add to one file
+    break
+  done
+}
+
+# if the toolbelt is not returned by `which`, let's add to the PATH
+case $(which turbot) in
+  /usr/bin/turbot|/usr/local/turbot/bin/turbot)
+    ;;
+  *)
+    install_path
+    ;;
+esac
+
+# symlink binary to /usr/bin/turbot
+ln -sf /usr/local/turbot/bin/turbot /usr/bin/turbot

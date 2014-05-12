@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<installer-script minSpecVersion="1.000000" authoringTool="org.ruby-lang.rake" authoringToolVersion="0.8.7">
+  <title>Turbot Client</title>
+  <options customize="allow" allow-external-scripts="no"/>
+  <domains enable_localSystem="true"/>
+  <choices-outline>
+    <line choice="turbot-client"/>
+  </choices-outline>
+  <choice id="turbot-client" title="Turbot Client">
+    <pkg-ref id="com.turbot.client"/>
+    <pkg-ref id="org.ruby-lang.installer"/>
+  </choice>
+  <pkg-ref id="com.turbot.client" installKBytes="<%= kbytes %>" version="<%= version %>" auth="Root">#turbot-client.pkg</pkg-ref>
+  <pkg-ref id="org.ruby-lang.installer" installKBytes="9132" auth="Root">#ruby.pkg</pkg-ref>
+</installer-script>
