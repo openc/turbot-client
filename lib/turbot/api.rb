@@ -71,6 +71,15 @@ module Turbot
       write_db("app", db)
     end
 
+    def get_apps
+      read_db("app")
+    end
+
+    def get_app(app)
+      db = read_db("app_data")
+      db[app] || {}
+    end
+
     def put_config_vars(bot, vars)
       # Set vars for bot specified
       config = read_db("config")

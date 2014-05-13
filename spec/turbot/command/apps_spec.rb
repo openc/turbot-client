@@ -1,5 +1,6 @@
 require "spec_helper"
 require "turbot/command/apps"
+require "turbot/api"
 
 module Turbot::Command
   describe Apps do
@@ -12,6 +13,13 @@ module Turbot::Command
 
       before(:each) do
         api.post_app("name" => "example", "stack" => "cedar")
+        Turbot::API.any_instance.stub(:get_app).and_return(
+          "last_run_status" =>       "failed",
+          "last_run_ended" =>   "2016/01/01",
+          "git_url" =>   "frob",
+          "repo_size" =>   123,
+          "name" => "example"
+        )
       end
 
       after(:each) do
@@ -23,10 +31,10 @@ module Turbot::Command
         stderr.should == ""
         stdout.should == <<-STDOUT
 === example
-Git URL:       git@turbot.com:example.git
-Owner Email:   email@example.com
-Stack:         cedar
-Web URL:       http://example.turbotapp.com/
+Git URL:         frob
+Last run ended:  2016-01-01 00:00 UTC
+Last run status: failed
+Repo Size:       123
 STDOUT
       end
 
@@ -35,131 +43,23 @@ STDOUT
         stderr.should == ""
         stdout.should == <<-STDOUT
 === example
-Git URL:       git@turbot.com:example.git
-Owner Email:   email@example.com
-Stack:         cedar
-Web URL:       http://example.turbotapp.com/
+Git URL:         frob
+Last run ended:  2016-01-01 00:00 UTC
+Last run status: failed
+Repo Size:       123
 STDOUT
       end
 
       it "shows shell app info when --shell option is used" do
         stderr, stdout = execute("apps:info --shell")
         stderr.should == ""
-        stdout.should match Regexp.new(<<-STDOUT)
-create_status=complete
-created_at=\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2} [+-]\\d{4}
-dynos=0
-git_url=git@turbot.com:example.git
-id=\\d{1,5}
+        stdout.should == <<-STDOUT
+git_url=frob
+last_run_ended=2016/01/01
+last_run_status=failed
 name=example
-owner_email=email@example.com
-repo_migrate_status=complete
-repo_size=
-requested_stack=
-slug_size=
-stack=cedar
-web_url=http://example.turbotapp.com/
-workers=0
+repo_size=123
 STDOUT
-      end
-
-    end
-
-    context("create") do
-
-      it "without a name" do
-        name = nil
-        with_blank_git_repository do
-          stderr, stdout = execute("apps:create")
-          name = api.get_apps.body.first["name"]
-          stderr.should == ""
-          stdout.should == <<-STDOUT
-Creating #{name}... done, stack is bamboo-mri-1.9.2
-http://#{name}.turbotapp.com/ | git@turbot.com:#{name}.git
-Git remote turbot added
-STDOUT
-        end
-        api.delete_app(name)
-      end
-
-      it "with a name" do
-        with_blank_git_repository do
-          stderr, stdout = execute("apps:create example")
-          stderr.should == ""
-          stdout.should == <<-STDOUT
-Creating example... done, stack is bamboo-mri-1.9.2
-http://example.turbotapp.com/ | git@turbot.com:example.git
-Git remote turbot added
-STDOUT
-        end
-        api.delete_app("example")
-      end
-
-      it "with -a name" do
-        with_blank_git_repository do
-          stderr, stdout = execute("apps:create -a example")
-          stderr.should == ""
-          stdout.should == <<-STDOUT
-Creating example... done, stack is bamboo-mri-1.9.2
-http://example.turbotapp.com/ | git@turbot.com:example.git
-Git remote turbot added
-STDOUT
-        end
-        api.delete_app("example")
-      end
-
-      it "with --no-remote" do
-        with_blank_git_repository do
-          stderr, stdout = execute("apps:create example --no-remote")
-          stderr.should == ""
-          stdout.should == <<-STDOUT
-Creating example... done, stack is bamboo-mri-1.9.2
-http://example.turbotapp.com/ | git@turbot.com:example.git
-STDOUT
-        end
-        api.delete_app("example")
-      end
-
-      it "with addons" do
-        with_blank_git_repository do
-          stderr, stdout = execute("apps:create addonapp --addon custom_domains:basic,releases:basic")
-          stderr.should == ""
-          stdout.should == <<-STDOUT
-Creating addonapp... done, stack is bamboo-mri-1.9.2
-Adding custom_domains:basic to addonapp... done
-Adding releases:basic to addonapp... done
-http://addonapp.turbotapp.com/ | git@turbot.com:addonapp.git
-Git remote turbot added
-STDOUT
-        end
-        api.delete_app("addonapp")
-      end
-
-      it "with a buildpack" do
-        with_blank_git_repository do
-          stderr, stdout = execute("apps:create buildpackapp --buildpack http://example.org/buildpack.git")
-          stderr.should == ""
-          stdout.should == <<-STDOUT
-Creating buildpackapp... done, stack is bamboo-mri-1.9.2
-BUILDPACK_URL=http://example.org/buildpack.git
-http://buildpackapp.turbotapp.com/ | git@turbot.com:buildpackapp.git
-Git remote turbot added
-STDOUT
-        end
-        api.delete_app("buildpackapp")
-      end
-
-      it "with an alternate remote name" do
-        with_blank_git_repository do
-          stderr, stdout = execute("apps:create alternate-remote --remote alternate")
-          stderr.should == ""
-          stdout.should == <<-STDOUT
-Creating alternate-remote... done, stack is bamboo-mri-1.9.2
-http://alternate-remote.turbotapp.com/ | git@turbot.com:alternate-remote.git
-Git remote alternate added
-STDOUT
-        end
-        api.delete_app("alternate-remote")
       end
 
     end
@@ -179,234 +79,12 @@ STDOUT
         stderr, stdout = execute("apps")
         stderr.should == ""
         stdout.should == <<-STDOUT
-=== My Apps
+=== Apps
 example
 
 STDOUT
       end
 
-    end
-
-    context("index with orgs") do
-      context("when you are a member of the org") do
-        before(:each) do
-          Excon.stub({ :method => :get, :path => '/v1/user/info' }, { :status => 200, :body => Turbot::OkJson.encode({
-            "user" => {"default_organization" => "test-org"}
-          })})
-        end
-
-        after(:each) do
-          Excon.stub({ :method => :get, :path => '/v1/user/info' }, { :status => 404 })
-        end
-
-        it "displays a message when the org has no apps" do
-          Excon.stub({ :method => :get, :path => '/v1/organization/test-org/app' }, { :status => 200, :body => Turbot::OkJson.encode([]) })
-          stderr, stdout = execute("apps")
-          stderr.should == ""
-          stdout.should == <<-STDOUT
-There are no apps in organization test-org.
-STDOUT
-
-        end
-
-        context("and the org has apps") do
-          before(:each) do
-            Excon.stub({ :method => :get, :path => '/v1/organization/test-org/app' },
-              {
-                :body   => Turbot::OkJson.encode([
-                  {"name" => "org-app-1", "joined" => true},
-                  {"name" => "org-app-2"}
-                ]),
-                :status => 200
-              }
-            )
-          end
-
-          it "lists joined apps in an organization" do
-            stderr, stdout = execute("apps")
-            stderr.should == ""
-            stdout.should == <<-STDOUT
-=== Apps joined in organization test-org
-org-app-1
-
-STDOUT
-          end
-
-          it "list all apps in an organization with the --all flag" do
-            stderr, stdout = execute("apps --all")
-            stderr.should == ""
-            stdout.should == <<-STDOUT
-=== Apps joined in organization test-org
-org-app-1
-
-=== Apps available to join in organization test-org
-org-app-2
-
-STDOUT
-          end
-        end
-      end
-    end
-
-    context("rename") do
-
-      context("success") do
-
-        before(:each) do
-          api.post_app("name" => "example", "stack" => "cedar")
-        end
-
-        after(:each) do
-          api.delete_app("example2")
-        end
-
-        it "renames app" do
-          with_blank_git_repository do
-            stderr, stdout = execute("apps:rename example2")
-            stderr.should == ""
-            stdout.should == <<-STDOUT
-Renaming example to example2... done
-http://example2.turbotapp.com/ | git@turbot.com:example2.git
-Don't forget to update your Git remotes on any local checkouts.
-STDOUT
-          end
-        end
-
-      end
-
-      it "displays an error if no name is specified" do
-        stderr, stdout = execute("apps:rename")
-        stderr.should == <<-STDERR
- !    Usage: turbot apps:rename NEWNAME
- !    Must specify NEWNAME to rename.
-STDERR
-        stdout.should == ""
-      end
-
-    end
-
-    context("destroy") do
-
-      before(:each) do
-        api.post_app("name" => "example", "stack" => "cedar")
-      end
-
-      it "succeeds with app explicitly specified with --app and user confirmation" do
-        stderr, stdout = execute("apps:destroy --confirm example")
-        stderr.should == ""
-        stdout.should == <<-STDOUT
-Destroying example (including all add-ons)... done
-STDOUT
-      end
-
-      context("fails") do
-
-        after(:each) do
-          api.delete_app("example")
-        end
-
-        it "fails with explicit app but no confirmation" do
-          stderr, stdout = execute("apps:destroy example")
-          stderr.should == <<-STDERR
- !    Confirmation did not match example. Aborted.
-STDERR
-          stdout.should == "
- !    WARNING: Potentially Destructive Action
- !    This command will destroy example (including all add-ons).
- !    To proceed, type \"example\" or re-run this command with --confirm example
-
-> "
-
-        end
-
-        it "fails without explicit app" do
-          stderr, stdout = execute("apps:destroy")
-          stderr.should == <<-STDERR
- !    Usage: turbot apps:destroy --app APP
- !    Must specify APP to destroy.
-STDERR
-          stdout.should == ""
-        end
-
-      end
-
-    end
-
-    context "Git Integration" do
-
-      it "creates adding turbot to git remote" do
-        with_blank_git_repository do
-          stderr, stdout = execute("apps:create example")
-          stderr.should == ""
-          stdout.should == <<-STDOUT
-Creating example... done, stack is bamboo-mri-1.9.2
-http://example.turbotapp.com/ | git@turbot.com:example.git
-Git remote turbot added
-STDOUT
-          `git remote`.strip.should match(/^turbot$/)
-          api.delete_app("example")
-        end
-      end
-
-      it "creates adding a custom git remote" do
-        with_blank_git_repository do
-          stderr, stdout = execute("apps:create example --remote myremote")
-          stderr.should == ""
-          stdout.should == <<-STDOUT
-Creating example... done, stack is bamboo-mri-1.9.2
-http://example.turbotapp.com/ | git@turbot.com:example.git
-Git remote myremote added
-STDOUT
-          `git remote`.strip.should match(/^myremote$/)
-          api.delete_app("example")
-        end
-      end
-
-      it "doesn't add a git remote if it already exists" do
-        with_blank_git_repository do
-          `git remote add turbot /tmp/git_spec_#{Process.pid}`
-          stderr, stdout = execute("apps:create example")
-          stderr.should == ""
-          stdout.should == <<-STDOUT
-Creating example... done, stack is bamboo-mri-1.9.2
-http://example.turbotapp.com/ | git@turbot.com:example.git
-STDOUT
-          api.delete_app("example")
-        end
-      end
-
-      it "renames updating the corresponding turbot git remote" do
-        with_blank_git_repository do
-          `git remote add github     git@github.com:test/test.git`
-          `git remote add production git@turbot.com:example.git`
-          `git remote add staging    git@turbot.com:example-staging.git`
-
-          api.post_app("name" => "example", "stack" => "cedar")
-          stderr, stdout = execute("apps:rename example2")
-          api.delete_app("example2")
-
-          remotes = `git remote -v`
-          remotes.should == <<-REMOTES
-github\tgit@github.com:test/test.git (fetch)
-github\tgit@github.com:test/test.git (push)
-production\tgit@turbot.com:example2.git (fetch)
-production\tgit@turbot.com:example2.git (push)
-staging\tgit@turbot.com:example-staging.git (fetch)
-staging\tgit@turbot.com:example-staging.git (push)
-REMOTES
-        end
-      end
-
-      it "destroys removing any remotes pointing to the app" do
-        with_blank_git_repository do
-          `git remote add turbot git@turbot.com:example.git`
-
-          api.post_app("name" => "example", "stack" => "cedar")
-          stderr, stdout = execute("apps:destroy --confirm example")
-
-          `git remote`.strip.should_not include('turbot')
-        end
-      end
     end
   end
 end

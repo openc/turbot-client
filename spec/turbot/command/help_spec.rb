@@ -23,7 +23,7 @@ describe Turbot::Command::Help do
     end
 
     it "should show only command help when not ambiguous" do
-      stderr, stdout = execute("help apps:create")
+      stderr, stdout = execute("help apps:index")
       stderr.should == ""
       stdout.should include "turbot apps:create"
       stdout.should include "create a new app"
@@ -31,7 +31,7 @@ describe Turbot::Command::Help do
     end
 
     it "should show command help with --help" do
-      stderr, stdout = execute("apps:create --help")
+      stderr, stdout = execute("apps:index --help")
       stderr.should == ""
       stdout.should include "Usage: turbot apps:create"
       stdout.should include "create a new app"
@@ -39,7 +39,7 @@ describe Turbot::Command::Help do
     end
 
     it "should redirect if the command is an alias" do
-      stderr, stdout = execute("help create")
+      stderr, stdout = execute("help list")
       stderr.should == ""
       stdout.should include "Alias: create redirects to apps:create"
       stdout.should include "Usage: turbot apps:create"
