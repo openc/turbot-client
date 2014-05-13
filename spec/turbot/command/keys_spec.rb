@@ -9,12 +9,11 @@ module Turbot::Command
       stub_core
     end
 
+    after(:each) do
+      api.delete_keys
+    end
+
     context("add") do
-
-      after(:each) do
-        api.delete_key("pedro@turbot")
-      end
-
       it "tries to find a key if no key filename is supplied" do
         Turbot::Auth.should_receive(:ask).and_return("y")
         Turbot::Auth.should_receive(:generate_ssh_key)
@@ -48,7 +47,7 @@ STDOUT
       end
 
       after do
-        api.delete_key("pedro@turbot")
+        api.delete_keys
       end
 
       it "list keys, trimming the hex code for better display" do
