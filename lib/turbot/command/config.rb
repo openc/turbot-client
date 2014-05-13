@@ -23,11 +23,11 @@ class Turbot::Command::Config < Turbot::Command::Base
   def index
     validate_arguments!
 
-    vars = api.get_config_vars(app).body
+    vars = api.get_config_vars(app)
     if vars.empty?
       display("#{app} has no config vars.")
     else
-      vars.each {|key, value| vars[key] = value.to_s}
+      vars.each {|key, value| vars[key] = value.to_s.strip}
       if options[:shell]
         vars.keys.sort.each do |key|
           display(%{#{key}=#{vars[key]}})
@@ -67,13 +67,6 @@ class Turbot::Command::Config < Turbot::Command::Base
 
     action("Setting config vars and restarting #{app}") do
       api.put_config_vars(app, vars)
-
-      @status = begin
-        if release = api.get_release(app, 'current').body
-          release['name']
-        end
-      rescue Turbot::API::Errors::RequestFailed => e
-      end
     end
 
     vars.each {|key, value| vars[key] = value.to_s}
@@ -97,7 +90,7 @@ class Turbot::Command::Config < Turbot::Command::Base
     end
     validate_arguments!
 
-    vars = api.get_config_vars(app).body
+    vars = api.get_config_vars(app)
     key, value = vars.detect {|k,v| k == key}
     display(value.to_s)
   end
@@ -121,13 +114,6 @@ class Turbot::Command::Config < Turbot::Command::Base
     args.each do |key|
       action("Unsetting #{key} and restarting #{app}") do
         api.delete_config_var(app, key)
-
-        @status = begin
-          if release = api.get_release(app, 'current').body
-            release['name']
-          end
-        rescue Turbot::API::Errors::RequestFailed => e
-        end
       end
     end
   end

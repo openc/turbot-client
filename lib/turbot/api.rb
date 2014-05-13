@@ -1,3 +1,5 @@
+require 'json'
+
 module Turbot
   class API
     def initialize(params)
@@ -10,6 +12,7 @@ module Turbot
       @ssl_verify_peer = params[:ssl_verify_peer]
       @api_key = params[:api_key] || get_api_key(@username, @password)
       authenticate
+
     end
 
     def authenticate
@@ -36,23 +39,73 @@ module Turbot
 
     def get_keys
       # return an array of ssh keys
+      read_db("keys")
     end
 
     def post_key(key)
       # receive ssh key and associate with account
+      append_db("keys", {"contents" => key})
+    end
+
+    def delete_key(key)
+      keys = read_db("keys")
+      keys.delete(key)
+      write_db("keys", keys)
     end
 
     def delete_keys
-      # Do it!
+      write_db("keys", [])
     end
 
-    def post_app(app)
+    def post_app(data)
+      # XXX need to implement this to make the config command pass...
       # save an "app" - we'll replace this with the bot stuff chris did
+      db = read_db("app")
+      db[data["name"]] = data
+      write_db("app", db)
     end
 
     def delete_app(app)
-      # dlete an "app" - we'll replace this with the bot stuff chris did
-      # actually, not sure you're allowed to do this
+      db = read_db("app")
+      db.delete(app)
+      write_db("app", db)
+    end
+
+    def put_config_vars(bot, vars)
+      # Set vars for bot specified
+      config = read_db("config")
+      config[bot] = vars
+      write_db("config", config)
+    end
+
+    def get_config_vars(bot)
+      read_db("config")[bot] || []
+    end
+
+    def delete_config_var(bot, key)
+      db = read_db("config")
+      keys = db[bot] || []
+      keys.delete(key)
+      db[bot] = keys
+      write_db("config", db)
+    end
+
+    private
+
+    def write_db(name, data)
+      open("/tmp/#{name}", "w") do |f|
+        f.write(JSON.dump(data))
+      end
+    end
+
+    def read_db(name)
+      JSON.parse(open("/tmp/#{name}", "r").read) rescue {}
+    end
+
+    def append_db(name, data)
+      db = read_db(name) || []
+      db << data
+      write_db(name, db)
     end
   end
 end

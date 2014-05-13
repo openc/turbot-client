@@ -39,8 +39,7 @@ STDOUT
       stderr.should == ""
       stdout.should == <<-STDOUT
 === example Config Vars
-BAZ_QUX: 
-FOO_BAR: one
+BAZ_QUX: \nFOO_BAR: one
 STDOUT
     end
 
@@ -80,7 +79,7 @@ STDOUT
         stderr, stdout = execute("config:set A=1 B=2")
         stderr.should == ""
         stdout.should == <<-STDOUT
-Setting config vars and restarting example... done, v1
+Setting config vars and restarting example... done
 A: 1
 B: 2
       STDOUT
@@ -90,7 +89,7 @@ B: 2
         stderr, stdout = execute("config:set A=b=c")
         stderr.should == ""
         stdout.should == <<-STDOUT
-Setting config vars and restarting example... done, v1
+Setting config vars and restarting example... done
 A: b=c
 STDOUT
       end
@@ -99,7 +98,7 @@ STDOUT
         stderr, stdout = execute("config:set a=b")
         stderr.should == ""
         stdout.should == <<-STDOUT
-Setting config vars and restarting example... done, v1
+Setting config vars and restarting example... done
 a: b
 STDOUT
       end
@@ -123,7 +122,7 @@ STDERR
           stderr, stdout = execute("config:unset A")
           stderr.should == ""
           stdout.should == <<-STDOUT
-Unsetting A and restarting example... done, v1
+Unsetting A and restarting example... done
 STDOUT
         end
       end
@@ -134,8 +133,8 @@ STDOUT
           stderr, stdout = execute("config:unset A B")
           stderr.should == ""
           stdout.should == <<-STDOUT
-Unsetting A and restarting example... done, v1
-Unsetting B and restarting example... done, v2
+Unsetting A and restarting example... done
+Unsetting B and restarting example... done
 STDOUT
         end
       end
