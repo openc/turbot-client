@@ -19,32 +19,29 @@ describe Turbot::Command::Help do
       stdout.should include "turbot apps"
       stdout.should include "list your apps"
       stdout.should include "Additional commands"
-      stdout.should include "apps:create"
+      stdout.should include "apps:info"
     end
 
     it "should show only command help when not ambiguous" do
-      stderr, stdout = execute("help apps:index")
+      stderr, stdout = execute("help apps:info")
       stderr.should == ""
-      stdout.should include "turbot apps:create"
-      stdout.should include "create a new app"
+      stdout.should include "turbot apps:info"
       stdout.should_not include "Additional commands"
     end
 
     it "should show command help with --help" do
-      stderr, stdout = execute("apps:index --help")
+      stderr, stdout = execute("apps:info --help")
       stderr.should == ""
-      stdout.should include "Usage: turbot apps:create"
-      stdout.should include "create a new app"
+      stdout.should include "Usage: turbot apps:info"
       stdout.should_not include "Additional commands"
     end
 
     it "should redirect if the command is an alias" do
       stderr, stdout = execute("help list")
       stderr.should == ""
-      stdout.should include "Alias: create redirects to apps:create"
-      stdout.should include "Usage: turbot apps:create"
-      stdout.should include "create a new app"
-      stdout.should_not include "Additional commands"
+      stdout.should include "Alias: list redirects to apps"
+      stdout.should include "Usage: turbot apps"
+      stdout.should include "list your apps"
     end
 
     it "should show if the command does not exist" do
