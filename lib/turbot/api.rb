@@ -72,12 +72,12 @@ module Turbot
     end
 
     def get_apps
-      read_db("app")
+      read_db("app", [])
     end
 
     def get_app(app)
-      db = read_db("app_data")
-      db[app] || {}
+      db = read_db("app_data", [])
+      db[app]
     end
 
     def put_config_vars(bot, vars)
@@ -88,12 +88,12 @@ module Turbot
     end
 
     def get_config_vars(bot)
-      read_db("config")[bot] || []
+      read_db("config", [])[bot]
     end
 
     def delete_config_var(bot, key)
-      db = read_db("config")
-      keys = db[bot] || []
+      db = read_db("config", [])
+      keys = db[bot]
       keys.delete(key)
       db[bot] = keys
       write_db("config", db)
@@ -107,12 +107,12 @@ module Turbot
       end
     end
 
-    def read_db(name)
+    def read_db(name, default={})
       JSON.parse(open("/tmp/#{name}", "r").read) rescue {}
     end
 
     def append_db(name, data)
-      db = read_db(name) || []
+      db = read_db(name, [])
       db << data
       write_db(name, db)
     end

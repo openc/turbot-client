@@ -41,13 +41,13 @@ class Turbot::Command::Apps < Turbot::Command::Base
   #
   # $ turbot apps:info
   # === example
-  # Git URL:   git@turbot.com:example.git
-  # Repo Size: 5M
+  # Last run status: OK
+  # Last run ended: 2001/01/01
   # ...
   #
   # $ turbot apps:info --shell
-  # git_url=git@turbot.com:example.git
-  # repo_size=5000000
+  # last_run_status: OK
+  # last_run_ended: 2001/01/01
   # ...
   #
   def info
