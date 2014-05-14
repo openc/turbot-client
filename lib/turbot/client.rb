@@ -42,7 +42,7 @@ class Turbot::Client
     method = caller.first.split('`').last[0...-1]
     source = caller[1].split(' ').first[0...-3]
     $stderr.puts(" !    DEPRECATED: Turbot::Client##{method} is deprecated, please use the turbot-api gem.")
-    $stderr.puts(" !    DEPRECATED: More information available at https://github.com/turbot/turbot.rb")
+    $stderr.puts(" !    DEPRECATED: More information available at https://github.com/openc/turbot-client")
     $stderr.puts(" !    DEPRECATED: Deprecated method called from #{source}.")
   end
 
