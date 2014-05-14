@@ -365,8 +365,7 @@ module Turbot
     def format_error(error, message='Turbot client internal error.')
       formatted_error = []
       formatted_error << " !    #{message}"
-      formatted_error << ' !    Search for help at: https://help.turbot.com'
-      formatted_error << ' !    Or report a bug at: https://github.com/turbot/turbot/issues/new'
+      formatted_error << ' !    Report a bug at: https://github.com/openc/turbot-client/issues/new'
       formatted_error << ''
       formatted_error << "    Error:       #{error.message} (#{error.class})"
       formatted_error << "    Backtrace:   #{error.backtrace.first}"
