@@ -1,3 +1,3 @@
 module Turbot
-  VERSION = "3.6.0"
+  VERSION = "0.0.1"
 end
