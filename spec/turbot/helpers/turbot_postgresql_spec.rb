@@ -7,11 +7,11 @@ describe Turbot::Helpers::TurbotPostgresql::Resolver do
 
   before do
     @resolver = described_class.new('appname', mock(:api))
-    @resolver.stub(:app_config_vars) { app_config_vars }
-    @resolver.stub(:app_attachments) { app_attachments }
+    @resolver.stub(:bot_config_vars) { bot_config_vars }
+    @resolver.stub(:bot_attachments) { bot_attachments }
   end
 
-  let(:app_config_vars) do
+  let(:bot_config_vars) do
     {
       "DATABASE_URL"                => "postgres://default",
       "HEROKU_POSTGRESQL_BLACK_URL" => "postgres://black",
@@ -19,16 +19,16 @@ describe Turbot::Helpers::TurbotPostgresql::Resolver do
     }
   end
 
-    let(:app_attachments) {
+    let(:bot_attachments) {
       [ Attachment.new({ 'name'  => 'HEROKU_POSTGRESQL_IVORY',
                          'config_var' => 'HEROKU_POSTGRESQL_IVORY_URL',
-                         'app' => {'name' => 'sushi' },
+                         'bot' => {'name' => 'sushi' },
                          'resource' => {'name'  => 'softly-mocking-123',
                                         'value' => 'postgres://default',
                                         'type'  => 'turbot-postgresql:baku' }}),
         Attachment.new({ 'name'  => 'HEROKU_POSTGRESQL_BLACK',
                          'config_var' => 'HEROKU_POSTGRESQL_BLACK_URL',
-                         'app' => {'name' => 'sushi' },
+                         'bot' => {'name' => 'sushi' },
                          'resource' => {'name'  => 'quickly-yelling-2421',
                                         'value' => 'postgres://black',
                                         'type'  => 'turbot-postgresql:zilla' }})
@@ -36,7 +36,7 @@ describe Turbot::Helpers::TurbotPostgresql::Resolver do
     }
 
   context "when the DATABASE_URL has query options" do
-    let(:app_config_vars) do
+    let(:bot_config_vars) do
       {
         "DATABASE_URL"                => "postgres://default?pool=15",
         "HEROKU_POSTGRESQL_BLACK_URL" => "postgres://black",
@@ -52,27 +52,27 @@ describe Turbot::Helpers::TurbotPostgresql::Resolver do
     end
   end
 
-  context "when no app is specified or inferred, and identifier does not have app::db shorthand" do
-    it 'exits, complaining about the missing app' do
+  context "when no bot is specified or inferred, and identifier does not have bot::db shorthand" do
+    it 'exits, complaining about the missing bot' do
       api = mock('api')
       api.stub(:get_attachments).and_raise("getting this far will cause an inaccurate 'internal server error' message")
 
-      no_app_resolver = described_class.new(nil, api)
-      no_app_resolver.should_receive(:error).with { |msg| expect(msg).to match(/No app specified/) }.and_raise(SystemExit)
-      expect { no_app_resolver.resolve('black') }.to raise_error(SystemExit)
+      no_bot_resolver = described_class.new(nil, api)
+      no_bot_resolver.should_receive(:error).with { |msg| expect(msg).to match(/No bot specified/) }.and_raise(SystemExit)
+      expect { no_bot_resolver.resolve('black') }.to raise_error(SystemExit)
     end
   end
 
   context "when the identifier has ::" do
-    it 'changes the resolver app to the left of the ::' do
-      @resolver.app_name.should == 'appname'
+    it 'changes the resolver bot to the left of the ::' do
+      @resolver.bot_name.should == 'appname'
       att = @resolver.resolve('app2::black')
-      @resolver.app_name.should == 'app2'
+      @resolver.bot_name.should == 'app2'
     end
 
     it 'resolves database names on the right of the ::' do
       att = @resolver.resolve('app2::black')
-      att.url.should == "postgres://black" # since we're mocking out the app_config_vars
+      att.url.should == "postgres://black" # since we're mocking out the bot_config_vars
     end
 
     it 'looks allows nothing after the :: to use the default' do
@@ -82,7 +82,7 @@ describe Turbot::Helpers::TurbotPostgresql::Resolver do
   end
 
   context "when the DATABASE_URL has no query options" do
-    let(:app_config_vars) do
+    let(:bot_config_vars) do
       {
         "DATABASE_URL"                => "postgres://default",
         "HEROKU_POSTGRESQL_BLACK_URL" => "postgres://black",
@@ -165,13 +165,13 @@ describe Turbot::Helpers::TurbotPostgresql::Resolver do
     end
 
     it 'throws an error if given an empty string and asked for the default and there is no default' do
-      app_config_vars.delete 'DATABASE_URL'
+      bot_config_vars.delete 'DATABASE_URL'
       @resolver.should_receive(:error).with("Unknown database. Valid options are: HEROKU_POSTGRESQL_BLACK_URL, HEROKU_POSTGRESQL_IVORY_URL")
       att = @resolver.resolve('', "DATABASE_URL")
     end
 
     it 'throws an error if given an empty string and asked for the default and the default doesnt match' do
-      app_config_vars['DATABASE_URL'] = 'something different'
+      bot_config_vars['DATABASE_URL'] = 'something different'
       @resolver.should_receive(:error).with("Unknown database. Valid options are: HEROKU_POSTGRESQL_BLACK_URL, HEROKU_POSTGRESQL_IVORY_URL")
       att = @resolver.resolve('', "DATABASE_URL")
     end

@@ -39,21 +39,21 @@ module Turbot
       ['y', 'yes'].include?(ask.downcase)
     end
 
-    def confirm_command(app_to_confirm = app, message=nil)
-      if confirmed_app = Turbot::Command.current_options[:confirm]
-        unless confirmed_app == app_to_confirm
-          raise(Turbot::Command::CommandFailed, "Confirmed app #{confirmed_app} did not match the selected app #{app_to_confirm}.")
+    def confirm_command(bot_to_confirm = bot, message=nil)
+      if confirmed_bot = Turbot::Command.current_options[:confirm]
+        unless confirmed_bot == bot_to_confirm
+          raise(Turbot::Command::CommandFailed, "Confirmed bot #{confirmed_bot} did not match the selected bot #{bot_to_confirm}.")
         end
         return true
       else
         display
-        message ||= "WARNING: Destructive Action\nThis command will affect the app: #{app_to_confirm}"
-        message << "\nTo proceed, type \"#{app_to_confirm}\" or re-run this command with --confirm #{app_to_confirm}"
+        message ||= "WARNING: Destructive Action\nThis command will affect the bot: #{bot_to_confirm}"
+        message << "\nTo proceed, type \"#{bot_to_confirm}\" or re-run this command with --confirm #{bot_to_confirm}"
         output_with_bang(message)
         display
         display "> ", false
-        if ask.downcase != app_to_confirm
-          error("Confirmation did not match #{app_to_confirm}. Aborted.")
+        if ask.downcase != bot_to_confirm
+          error("Confirmation did not match #{bot_to_confirm}. Aborted.")
         else
           true
         end
@@ -485,11 +485,9 @@ module Turbot
 
     def suggestion(actual, possibilities)
       distances = Hash.new {|hash,key| hash[key] = []}
-
       possibilities.each do |suggestion|
         distances[string_distance(actual, suggestion)] << suggestion
       end
-
       minimum_distance = distances.keys.min
       if minimum_distance < 4
         suggestions = distances[minimum_distance].sort
@@ -515,7 +513,7 @@ module Turbot
       email =~ /^.*@#{org_host}$/
     end
 
-    def app_owner email
+    def bot_owner email
       org?(email) ? email.gsub(/^(.*)@#{org_host}$/,'\1') : email
     end
 

@@ -1,7 +1,7 @@
 require "turbot/command/base"
 require "turbot/helpers/log_displayer"
 
-# display logs for an app
+# display logs for an bot
 #
 class Turbot::Command::Logs < Turbot::Command::Base
 
@@ -29,7 +29,7 @@ class Turbot::Command::Logs < Turbot::Command::Base
     opts << "ps=#{URI.encode(options[:ps])}"         if options[:ps]
     opts << "source=#{URI.encode(options[:source])}" if options[:source]
 
-    log_displayer = ::Turbot::Helpers::LogDisplayer.new(turbot, app, opts)
+    log_displayer = ::Turbot::Helpers::LogDisplayer.new(turbot, bot, opts)
     log_displayer.display_logs
   end
 

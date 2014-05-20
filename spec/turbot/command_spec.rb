@@ -24,16 +24,16 @@ describe Turbot::Command do
 
   describe "parsing errors" do
     it "extracts error messages from response when available in XML" do
-      Turbot::Command.extract_error('<errors><error>Invalid app name</error></errors>').should == 'Invalid app name'
+      Turbot::Command.extract_error('<errors><error>Invalid bot name</error></errors>').should == 'Invalid bot name'
     end
 
     it "extracts error messages from response when available in JSON" do
-      Turbot::Command.extract_error("{\"error\":\"Invalid app name\"}").should == 'Invalid app name'
+      Turbot::Command.extract_error("{\"error\":\"Invalid bot name\"}").should == 'Invalid bot name'
     end
 
     it "extracts error messages from response when available in plain text" do
-      response = FakeResponse.new(:body => "Invalid app name", :headers => { :content_type => "text/plain; charset=UTF8" })
-      Turbot::Command.extract_error(response).should == 'Invalid app name'
+      response = FakeResponse.new(:body => "Invalid bot name", :headers => { :content_type => "text/plain; charset=UTF8" })
+      Turbot::Command.extract_error(response).should == 'Invalid bot name'
     end
 
     it "shows Internal Server Error when the response doesn't contain a XML or JSON" do
@@ -67,22 +67,22 @@ describe Turbot::Command do
     class Turbot::Command::Test::Multiple; end
 
     require "turbot/command/help"
-    require "turbot/command/apps"
+    require "turbot/command/bots"
 
     Turbot::Command.parse("unknown").should be_nil
-    Turbot::Command.parse("list").should include(:klass => Turbot::Command::Apps, :method => :index)
-    Turbot::Command.parse("apps").should include(:klass => Turbot::Command::Apps, :method => :index)
-    Turbot::Command.parse("apps:info").should include(:klass => Turbot::Command::Apps, :method => :info)
+    Turbot::Command.parse("list").should include(:klass => Turbot::Command::Bots, :method => :index)
+    Turbot::Command.parse("bots").should include(:klass => Turbot::Command::Bots, :method => :index)
+    Turbot::Command.parse("bots:info").should include(:klass => Turbot::Command::Bots, :method => :info)
   end
 
   context "help" do
     it "works as a prefix" do
-      turbot("help apps:info").should =~ /show detailed app information/
+      turbot("help bots:info").should =~ /show detailed bot information/
     end
 
     it "works as an option" do
-      turbot("apps:info -h").should =~ /show detailed app information/
-      turbot("apps:info --help").should =~ /show detailed app information/
+      turbot("bots:info -h").should =~ /show detailed bot information/
+      turbot("bots:info --help").should =~ /show detailed bot information/
     end
   end
 
@@ -99,12 +99,12 @@ STDOUT
       $stderr = captured_stderr = StringIO.new
       $stdout = captured_stdout = StringIO.new
       begin
-        execute("aps")
+        execute("bot")
       rescue SystemExit
       end
       captured_stderr.string.should == <<-STDERR
- !    `aps` is not a turbot command.
- !    Perhaps you meant `apps`.
+ !    `bot` is not a turbot command.
+ !    Perhaps you meant `bots`.
  !    See `turbot help` for a list of available commands.
 STDERR
       captured_stdout.string.should == ""

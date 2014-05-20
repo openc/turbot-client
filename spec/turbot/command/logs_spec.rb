@@ -20,7 +20,7 @@ describe Turbot::Command::Logs do
 
     describe "with log output" do
       before(:each) do
-        stub_core.read_logs("example", []).yields("2011-01-01T00:00:00+00:00 app[web.1]: test")
+        stub_core.read_logs("example", []).yields("2011-01-01T00:00:00+00:00 bot[web.1]: test")
       end
 
       it "prettifies tty output" do
@@ -29,7 +29,7 @@ describe Turbot::Command::Logs do
         stderr, stdout = execute("logs")
         stderr.should == ""
         stdout.should == <<-STDOUT
-\e[36m2011-01-01T00:00:00+00:00 app[web.1]:\e[0m test
+\e[36m2011-01-01T00:00:00+00:00 bot[web.1]:\e[0m test
 STDOUT
         stub($stdout).isatty.returns(old_stdout_isatty)
       end
@@ -40,7 +40,7 @@ STDOUT
         stderr, stdout = execute("logs")
         stderr.should == ""
         stdout.should == <<-STDOUT
-2011-01-01T00:00:00+00:00 app[web.1]: test
+2011-01-01T00:00:00+00:00 bot[web.1]: test
 STDOUT
         stub($stdout).isatty.returns(old_stdout_isatty)
       end
@@ -50,7 +50,7 @@ STDOUT
         stderr, stdout = execute("logs")
         stderr.should == ""
         stdout.should == <<-STDOUT
-2011-01-01T00:00:00+00:00 app[web.1]: test
+2011-01-01T00:00:00+00:00 bot[web.1]: test
 STDOUT
         ENV["TERM"] = term
       end

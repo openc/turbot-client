@@ -5,7 +5,7 @@ require "turbot/deprecated/help"
 #
 class Turbot::Command::Help < Turbot::Command::Base
 
-  PRIMARY_NAMESPACES = %w( auth apps ps run addons config releases domains logs sharing )
+  PRIMARY_NAMESPACES = %w( auth bots ps run addons config releases domains logs sharing )
 
   include Turbot::Deprecated::Help
 
@@ -16,12 +16,12 @@ class Turbot::Command::Help < Turbot::Command::Base
   #Examples:
   #
   # $ turbot help
-  # Usage: turbot COMMAND [--app APP] [command-specific-options]
+  # Usage: turbot COMMAND [--bot APP] [command-specific-options]
   #
   # Primary help topics, type "turbot help TOPIC" for more details:
   #
   #   addons    #  manage addon resources
-  #   apps      #  manage apps (create, destroy)
+  #   bots      #  manage bots (create, destroy)
   #   ...
   #
   # Additional topics:
@@ -30,15 +30,15 @@ class Turbot::Command::Help < Turbot::Command::Base
   #   accounts     #  manage multiple turbot accounts
   #   ...
   #
-  # $ turbot help apps:create
-  # Usage: turbot apps:create [NAME]
+  # $ turbot help bots:create
+  # Usage: turbot bots:create [NAME]
   #
-  #  create a new app
+  #  create a new bot
   #
   #      --addons ADDONS        # a comma-delimited list of addons to install
-  #  -b, --buildpack BUILDPACK  # a buildpack url to use for this app
+  #  -b, --buildpack BUILDPACK  # a buildpack url to use for this bot
   #  -r, --remote REMOTE        # the git remote to create, default "turbot"
-  #  -s, --stack STACK          # the stack on which to create the app
+  #  -s, --stack STACK          # the stack on which to create the bot
   #
   def index
     if command = args.shift
@@ -61,7 +61,7 @@ private
 
   def namespaces
     namespaces = Turbot::Command.namespaces
-    namespaces.delete("app")
+    namespaces.delete("bot")
     namespaces
   end
 
@@ -118,7 +118,7 @@ private
   end
 
   def help_for_root
-    puts "Usage: turbot COMMAND [--app APP] [command-specific-options]"
+    puts "Usage: turbot COMMAND [--bot APP] [command-specific-options]"
     puts
     puts "Primary help topics, type \"turbot help TOPIC\" for more details:"
     puts

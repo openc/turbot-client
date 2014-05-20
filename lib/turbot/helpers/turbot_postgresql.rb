@@ -6,10 +6,10 @@ module Turbot::Helpers::TurbotPostgresql
   extend Turbot::Helpers
 
   class Attachment
-    attr_reader :app, :name, :config_var, :resource_name, :url, :addon, :plan
+    attr_reader :bot, :name, :config_var, :resource_name, :url, :addon, :plan
     def initialize(raw)
       @raw = raw
-      @app           = raw['app']['name']
+      @bot           = raw['bot']['name']
       @name          = raw['name']
       @config_var    = raw['config_var']
       @resource_name = raw['resource']['name']
@@ -37,20 +37,20 @@ module Turbot::Helpers::TurbotPostgresql
   def hpg_resolve(identifier, default=nil)
     $stderr.puts " !    #hpg_resolve is deprecated. Please run `turbot plugins:update` to update your plugins."
     $stderr.puts " !    from: #{caller.first}"
-    Resolver.new(app, api).resolve(identifier , default)
+    Resolver.new(bot, api).resolve(identifier , default)
   end
 
   class Resolver
     include Turbot::Helpers
-    attr_reader :api, :app_name
-    def initialize(app_name, api)
-      @app_name = app_name
+    attr_reader :api, :bot_name
+    def initialize(bot_name, api)
+      @bot_name = bot_name
       @api = api
     end
 
     def resolve(identifier, default=nil)
       if identifier =~ /::/
-        @app_name, db_name = identifier.split('::')
+        @bot_name, db_name = identifier.split('::')
       else
         db_name = identifier
       end
@@ -63,7 +63,7 @@ module Turbot::Helpers::TurbotPostgresql
     end
 
     def database_name_from_url(url)
-      vars = app_config_vars.reject {|key,value| key == 'DATABASE_URL'}
+      vars = bot_config_vars.reject {|key,value| key == 'DATABASE_URL'}
       if var = vars.invert[url]
         var.gsub(/_URL$/, '')
       else
@@ -82,26 +82,26 @@ module Turbot::Helpers::TurbotPostgresql
 
     private
 
-    def protect_missing_app
-      # in the case where --app was left out, AND app::db shorthand was not used, AND no app autodetect
-      unless app_name
-        error("No app specified.\nRun this command from an app folder or specify which app to use with --app APP.")
+    def protect_missing_bot
+      # in the case where --bot was left out, AND bot::db shorthand was not used, AND no bot autodetect
+      unless bot_name
+        error("No bot specified.\nRun this command from an bot folder or specify which bot to use with --bot APP.")
       end
     end
 
-    def app_config_vars
-      protect_missing_app
-      @app_config_vars ||= api.get_config_vars(app_name).body
+    def bot_config_vars
+      protect_missing_bot
+      @bot_config_vars ||= api.get_config_vars(bot_name).body
     end
 
-    def app_attachments
-      protect_missing_app
-      @app_attachments ||= api.get_attachments(app_name).body.map { |raw| Attachment.new(raw) }
+    def bot_attachments
+      protect_missing_bot
+      @bot_attachments ||= api.get_attachments(bot_name).body.map { |raw| Attachment.new(raw) }
     end
 
     def hpg_databases
       return @hpg_databases if @hpg_databases
-      pairs = app_attachments.select {|att|
+      pairs = bot_attachments.select {|att|
           att.addon == hpg_addon_name
         }.map { |att|
           [att.config_var, att]
@@ -121,18 +121,18 @@ module Turbot::Helpers::TurbotPostgresql
 
     def forget_config!
       @hpg_databases   = nil
-      @app_config_vars = nil
-      @app_attachments = nil
+      @bot_config_vars = nil
+      @bot_attachments = nil
     end
 
     def find_database_url_real_attachment
-      raw_primary_db_url = app_config_vars['DATABASE_URL']
+      raw_primary_db_url = bot_config_vars['DATABASE_URL']
       return unless raw_primary_db_url
 
       primary_db_url = raw_primary_db_url.split("?").first
       return unless primary_db_url && !primary_db_url.empty?
 
-      real_config = app_config_vars.detect {|k,v| k != 'DATABASE_URL' && v == primary_db_url }
+      real_config = bot_config_vars.detect {|k,v| k != 'DATABASE_URL' && v == primary_db_url }
       if real_config
         real = hpg_databases[real_config.first]
         real.primary_attachment! if real
@@ -153,12 +153,12 @@ module Turbot::Helpers::TurbotPostgresql
       name = 'DATABASE_URL' if name == 'DATABASE'
 
       if hpg_databases.empty?
-        error("Your app has no databases.")
+        error("Your bot has no databases.")
       end
 
       found_attachment = nil
       candidates = match_attachments_by_name(name)
-      if default && name.empty? && app_config_vars[default]
+      if default && name.empty? && bot_config_vars[default]
         found_attachment = hpg_databases[default]
       elsif candidates.size == 1
         found_attachment = hpg_databases[candidates.first]
@@ -178,8 +178,8 @@ module Turbot::Helpers::TurbotPostgresql
   end
 
   def hpg_translate_db_opts_to_urls(addon, config)
-    app_name = app rescue nil
-    resolver = Resolver.new(app_name, api)
+    bot_name = bot rescue nil
+    resolver = Resolver.new(bot_name, api)
     if addon =~ /^#{resolver.hpg_addon_name}/
       %w[fork follow rollback].each do |opt|
         if val = config[opt]
@@ -207,7 +207,7 @@ module Turbot::Helpers::TurbotPostgresql
   private
 
   def hpg_promote(url)
-    api.put_config_vars(app, "DATABASE_URL" => url)
+    api.put_config_vars(bot, "DATABASE_URL" => url)
   end
 
 end

@@ -8,7 +8,7 @@ require 'turbot/version'
 require 'turbot/client/ssl_endpoint'
 
 # A Ruby class to call the Turbot REST API.  You might use this if you want to
-# manage your Turbot apps from within a Ruby program, such as Capistrano.
+# manage your Turbot bots from within a Ruby program, such as Capistrano.
 #
 # Example:
 #
@@ -56,29 +56,29 @@ class Turbot::Client
     json_decode client.post('/login', { :username => user, :password => password }, :accept => 'json').to_s
   end
 
-  # Show a list of apps which you are a collaborator on.
+  # Show a list of bots which you are a collaborator on.
   def list
     deprecate # 07/26/2012
-    doc = xml(get('/apps').to_s)
-    doc.elements.to_a("//apps/app").map do |a|
+    doc = xml(get('/bots').to_s)
+    doc.elements.to_a("//bots/bot").map do |a|
       name = a.elements.to_a("name").first
       owner = a.elements.to_a("owner").first
       [name.text, owner.text]
     end
   end
 
-  # Show info such as mode, custom domain, and collaborators on an app.
+  # Show info such as mode, custom domain, and collaborators on an bot.
   def info(name_or_domain)
     deprecate # 07/26/2012
     raise ArgumentError.new("name_or_domain is required for info") unless name_or_domain
     name_or_domain = name_or_domain.gsub(/^(http:\/\/)?(www\.)?/, '')
-    doc = xml(get("/apps/#{name_or_domain}").to_s)
-    attrs = hash_from_xml_doc(doc)[:app]
+    doc = xml(get("/bots/#{name_or_domain}").to_s)
+    attrs = hash_from_xml_doc(doc)[:bot]
     attrs.merge!(:collaborators => list_collaborators(attrs[:name]))
     attrs.merge!(:addons        => installed_addons(attrs[:name]))
   end
 
-  # Create a new app, with an optional name.
+  # Create a new bot, with an optional name.
   def create(name=nil, options={})
     deprecate # 07/26/2012
     name = create_request(name, options)
@@ -89,86 +89,86 @@ class Turbot::Client
     name
   end
 
-  def create_app(name=nil, options={})
+  def create_bot(name=nil, options={})
     deprecate # 07/26/2012
     options[:name] = name if name
-    json_decode(post("/apps", { :app => options }, :accept => "application/json").to_s)
+    json_decode(post("/bots", { :bot => options }, :accept => "application/json").to_s)
   end
 
   def create_request(name=nil, options={})
     deprecate # 07/26/2012
     options[:name] = name if name
-    xml(post('/apps', :app => options).to_s).elements["//app/name"].text
+    xml(post('/bots', :bot => options).to_s).elements["//bot/name"].text
   end
 
   def create_complete?(name)
     deprecate # 07/26/2012
-    put("/apps/#{name}/status", {}).code == 201
+    put("/bots/#{name}/status", {}).code == 201
   end
 
-  # Update an app.  Available attributes:
-  #   :name => rename the app (changes http and git urls)
+  # Update an bot.  Available attributes:
+  #   :name => rename the bot (changes http and git urls)
   def update(name, attributes)
     deprecate # 07/26/2012
-    put("/apps/#{name}", :app => attributes).to_s
+    put("/bots/#{name}", :bot => attributes).to_s
   end
 
-  # Destroy the app permanently.
+  # Destroy the bot permanently.
   def destroy(name)
     deprecate # 07/26/2012
-    delete("/apps/#{name}").to_s
+    delete("/bots/#{name}").to_s
   end
 
-  def maintenance(app_name, mode)
+  def maintenance(bot_name, mode)
     deprecate # 07/31/2012
     mode = mode == :on ? '1' : '0'
-    post("/apps/#{app_name}/server/maintenance", :maintenance_mode => mode).to_s
+    post("/bots/#{bot_name}/server/maintenance", :maintenance_mode => mode).to_s
   end
 
-  def config_vars(app_name)
+  def config_vars(bot_name)
     deprecate # 07/27/2012
-    json_decode get("/apps/#{app_name}/config_vars", :accept => :json).to_s
+    json_decode get("/bots/#{bot_name}/config_vars", :accept => :json).to_s
   end
 
-  def add_config_vars(app_name, new_vars)
+  def add_config_vars(bot_name, new_vars)
     deprecate # 07/27/2012
-    put("/apps/#{app_name}/config_vars", json_encode(new_vars), :accept => :json).to_s
+    put("/bots/#{bot_name}/config_vars", json_encode(new_vars), :accept => :json).to_s
   end
 
-  def remove_config_var(app_name, key)
+  def remove_config_var(bot_name, key)
     deprecate # 07/27/2012
-    delete("/apps/#{app_name}/config_vars/#{escape(key)}", :accept => :json).to_s
+    delete("/bots/#{bot_name}/config_vars/#{escape(key)}", :accept => :json).to_s
   end
 
-  def clear_config_vars(app_name)
+  def clear_config_vars(bot_name)
     deprecate # 07/27/2012
-    delete("/apps/#{app_name}/config_vars").to_s
+    delete("/bots/#{bot_name}/config_vars").to_s
   end
 
-  # Get a list of collaborators on the app, returns an array of hashes each with :email
-  def list_collaborators(app_name)
+  # Get a list of collaborators on the bot, returns an array of hashes each with :email
+  def list_collaborators(bot_name)
     deprecate # 07/31/2012
-    doc = xml(get("/apps/#{app_name}/collaborators").to_s)
+    doc = xml(get("/bots/#{bot_name}/collaborators").to_s)
     doc.elements.to_a("//collaborators/collaborator").map do |a|
       { :email => a.elements['email'].text }
     end
   end
 
-  # Invite a person by email address to collaborate on the app.
-  def add_collaborator(app_name, email)
+  # Invite a person by email address to collaborate on the bot.
+  def add_collaborator(bot_name, email)
     deprecate # 07/31/2012
-    xml(post("/apps/#{app_name}/collaborators", { 'collaborator[email]' => email }).to_s)
+    xml(post("/bots/#{bot_name}/collaborators", { 'collaborator[email]' => email }).to_s)
   end
 
   # Remove a collaborator.
-  def remove_collaborator(app_name, email)
+  def remove_collaborator(bot_name, email)
     deprecate # 07/31/2012
-    delete("/apps/#{app_name}/collaborators/#{escape(email)}").to_s
+    delete("/bots/#{bot_name}/collaborators/#{escape(email)}").to_s
   end
 
-  def list_domains(app_name)
+  def list_domains(bot_name)
     deprecate # 08/02/2012
-    doc = xml(get("/apps/#{app_name}/domains").to_s)
+    doc = xml(get("/bots/#{bot_name}/domains").to_s)
     doc.elements.to_a("//domains/*").map do |d|
       attrs = { :domain => d.elements['domain'].text }
       if cert = d.elements['cert']
@@ -182,20 +182,20 @@ class Turbot::Client
     end
   end
 
-  def add_domain(app_name, domain)
+  def add_domain(bot_name, domain)
     deprecate # 07/31/2012
-    post("/apps/#{app_name}/domains", domain).to_s
+    post("/bots/#{bot_name}/domains", domain).to_s
   end
 
-  def remove_domain(app_name, domain)
+  def remove_domain(bot_name, domain)
     deprecate # 07/31/2012
     raise ArgumentError.new("invalid domain: #{domain.inspect}") if domain.to_s.strip == ""
-    delete("/apps/#{app_name}/domains/#{domain}").to_s
+    delete("/bots/#{bot_name}/domains/#{domain}").to_s
   end
 
-  def remove_domains(app_name)
+  def remove_domains(bot_name)
     deprecate # 07/31/2012
-    delete("/apps/#{app_name}/domains").to_s
+    delete("/bots/#{bot_name}/domains").to_s
   end
 
   # Get the list of ssh public keys for the current user.
@@ -225,140 +225,140 @@ class Turbot::Client
     delete("/user/keys").to_s
   end
 
-  # Retreive ps list for the given app name.
-  def ps(app_name)
+  # Retreive ps list for the given bot name.
+  def ps(bot_name)
     deprecate # 07/31/2012
-    json_decode get("/apps/#{app_name}/ps", :accept => 'application/json').to_s
+    json_decode get("/bots/#{bot_name}/ps", :accept => 'application/json').to_s
   end
 
-  # Restart the app servers.
-  def restart(app_name)
+  # Restart the bot servers.
+  def restart(bot_name)
     deprecate # 07/31/2012
-    delete("/apps/#{app_name}/server").to_s
+    delete("/bots/#{bot_name}/server").to_s
   end
 
-  def dynos(app_name)
+  def dynos(bot_name)
     deprecate # 07/31/2012
-    doc = xml(get("/apps/#{app_name}").to_s)
-    doc.elements["//app/dynos"].text.to_i
+    doc = xml(get("/bots/#{bot_name}").to_s)
+    doc.elements["//bot/dynos"].text.to_i
   end
 
-  def workers(app_name)
+  def workers(bot_name)
     deprecate # 07/31/2012
-    doc = xml(get("/apps/#{app_name}").to_s)
-    doc.elements["//app/workers"].text.to_i
+    doc = xml(get("/bots/#{bot_name}").to_s)
+    doc.elements["//bot/workers"].text.to_i
   end
 
   # Scales the web dynos.
-  def set_dynos(app_name, qty)
+  def set_dynos(bot_name, qty)
     deprecate # 07/31/2012
-    put("/apps/#{app_name}/dynos", :dynos => qty).to_s
+    put("/bots/#{bot_name}/dynos", :dynos => qty).to_s
   end
 
   # Scales the background dynos.
-  def set_workers(app_name, qty)
+  def set_workers(bot_name, qty)
     deprecate # 07/31/2012
-    put("/apps/#{app_name}/workers", :workers => qty).to_s
+    put("/bots/#{bot_name}/workers", :workers => qty).to_s
   end
 
-  def ps_run(app, opts={})
+  def ps_run(bot, opts={})
     deprecate # 07/31/2012
-    json_decode post("/apps/#{app}/ps", opts, :accept => :json).to_s
+    json_decode post("/bots/#{bot}/ps", opts, :accept => :json).to_s
   end
 
-  def ps_scale(app, opts={})
+  def ps_scale(bot, opts={})
     deprecate # 07/31/2012
-    Integer(post("/apps/#{app}/ps/scale", opts).to_s)
+    Integer(post("/bots/#{bot}/ps/scale", opts).to_s)
   end
 
-  def ps_restart(app, opts={})
+  def ps_restart(bot, opts={})
     deprecate # 07/31/2012
-    post("/apps/#{app}/ps/restart", opts)
+    post("/bots/#{bot}/ps/restart", opts)
   end
 
-  def ps_stop(app, opts={})
+  def ps_stop(bot, opts={})
     deprecate # 07/31/2012
-    post("/apps/#{app}/ps/stop", opts)
+    post("/bots/#{bot}/ps/stop", opts)
   end
 
-  def releases(app)
+  def releases(bot)
     deprecate # 07/31/2012
-    json_decode get("/apps/#{app}/releases", :accept => :json).to_s
+    json_decode get("/bots/#{bot}/releases", :accept => :json).to_s
   end
 
-  def release(app, release)
+  def release(bot, release)
     deprecate # 07/31/2012
-    json_decode get("/apps/#{app}/releases/#{release}", :accept => :json).to_s
+    json_decode get("/bots/#{bot}/releases/#{release}", :accept => :json).to_s
   end
 
-  def rollback(app, release=nil)
+  def rollback(bot, release=nil)
     deprecate # 07/31/2012
-    post("/apps/#{app}/releases", :rollback => release)
+    post("/bots/#{bot}/releases", :rollback => release)
   end
 
-  # Fetch recent logs from the app server.
-  def logs(app_name)
+  # Fetch recent logs from the bot server.
+  def logs(bot_name)
     deprecate # 07/31/2012
-    get("/apps/#{app_name}/logs").to_s
+    get("/bots/#{bot_name}/logs").to_s
   end
 
-  def list_features(app)
+  def list_features(bot)
     deprecate # 07/31/2012
-    json_decode(get("features?app=#{app}", :accept => :json).to_s)
+    json_decode(get("features?bot=#{bot}", :accept => :json).to_s)
   end
 
-  def get_feature(app, name)
+  def get_feature(bot, name)
     deprecate # 07/31/2012
-    json_decode get("features/#{name}?app=#{app}", :accept => :json).to_s
+    json_decode get("features/#{name}?bot=#{bot}", :accept => :json).to_s
   end
 
-  def enable_feature(app, name)
+  def enable_feature(bot, name)
     deprecate # 07/31/2012
-    json_decode post("/features/#{name}?app=#{app}", :accept => :json).to_s
+    json_decode post("/features/#{name}?bot=#{bot}", :accept => :json).to_s
   end
 
-  def disable_feature(app, name)
+  def disable_feature(bot, name)
     deprecate # 07/31/2012
-    json_decode delete("/features/#{name}?app=#{app}", :accept => :json).to_s
+    json_decode delete("/features/#{name}?bot=#{bot}", :accept => :json).to_s
   end
 
-  # Get a list of stacks available to the app, with the current one marked.
-  def list_stacks(app_name, options={})
+  # Get a list of stacks available to the bot, with the current one marked.
+  def list_stacks(bot_name, options={})
     deprecate # 07/31/2012
     include_deprecated = options.delete(:include_deprecated) || false
 
-    json_decode get("/apps/#{app_name}/stack",
+    json_decode get("/bots/#{bot_name}/stack",
       :params => { :include_deprecated => include_deprecated },
       :accept => 'application/json'
     ).to_s
   end
 
   # Request a stack migration.
-  def migrate_to_stack(app_name, stack)
+  def migrate_to_stack(bot_name, stack)
     deprecate # 07/31/2012
-    put("/apps/#{app_name}/stack", stack, :accept => 'text/plain').to_s
+    put("/bots/#{bot_name}/stack", stack, :accept => 'text/plain').to_s
   end
 
-  # Run a rake command on the Turbot app and return output as a string
-  def rake(app_name, cmd)
+  # Run a rake command on the Turbot bot and return output as a string
+  def rake(bot_name, cmd)
     # deprecated by virtue of start deprecation 08/02/2012
-    start(app_name, "rake #{cmd}", :attached).to_s
+    start(bot_name, "rake #{cmd}", :attached).to_s
   end
 
   class Service
     attr_accessor :attached
 
-    def initialize(client, app)
+    def initialize(client, bot)
       require 'rest_client'
       @client = client
-      @app = app
+      @bot = bot
     end
 
     # start the service
     def start(command, attached=false)
       @attached = attached
       @response = @client.post(
-        "/apps/#{@app}/services",
+        "/bots/#{@bot}/services",
         command,
         :content_type => 'text/plain'
       )
@@ -412,46 +412,46 @@ class Turbot::Client
   end
 
   # Run a service. If Responds to #each and yields output as it's received.
-  def start(app_name, command, attached=false)
+  def start(bot_name, command, attached=false)
     deprecate # 08/02/2012
-    service = Service.new(self, app_name)
+    service = Service.new(self, bot_name)
     service.start(command, attached)
   end
 
-  def add_ssl(app_name, pem, key)
-    json_decode(post("/apps/#{app_name}/ssl", :pem => pem, :key => key).to_s)
+  def add_ssl(bot_name, pem, key)
+    json_decode(post("/bots/#{bot_name}/ssl", :pem => pem, :key => key).to_s)
   end
 
-  def remove_ssl(app_name, domain)
-    delete("/apps/#{app_name}/domains/#{domain}/ssl").to_s
+  def remove_ssl(bot_name, domain)
+    delete("/bots/#{bot_name}/domains/#{domain}/ssl").to_s
   end
 
-  def clear_ssl(app_name)
-    delete("/apps/#{app_name}/ssl")
+  def clear_ssl(bot_name)
+    delete("/bots/#{bot_name}/ssl")
   end
 
   class AppCrashed < RuntimeError; end
 
   # support for console sessions
   class ConsoleSession
-    def initialize(id, app, client)
+    def initialize(id, bot, client)
       require 'rest_client'
-      @id = id; @app = app; @client = client
+      @id = id; @bot = bot; @client = client
     end
     def run(cmd)
-      @client.run_console_command("/apps/#{@app}/consoles/#{@id}/command", cmd, "=> ")
+      @client.run_console_command("/bots/#{@bot}/consoles/#{@id}/command", cmd, "=> ")
     end
   end
 
   # Execute a one-off console command, or start a new console tty session if
   # cmd is nil.
-  def console(app_name, cmd=nil)
+  def console(bot_name, cmd=nil)
     if block_given?
-      id = post("/apps/#{app_name}/consoles").to_s
-      yield ConsoleSession.new(id, app_name, self)
-      delete("/apps/#{app_name}/consoles/#{id}").to_s
+      id = post("/bots/#{bot_name}/consoles").to_s
+      yield ConsoleSession.new(id, bot_name, self)
+      delete("/bots/#{bot_name}/consoles/#{id}").to_s
     else
-      run_console_command("/apps/#{app_name}/console", cmd)
+      run_console_command("/bots/#{bot_name}/console", cmd)
     end
   rescue RestClient::BadGateway => e
     raise(AppCrashed, <<-ERROR)
@@ -479,11 +479,11 @@ Check the output of "turbot ps" and "turbot logs" for more information.
     end
   end
 
-  def read_logs(app_name, options=[])
+  def read_logs(bot_name, options=[])
     query = "&" + options.join("&") unless options.empty?
-    url = get("/apps/#{app_name}/logs?logplex=true#{query}").to_s
+    url = get("/bots/#{bot_name}/logs?logplex=true#{query}").to_s
     if url == 'Use old logs'
-      puts get("/apps/#{app_name}/logs").to_s
+      puts get("/bots/#{bot_name}/logs").to_s
     else
       uri  = URI.parse(url);
 
@@ -536,16 +536,16 @@ Check the output of "turbot ps" and "turbot logs" for more information.
     end
   end
 
-  def list_drains(app_name)
-    get("/apps/#{app_name}/logs/drains").to_s
+  def list_drains(bot_name)
+    get("/bots/#{bot_name}/logs/drains").to_s
   end
 
-  def add_drain(app_name, url)
-    post("/apps/#{app_name}/logs/drains", "url=#{CGI.escape(url)}").to_s
+  def add_drain(bot_name, url)
+    post("/bots/#{bot_name}/logs/drains", "url=#{CGI.escape(url)}").to_s
   end
 
-  def remove_drain(app_name, url)
-    delete("/apps/#{app_name}/logs/drains?url=#{CGI.escape(url)}").to_s
+  def remove_drain(bot_name, url)
+    delete("/bots/#{bot_name}/logs/drains?url=#{CGI.escape(url)}").to_s
   end
 
   def addons(filters = {})
@@ -555,25 +555,25 @@ Check the output of "turbot ps" and "turbot logs" for more information.
     json_decode get([url,params].compact.join("?"), :accept => 'application/json').to_s
   end
 
-  def installed_addons(app_name)
-    json_decode get("/apps/#{app_name}/addons", :accept => 'application/json').to_s
+  def installed_addons(bot_name)
+    json_decode get("/bots/#{bot_name}/addons", :accept => 'application/json').to_s
   end
 
-  def install_addon(app_name, addon, config={})
-    configure_addon :install, app_name, addon, config
+  def install_addon(bot_name, addon, config={})
+    configure_addon :install, bot_name, addon, config
   end
 
-  def upgrade_addon(app_name, addon, config={})
-    configure_addon :upgrade, app_name, addon, config
+  def upgrade_addon(bot_name, addon, config={})
+    configure_addon :upgrade, bot_name, addon, config
   end
   alias_method :downgrade_addon, :upgrade_addon
 
-  def uninstall_addon(app_name, addon, options={})
-    configure_addon :uninstall, app_name, addon, options
+  def uninstall_addon(bot_name, addon, options={})
+    configure_addon :uninstall, bot_name, addon, options
   end
 
-  def httpcache_purge(app_name)
-    delete("/apps/#{app_name}/httpcache").to_s
+  def httpcache_purge(bot_name)
+    delete("/bots/#{bot_name}/httpcache").to_s
   end
 
   def on_warning(&blk)
@@ -666,23 +666,23 @@ Check the output of "turbot ps" and "turbot logs" for more information.
 
   private
 
-  def configure_addon(action, app_name, addon, config = {})
+  def configure_addon(action, bot_name, addon, config = {})
     response = update_addon action,
-                            addon_path(app_name, addon),
+                            addon_path(bot_name, addon),
                             config
 
     json_decode(response.to_s) unless response.to_s.empty?
   end
 
-  def addon_path(app_name, addon)
-    "/apps/#{app_name}/addons/#{escape(addon)}"
+  def addon_path(bot_name, addon)
+    "/bots/#{bot_name}/addons/#{escape(addon)}"
   end
 
   def update_addon(action, path, config)
     params  = { :config => config }
-    app     = params[:config].delete(:confirm)
+    bot     = params[:config].delete(:confirm)
     headers = { :accept => 'application/json' }
-    params.merge!(:confirm => app) if app
+    params.merge!(:confirm => bot) if bot
 
     case action
     when :install
@@ -690,7 +690,7 @@ Check the output of "turbot ps" and "turbot logs" for more information.
     when :upgrade
       put path, params, headers
     when :uninstall
-      confirm = app ? "confirm=#{app}" : ''
+      confirm = bot ? "confirm=#{bot}" : ''
       delete "#{path}?#{confirm}", headers
     end
   end

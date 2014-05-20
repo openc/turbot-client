@@ -57,27 +57,27 @@ module Turbot
       write_db("keys", [])
     end
 
-    def post_app(data)
+    def post_bot(data)
       # XXX need to implement this to make the config command pass...
-      # save an "app" - we'll replace this with the bot stuff chris did
-      db = read_db("app")
+      # save an "bot" - we'll replace this with the bot stuff chris did
+      db = read_db("bot")
       db[data["name"]] = data
-      write_db("app", db)
+      write_db("bot", db)
     end
 
-    def delete_app(app)
-      db = read_db("app")
-      db.delete(app)
-      write_db("app", db)
+    def delete_bot(bot)
+      db = read_db("bot")
+      db.delete(bot)
+      write_db("bot", db)
     end
 
-    def get_apps
-      read_db("app", [])
+    def get_bots
+      read_db("bot", [])
     end
 
-    def get_app(app)
-      db = read_db("app_data", [])
-      db[app]
+    def get_bot(bot)
+      db = read_db("bot_data", [])
+      db[bot]
     end
 
     def put_config_vars(bot, vars)

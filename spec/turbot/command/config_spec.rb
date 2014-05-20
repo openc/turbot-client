@@ -5,11 +5,11 @@ module Turbot::Command
   describe Config do
     before(:each) do
       stub_core
-      api.post_app("name" => "example", "stack" => "cedar")
+      api.post_bot("name" => "example", "stack" => "cedar")
     end
 
     after(:each) do
-      api.delete_app("example")
+      api.delete_bot("example")
     end
 
     it "shows all configs" do

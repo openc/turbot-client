@@ -20,13 +20,13 @@ describe Turbot::Client do
     end
   end
 
-  it "list -> get a list of this user's apps" do
-    stub_api_request(:get, "/apps").to_return(:body => <<-EOXML)
+  it "list -> get a list of this user's bots" do
+    stub_api_request(:get, "/bots").to_return(:body => <<-EOXML)
       <?xml version='1.0' encoding='UTF-8'?>
-      <apps type="array">
-        <app><name>example</name><owner>test@turbot.com</owner></app>
-        <app><name>example2</name><owner>test@turbot.com</owner></app>
-      </apps>
+      <bots type="array">
+        <bot><name>example</name><owner>test@turbot.com</owner></bot>
+        <bot><name>example2</name><owner>test@turbot.com</owner></bot>
+      </bots>
     EOXML
     capture_stderr do # capture deprecation message
       @client.list.should == [
@@ -36,10 +36,10 @@ describe Turbot::Client do
     end
   end
 
-  it "info -> get app attributes" do
-    stub_api_request(:get, "/apps/example").to_return(:body => <<-EOXML)
+  it "info -> get bot attributes" do
+    stub_api_request(:get, "/bots/example").to_return(:body => <<-EOXML)
       <?xml version='1.0' encoding='UTF-8'?>
-      <app>
+      <bot>
         <blessed type='boolean'>true</blessed>
         <created-at type='datetime'>2008-07-08T17:21:50-07:00</created-at>
         <id type='integer'>49134</id>
@@ -47,7 +47,7 @@ describe Turbot::Client do
         <production type='boolean'>true</production>
         <share-public type='boolean'>true</share-public>
         <domain_name/>
-      </app>
+      </bot>
     EOXML
     @client.stub!(:list_collaborators).and_return([:jon, :mike])
     @client.stub!(:installed_addons).and_return([:addon1])
@@ -56,20 +56,20 @@ describe Turbot::Client do
     end
   end
 
-  it "create_request -> create a new blank app" do
-    stub_api_request(:post, "/apps").with(:body => "").to_return(:body => <<-EOXML)
+  it "create_request -> create a new blank bot" do
+    stub_api_request(:post, "/bots").with(:body => "").to_return(:body => <<-EOXML)
       <?xml version="1.0" encoding="UTF-8"?>
-      <app><name>untitled-123</name></app>
+      <bot><name>untitled-123</name></bot>
     EOXML
     capture_stderr do # capture deprecation message
       @client.create_request.should == "untitled-123"
     end
   end
 
-  it "create_request(name) -> create a new blank app with a specified name" do
-    stub_api_request(:post, "/apps").with(:body => "app[name]=newapp").to_return(:body => <<-EOXML)
+  it "create_request(name) -> create a new blank bot with a specified name" do
+    stub_api_request(:post, "/bots").with(:body => "bot[name]=newapp").to_return(:body => <<-EOXML)
       <?xml version="1.0" encoding="UTF-8"?>
-      <app><name>newapp</name></app>
+      <bot><name>newapp</name></bot>
     EOXML
     capture_stderr do # capture deprecation message
       @client.create_request("newapp").should == "newapp"
@@ -86,37 +86,37 @@ describe Turbot::Client do
     end
   end
 
-  it "update(name, attributes) -> updates existing apps" do
-    stub_api_request(:put, "/apps/example").with(:body => "app[mode]=production")
+  it "update(name, attributes) -> updates existing bots" do
+    stub_api_request(:put, "/bots/example").with(:body => "bot[mode]=production")
     capture_stderr do # capture deprecation message
       @client.update("example", :mode => 'production')
     end
   end
 
-  it "destroy(name) -> destroy the named app" do
-    stub_api_request(:delete, "/apps/destroyme")
+  it "destroy(name) -> destroy the named bot" do
+    stub_api_request(:delete, "/bots/destroyme")
     capture_stderr do # capture deprecation message
       @client.destroy("destroyme")
     end
   end
 
-  it "rake(app_name, cmd) -> run a rake command on the app" do
-    stub_api_request(:post, "/apps/example/services").with(:body => "rake db:migrate").to_return(:body => "foo")
+  it "rake(bot_name, cmd) -> run a rake command on the bot" do
+    stub_api_request(:post, "/bots/example/services").with(:body => "rake db:migrate").to_return(:body => "foo")
     stub_api_request(:get,  "/foo").to_return(:body => "output")
     capture_stderr do # capture deprecation message
       @client.rake('example', 'db:migrate')
     end
   end
 
-  it "console(app_name, cmd) -> run a console command on the app" do
-    stub_api_request(:post, "/apps/example/console").with(:body => "command=2%2B2")
+  it "console(bot_name, cmd) -> run a console command on the bot" do
+    stub_api_request(:post, "/bots/example/console").with(:body => "command=2%2B2")
     @client.console('example', '2+2')
   end
 
-  it "console(app_name) { |c| } -> opens a console session, yields one accessor and closes it after the block" do
-    stub_api_request(:post,   "/apps/example/consoles").to_return(:body => "consolename")
-    stub_api_request(:post,   "/apps/example/consoles/consolename/command").with(:body => "command=1%2B1").to_return(:body => "2")
-    stub_api_request(:delete, "/apps/example/consoles/consolename")
+  it "console(bot_name) { |c| } -> opens a console session, yields one accessor and closes it after the block" do
+    stub_api_request(:post,   "/bots/example/consoles").to_return(:body => "consolename")
+    stub_api_request(:post,   "/bots/example/consoles/consolename/command").with(:body => "command=1%2B1").to_return(:body => "2")
+    stub_api_request(:delete, "/bots/example/consoles/consolename")
 
     @client.console('example') do |c|
       c.run("1+1").should == '=> 2'
@@ -124,14 +124,14 @@ describe Turbot::Client do
   end
 
   it "shows an error message when a console request fails" do
-    stub_request(:post, %r{.*/apps/example/console}).to_return({
+    stub_request(:post, %r{.*/bots/example/console}).to_return({
       :body => "ERRMSG", :status => 502
     })
     lambda { @client.console('example') }.should raise_error(Turbot::Client::AppCrashed, /Your application may have crashed/)
   end
 
-  it "restart(app_name) -> restarts the app servers" do
-    stub_api_request(:delete, "/apps/example/server")
+  it "restart(bot_name) -> restarts the bot servers" do
+    stub_api_request(:delete, "/bots/example/server")
     capture_stderr do # capture deprecation message
       @client.restart('example')
     end
@@ -140,8 +140,8 @@ describe Turbot::Client do
   describe "read_logs" do
     describe "old style" do
       before(:each) do
-        stub_api_request(:get, "/apps/example/logs?logplex=true").to_return(:body => "Use old logs")
-        stub_api_request(:get, "/apps/example/logs").to_return(:body => "oldlogs")
+        stub_api_request(:get, "/bots/example/logs?logplex=true").to_return(:body => "Use old logs")
+        stub_api_request(:get, "/bots/example/logs").to_return(:body => "oldlogs")
       end
 
       it "can read old style logs" do
@@ -152,7 +152,7 @@ describe Turbot::Client do
 
     describe "new style" do
       before(:each) do
-        stub_api_request(:get, "/apps/example/logs?logplex=true").to_return(:body => "https://logplex.turbot.com/identifier")
+        stub_api_request(:get, "/bots/example/logs?logplex=true").to_return(:body => "https://logplex.turbot.com/identifier")
         stub_request(:get, "https://logplex.turbot.com/identifier").to_return(:body => "newlogs")
       end
 
@@ -164,19 +164,19 @@ describe Turbot::Client do
     end
   end
 
-  it "logs(app_name) -> returns recent output of the app logs" do
-    stub_api_request(:get, "/apps/example/logs").to_return(:body => "log")
+  it "logs(bot_name) -> returns recent output of the bot logs" do
+    stub_api_request(:get, "/bots/example/logs").to_return(:body => "log")
     capture_stderr do # capture deprecation message
       @client.logs('example').should == 'log'
     end
   end
 
   it "can get the number of dynos" do
-    stub_api_request(:get, "/apps/example").to_return(:body => <<-EOXML)
+    stub_api_request(:get, "/bots/example").to_return(:body => <<-EOXML)
       <?xml version='1.0' encoding='UTF-8'?>
-      <app>
+      <bot>
         <dynos type='integer'>5</dynos>
-      </app>
+      </bot>
     EOXML
     capture_stderr do # capture deprecation message
       @client.dynos('example').should == 5
@@ -184,25 +184,25 @@ describe Turbot::Client do
   end
 
   it "can get the number of workers" do
-    stub_api_request(:get, "/apps/example").to_return(:body => <<-EOXML)
+    stub_api_request(:get, "/bots/example").to_return(:body => <<-EOXML)
       <?xml version='1.0' encoding='UTF-8'?>
-      <app>
+      <bot>
         <workers type='integer'>5</workers>
-      </app>
+      </bot>
     EOXML
     capture_stderr do # capture deprecation message
       @client.workers('example').should == 5
     end
   end
 
-  it "set_dynos(app_name, qty) -> scales the app" do
-    stub_api_request(:put, "/apps/example/dynos").with(:body => "dynos=3")
+  it "set_dynos(bot_name, qty) -> scales the bot" do
+    stub_api_request(:put, "/bots/example/dynos").with(:body => "dynos=3")
     capture_stderr do # capture deprecation message
       @client.set_dynos('example', 3)
     end
   end
 
-  it "rake catches 502s and shows the app crashlog" do
+  it "rake catches 502s and shows the bot crashlog" do
     e = RestClient::RequestFailed.new
     e.stub!(:http_code).and_return(502)
     e.stub!(:http_body).and_return('the crashlog')
@@ -224,7 +224,7 @@ describe Turbot::Client do
 
   describe "ps_scale" do
     it "scales a process and returns the new count" do
-      stub_api_request(:post, "/apps/example/ps/scale").with(:body => { :type => "web", :qty => "5" }).to_return(:body => "5")
+      stub_api_request(:post, "/bots/example/ps/scale").with(:body => { :type => "web", :qty => "5" }).to_return(:body => "5")
       capture_stderr do # capture deprecation message
         @client.ps_scale("example", :type => "web", :qty => "5").should == 5
       end
@@ -232,8 +232,8 @@ describe Turbot::Client do
   end
 
   describe "collaborators" do
-    it "list(app_name) -> list app collaborators" do
-      stub_api_request(:get, "/apps/example/collaborators").to_return(:body => <<-EOXML)
+    it "list(bot_name) -> list bot collaborators" do
+      stub_api_request(:get, "/bots/example/collaborators").to_return(:body => <<-EOXML)
         <?xml version="1.0" encoding="UTF-8"?>
         <collaborators type="array">
           <collaborator><email>joe@example.com</email></collaborator>
@@ -248,15 +248,15 @@ describe Turbot::Client do
       end
     end
 
-    it "add_collaborator(app_name, email) -> adds collaborator to app" do
-      stub_api_request(:post, "/apps/example/collaborators").with(:body => "collaborator%5Bemail%5D=joe%40example.com")
+    it "add_collaborator(bot_name, email) -> adds collaborator to bot" do
+      stub_api_request(:post, "/bots/example/collaborators").with(:body => "collaborator%5Bemail%5D=joe%40example.com")
       capture_stderr do # capture deprecation message
         @client.add_collaborator('example', 'joe@example.com')
       end
     end
 
-    it "remove_collaborator(app_name, email) -> removes collaborator from app" do
-      stub_api_request(:delete, "/apps/example/collaborators/joe%40example%2Ecom")
+    it "remove_collaborator(bot_name, email) -> removes collaborator from bot" do
+      stub_api_request(:delete, "/bots/example/collaborators/joe%40example%2Ecom")
       capture_stderr do # capture deprecation message
         @client.remove_collaborator('example', 'joe@example.com')
       end
@@ -264,8 +264,8 @@ describe Turbot::Client do
   end
 
   describe "domain names" do
-    it "list(app_name) -> list app domain names" do
-      stub_api_request(:get, "/apps/example/domains").to_return(:body => <<-EOXML)
+    it "list(bot_name) -> list bot domain names" do
+      stub_api_request(:get, "/bots/example/domains").to_return(:body => <<-EOXML)
         <?xml version="1.0" encoding="UTF-8"?>
         <domains type="array">
           <domain-name><domain>example1.com</domain></domain-name>
@@ -277,21 +277,21 @@ describe Turbot::Client do
       end
     end
 
-    it "add_domain(app_name, domain) -> adds domain name to app" do
-      stub_api_request(:post, "/apps/example/domains").with(:body => "example.com")
+    it "add_domain(bot_name, domain) -> adds domain name to bot" do
+      stub_api_request(:post, "/bots/example/domains").with(:body => "example.com")
       capture_stderr do # capture deprecation message
         @client.add_domain('example', 'example.com')
       end
     end
 
-    it "remove_domain(app_name, domain) -> removes domain name from app" do
-      stub_api_request(:delete, "/apps/example/domains/example.com")
+    it "remove_domain(bot_name, domain) -> removes domain name from bot" do
+      stub_api_request(:delete, "/bots/example/domains/example.com")
       capture_stderr do # capture deprecation message
         @client.remove_domain('example', 'example.com')
       end
     end
 
-    it "remove_domain(app_name, domain) -> makes sure a domain is set" do
+    it "remove_domain(bot_name, domain) -> makes sure a domain is set" do
       lambda do
         capture_stderr do # capture deprecation message
           @client.remove_domain('example', '')
@@ -299,15 +299,15 @@ describe Turbot::Client do
       end.should raise_error(ArgumentError)
     end
 
-    it "remove_domains(app_name) -> removes all domain names from app" do
-      stub_api_request(:delete, "/apps/example/domains")
+    it "remove_domains(bot_name) -> removes all domain names from bot" do
+      stub_api_request(:delete, "/bots/example/domains")
       capture_stderr do # capture deprecation message
         @client.remove_domains('example')
       end
     end
 
-    it "add_ssl(app_name, pem, key) -> adds a ssl cert to the domain" do
-      stub_api_request(:post, "/apps/example/ssl").with do |request|
+    it "add_ssl(bot_name, pem, key) -> adds a ssl cert to the domain" do
+      stub_api_request(:post, "/bots/example/ssl").with do |request|
         body = CGI::parse(request.body)
         body["key"].first.should == "thekey"
         body["pem"].first.should == "thepem"
@@ -315,8 +315,8 @@ describe Turbot::Client do
       @client.add_ssl('example', 'thepem', 'thekey')
     end
 
-    it "remove_ssl(app_name, domain) -> removes the ssl cert for the domain" do
-      stub_api_request(:delete, "/apps/example/domains/example.com/ssl")
+    it "remove_ssl(bot_name, domain) -> removes the ssl cert for the domain" do
+      stub_api_request(:delete, "/bots/example/domains/example.com/ssl")
       @client.remove_ssl('example', 'example.com')
     end
   end
@@ -357,15 +357,15 @@ describe Turbot::Client do
       end
     end
 
-    it "maintenance(app_name, :on) -> sets maintenance mode for an app" do
-      stub_api_request(:post, "/apps/example/server/maintenance").with(:body => "maintenance_mode=1")
+    it "maintenance(bot_name, :on) -> sets maintenance mode for an bot" do
+      stub_api_request(:post, "/bots/example/server/maintenance").with(:body => "maintenance_mode=1")
       capture_stderr do # capture deprecation message
         @client.maintenance('example', :on)
       end
     end
 
-    it "maintenance(app_name, :off) -> turns off maintenance mode for an app" do
-      stub_api_request(:post, "/apps/example/server/maintenance").with(:body => "maintenance_mode=0")
+    it "maintenance(bot_name, :off) -> turns off maintenance mode for an bot" do
+      stub_api_request(:post, "/bots/example/server/maintenance").with(:body => "maintenance_mode=0")
       capture_stderr do # capture deprecation message
         @client.maintenance('example', :off)
       end
@@ -373,36 +373,36 @@ describe Turbot::Client do
   end
 
   describe "config vars" do
-    it "config_vars(app_name) -> json hash of config vars for the app" do
-      stub_api_request(:get, "/apps/example/config_vars").to_return(:body => '{"A":"one", "B":"two"}')
+    it "config_vars(bot_name) -> json hash of config vars for the bot" do
+      stub_api_request(:get, "/bots/example/config_vars").to_return(:body => '{"A":"one", "B":"two"}')
       capture_stderr do # capture deprecation message
         @client.config_vars('example').should == { 'A' => 'one', 'B' => 'two'}
       end
     end
 
-    it "add_config_vars(app_name, vars)" do
-      stub_api_request(:put, "/apps/example/config_vars").with(:body => '{"x":"y"}')
+    it "add_config_vars(bot_name, vars)" do
+      stub_api_request(:put, "/bots/example/config_vars").with(:body => '{"x":"y"}')
       capture_stderr do # capture deprecation message
         @client.add_config_vars('example', {'x'=> 'y'})
       end
     end
 
-    it "remove_config_var(app_name, key)" do
-      stub_api_request(:delete, "/apps/example/config_vars/mykey")
+    it "remove_config_var(bot_name, key)" do
+      stub_api_request(:delete, "/bots/example/config_vars/mykey")
       capture_stderr do # capture deprecation message
         @client.remove_config_var('example', 'mykey')
       end
     end
 
-    it "clear_config_vars(app_name) -> resets all config vars for this app" do
-      stub_api_request(:delete, "/apps/example/config_vars")
+    it "clear_config_vars(bot_name) -> resets all config vars for this bot" do
+      stub_api_request(:delete, "/bots/example/config_vars")
       capture_stderr do # capture deprecation message
         @client.clear_config_vars('example')
       end
     end
 
     it "can handle config vars with special characters" do
-      stub_api_request(:delete, "/apps/example/config_vars/foo%5Bbar%5D")
+      stub_api_request(:delete, "/bots/example/config_vars/foo%5Bbar%5D")
       capture_stderr do # capture deprecation message
         lambda { @client.remove_config_var('example', 'foo[bar]') }.should_not raise_error
       end
@@ -415,66 +415,66 @@ describe Turbot::Client do
       @client.addons.should == [{'name' => 'addon1'}, {'name' => 'addon2'}]
     end
 
-    it "installed_addons(app_name) -> array of installed addons" do
-      stub_api_request(:get, "/apps/example/addons").to_return(:body => '[{"name":"addon1"}]')
+    it "installed_addons(bot_name) -> array of installed addons" do
+      stub_api_request(:get, "/bots/example/addons").to_return(:body => '[{"name":"addon1"}]')
       @client.installed_addons('example').should == [{'name' => 'addon1'}]
     end
 
-    it "install_addon(app_name, addon_name)" do
-      stub_api_request(:post, "/apps/example/addons/addon1")
+    it "install_addon(bot_name, addon_name)" do
+      stub_api_request(:post, "/bots/example/addons/addon1")
       @client.install_addon('example', 'addon1').should be_nil
     end
 
-    it "upgrade_addon(app_name, addon_name)" do
-      stub_api_request(:put, "/apps/example/addons/addon1")
+    it "upgrade_addon(bot_name, addon_name)" do
+      stub_api_request(:put, "/bots/example/addons/addon1")
       @client.upgrade_addon('example', 'addon1').should be_nil
     end
 
-    it "downgrade_addon(app_name, addon_name)" do
-      stub_api_request(:put, "/apps/example/addons/addon1")
+    it "downgrade_addon(bot_name, addon_name)" do
+      stub_api_request(:put, "/bots/example/addons/addon1")
       @client.downgrade_addon('example', 'addon1').should be_nil
     end
 
-    it "uninstall_addon(app_name, addon_name)" do
-      stub_api_request(:delete, "/apps/example/addons/addon1?").
+    it "uninstall_addon(bot_name, addon_name)" do
+      stub_api_request(:delete, "/bots/example/addons/addon1?").
         to_return(:body => json_encode({"message" => nil, "price" => "free", "status" => "uninstalled"}))
 
       @client.uninstall_addon('example', 'addon1').should be_true
     end
 
-    it "uninstall_addon(app_name, addon_name) with confirmation" do
-      stub_api_request(:delete, "/apps/example/addons/addon1?confirm=example").
+    it "uninstall_addon(bot_name, addon_name) with confirmation" do
+      stub_api_request(:delete, "/bots/example/addons/addon1?confirm=example").
         to_return(:body => json_encode({"message" => nil, "price" => "free", "status" => "uninstalled"}))
 
       @client.uninstall_addon('example', 'addon1', :confirm => "example").should be_true
     end
 
-    it "install_addon(app_name, addon_name) with response" do
-      stub_request(:post, "https://api.turbot.com/apps/example/addons/addon1").
+    it "install_addon(bot_name, addon_name) with response" do
+      stub_request(:post, "https://api.turbot.com/bots/example/addons/addon1").
         to_return(:body => json_encode({'price' => 'free', 'message' => "Don't Panic"}))
 
       @client.install_addon('example', 'addon1').
         should == { 'price' => 'free', 'message' => "Don't Panic" }
     end
 
-    it "upgrade_addon(app_name, addon_name) with response" do
-      stub_request(:put, "https://api.turbot.com/apps/example/addons/addon1").
+    it "upgrade_addon(bot_name, addon_name) with response" do
+      stub_request(:put, "https://api.turbot.com/bots/example/addons/addon1").
         to_return(:body => json_encode('price' => 'free', 'message' => "Don't Panic"))
 
       @client.upgrade_addon('example', 'addon1').
         should == { 'price' => 'free', 'message' => "Don't Panic" }
     end
 
-    it "downgrade_addon(app_name, addon_name) with response" do
-      stub_request(:put, "https://api.turbot.com/apps/example/addons/addon1").
+    it "downgrade_addon(bot_name, addon_name) with response" do
+      stub_request(:put, "https://api.turbot.com/bots/example/addons/addon1").
         to_return(:body => json_encode('price' => 'free', 'message' => "Don't Panic"))
 
       @client.downgrade_addon('example', 'addon1').
         should == { 'price' => 'free', 'message' => "Don't Panic" }
     end
 
-    it "uninstall_addon(app_name, addon_name) with response" do
-      stub_api_request(:delete, "/apps/example/addons/addon1?").
+    it "uninstall_addon(bot_name, addon_name) with response" do
+      stub_api_request(:delete, "/bots/example/addons/addon1?").
         to_return(:body => json_encode('price'=> 'free', 'message'=> "Don't Panic"))
 
       @client.uninstall_addon('example', 'addon1').
@@ -531,15 +531,15 @@ describe Turbot::Client do
   end
 
   describe "stacks" do
-    it "list_stacks(app_name) -> json hash of available stacks" do
-      stub_api_request(:get, "/apps/example/stack?include_deprecated=false").to_return(:body => '{"stack":"one"}')
+    it "list_stacks(bot_name) -> json hash of available stacks" do
+      stub_api_request(:get, "/bots/example/stack?include_deprecated=false").to_return(:body => '{"stack":"one"}')
       capture_stderr do # capture deprecation message
         @client.list_stacks("example").should == { 'stack' => 'one' }
       end
     end
 
-    it "list_stacks(app_name, include_deprecated=true) passes the deprecated option" do
-      stub_api_request(:get, "/apps/example/stack?include_deprecated=true").to_return(:body => '{"stack":"one"}')
+    it "list_stacks(bot_name, include_deprecated=true) passes the deprecated option" do
+      stub_api_request(:get, "/bots/example/stack?include_deprecated=true").to_return(:body => '{"stack":"one"}')
       capture_stderr do # capture deprecation message
         @client.list_stacks("example", :include_deprecated => true).should == { 'stack' => 'one' }
       end

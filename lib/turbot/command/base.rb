@@ -18,16 +18,16 @@ class Turbot::Command::Base
     @options = options
   end
 
-  def app
-    @app ||= if options[:app].is_a?(String)
-      options[:app]
+  def bot
+    @bot ||= if options[:bot].is_a?(String)
+      options[:bot]
     elsif ENV.has_key?('TURBOT_BOT')
       ENV['TURBOT_BOT']
-    elsif app_from_dir = extract_app_from_dir(Dir.pwd)
-      app_from_dir
+    elsif bot_from_dir = extract_bot_from_dir(Dir.pwd)
+      bot_from_dir
     else
-      # raise instead of using error command to enable rescuing when app is optional
-      raise Turbot::Command::CommandFailed.new("No app specified.\nRun this command from an app folder or specify which app to use with --app APP.") unless options[:ignore_no_app]
+      # raise instead of using error command to enable rescuing when bot is optional
+      raise Turbot::Command::CommandFailed.new("No bot specified.\nRun this command from an bot folder or specify which bot to use with --bot APP.") unless options[:ignore_no_bot]
     end
   end
 
@@ -82,9 +82,9 @@ protected
     Turbot::Command.command_aliases[new] = old
   end
 
-  def extract_app
-    output_with_bang "Command::Base#extract_app has been deprecated. Please use Command::Base#app instead.  #{caller.first}"
-    app
+  def extract_bot
+    output_with_bang "Command::Base#extract_bot has been deprecated. Please use Command::Base#bot instead.  #{caller.first}"
+    bot
   end
 
   #
@@ -172,7 +172,7 @@ protected
     Turbot::Command.validate_arguments!
   end
 
-  def extract_app_from_dir(dir)
+  def extract_bot_from_dir(dir)
     manifest = `find #{dir} -name manifest.yml`.strip
     if manifest
       dir.split("/").last

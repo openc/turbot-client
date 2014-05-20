@@ -81,7 +81,7 @@ class PgDumpRestore
 
   def verify_extensions_match
     # It's pretty common for local DBs to not have extensions available that
-    # are used by the remote app, so take the final precaution of warning if
+    # are used by the remote bot, so take the final precaution of warning if
     # the extensions available in the local database don't match. We don't
     # report it if the difference is solely in the version of an extension
     # used, though.

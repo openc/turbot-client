@@ -108,8 +108,8 @@ module Turbot
       global_options << { :name => name.to_s, :args => args.sort.reverse, :proc => blk }
     end
 
-    global_option :app, "-a", "--app APP" do |app|
-      raise OptionParser::InvalidOption.new(app) if app == "pp"
+    global_option :bot, "-a", "--bot APP" do |bot|
+      raise OptionParser::InvalidOption.new(bot) if bot == "pp"
     end
 
     global_option :org, "-o", "--org ORG" do |org|
@@ -197,8 +197,8 @@ module Turbot
       if command
         command_instance = command[:klass].new(args.dup, opts.dup)
 
-        if !@normalized_args.include?('--app _') && (implied_app = command_instance.app rescue nil)
-          @normalized_args << '--app _'
+        if !@normalized_args.include?('--bot _') && (implied_bot = command_instance.bot rescue nil)
+          @normalized_args << '--bot _'
         end
         @normalized_command = [ARGV.first, @normalized_args.sort_by {|arg| arg.gsub('-', '')}].join(' ')
 
@@ -240,15 +240,15 @@ module Turbot
         e.http_body =~ /^([\w\s]+ not found).?$/ ? $1 : "Resource not found"
       }
     rescue Turbot::API::Errors::Locked => e
-      app = e.response.headers[:x_confirmation_required]
-      if confirm_command(app, extract_error(e.response.body))
-        arguments << '--confirm' << app
+      bot = e.response.headers[:x_confirmation_required]
+      if confirm_command(bot, extract_error(e.response.body))
+        arguments << '--confirm' << bot
         retry
       end
     rescue RestClient::Locked => e
-      app = e.response.headers[:x_confirmation_required]
-      if confirm_command(app, extract_error(e.http_body))
-        arguments << '--confirm' << app
+      bot = e.response.headers[:x_confirmation_required]
+      if confirm_command(bot, extract_error(e.http_body))
+        arguments << '--confirm' << bot
         retry
       end
     rescue Turbot::API::Errors::Timeout, RestClient::RequestTimeout

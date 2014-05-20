@@ -15,7 +15,7 @@ describe Turbot::Client::Pgbackups do
 
     it 'still has a turbot gem version' do
       version.should be
-      version.split(/\./).first.to_i.should >= 2
+      version.split(/\./).first.to_i.should >= 0
     end
 
     it 'includes the turbot gem version' do

@@ -4,16 +4,16 @@ module Turbot::Command
 
   # DEPRECATED: see `turbot certs` instead
   #
-  # manage ssl certificates for an app
+  # manage ssl certificates for an bot
   #
   class Ssl < Base
 
     # ssl
     #
-    # list legacy certificates for an app
+    # list legacy certificates for an bot
     #
     def index
-      api.get_domains(app).body.each do |domain|
+      api.get_domains(bot).body.each do |domain|
         if cert = domain['cert']
           display "#{domain['domain']} has a SSL certificate registered to #{cert['subject']} which expires on #{format_date(cert['expires_at'])}"
         else
@@ -33,11 +33,11 @@ module Turbot::Command
 
     # ssl:clear
     #
-    # remove legacy ssl certificates from an app
+    # remove legacy ssl certificates from an bot
     #
     def clear
-      turbot.clear_ssl(app)
-      display "Cleared certificates for #{app}"
+      turbot.clear_ssl(bot)
+      display "Cleared certificates for #{bot}"
     end
   end
 end

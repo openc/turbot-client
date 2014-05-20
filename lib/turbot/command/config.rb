@@ -1,12 +1,12 @@
 require "turbot/command/base"
 
-# manage app config vars
+# manage bot config vars
 #
 class Turbot::Command::Config < Turbot::Command::Base
 
   # config
   #
-  # display the config vars for an app
+  # display the config vars for an bot
   #
   # -s, --shell  # output config vars in shell format
   #
@@ -23,9 +23,9 @@ class Turbot::Command::Config < Turbot::Command::Base
   def index
     validate_arguments!
 
-    vars = api.get_config_vars(app)
+    vars = api.get_config_vars(bot)
     if vars.empty?
-      display("#{app} has no config vars.")
+      display("#{bot} has no config vars.")
     else
       vars.each {|key, value| vars[key] = value.to_s.strip}
       if options[:shell]
@@ -33,7 +33,7 @@ class Turbot::Command::Config < Turbot::Command::Base
           display(%{#{key}=#{vars[key]}})
         end
       else
-        styled_header("#{app} Config Vars")
+        styled_header("#{bot} Config Vars")
         styled_hash(vars)
       end
     end
@@ -65,8 +65,8 @@ class Turbot::Command::Config < Turbot::Command::Base
       vars
     end
 
-    action("Setting config vars and restarting #{app}") do
-      api.put_config_vars(app, vars)
+    action("Setting config vars and restarting #{bot}") do
+      api.put_config_vars(bot, vars)
     end
 
     vars.each {|key, value| vars[key] = value.to_s}
@@ -77,7 +77,7 @@ class Turbot::Command::Config < Turbot::Command::Base
 
   # config:get KEY
   #
-  # display a config value for an app
+  # display a config value for an bot
   #
   #Examples:
   #
@@ -90,7 +90,7 @@ class Turbot::Command::Config < Turbot::Command::Base
     end
     validate_arguments!
 
-    vars = api.get_config_vars(app)
+    vars = api.get_config_vars(bot)
     key, value = vars.detect {|k,v| k == key}
     display(value.to_s)
   end
@@ -112,8 +112,8 @@ class Turbot::Command::Config < Turbot::Command::Base
     end
 
     args.each do |key|
-      action("Unsetting #{key} and restarting #{app}") do
-        api.delete_config_var(app, key)
+      action("Unsetting #{key} and restarting #{bot}") do
+        api.delete_config_var(bot, key)
       end
     end
   end

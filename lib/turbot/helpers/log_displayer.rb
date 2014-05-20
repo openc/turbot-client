@@ -5,10 +5,10 @@ module Turbot::Helpers
 
     include Turbot::Helpers
 
-    attr_reader :turbot, :app, :opts
+    attr_reader :turbot, :bot, :opts
 
-    def initialize(turbot, app, opts)
-      @turbot, @app, @opts = turbot, app, opts
+    def initialize(turbot, bot, opts)
+      @turbot, @bot, @opts = turbot, bot, opts
     end
 
     def display_logs
@@ -16,7 +16,7 @@ module Turbot::Helpers
       @line_start = true
       @token = nil
 
-      turbot.read_logs(app, opts) do |chunk|
+      turbot.read_logs(bot, opts) do |chunk|
         unless chunk.empty?
           if STDOUT.isatty && ENV.has_key?("TERM")
             display(colorize(chunk))

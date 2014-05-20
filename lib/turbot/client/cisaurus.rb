@@ -16,7 +16,7 @@ class Turbot::Client::Cisaurus
   end
 
   def copy_slug(from, to)
-    authenticated_resource("/v1/apps/#{from}/copy/#{to}").post(json_encode("description" => "Forked from #{from}"), :content_type => :json).headers[:location]
+    authenticated_resource("/v1/bots/#{from}/copy/#{to}").post(json_encode("description" => "Forked from #{from}"), :content_type => :json).headers[:location]
   end
 
   def job_done?(job_location)

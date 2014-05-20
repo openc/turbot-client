@@ -35,7 +35,7 @@ end
 
 def prepare_command(klass)
   command = klass.new
-  command.stub!(:app).and_return("example")
+  command.stub!(:bot).and_return("example")
   command.stub!(:ask).and_return("")
   command.stub!(:display)
   command.stub!(:hputs)
@@ -54,7 +54,7 @@ def execute(command_line)
   object, method = Turbot::Command.prepare_run(command, args)
 
   any_instance_of(Turbot::Command::Base) do |base|
-    stub(base).app.returns("example")
+    stub(base).bot.returns("example")
   end
 
   stub(Turbot::Auth).get_credentials.returns(['email@example.com', 'apikey01'])

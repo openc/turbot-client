@@ -1,5 +1,5 @@
 require "spec_helper"
-require "turbot/command/apps"
+require "turbot/command/bots"
 require "turbot/command/help"
 
 describe Turbot::Command::Help do
@@ -8,40 +8,40 @@ describe Turbot::Command::Help do
     it "should show root help with no args" do
       stderr, stdout = execute("help")
       stderr.should == ""
-      stdout.should include "Usage: turbot COMMAND [--app APP] [command-specific-options]"
-      stdout.should include "apps"
+      stdout.should include "Usage: turbot COMMAND [--bot APP] [command-specific-options]"
+      stdout.should include "bots"
       stdout.should include "help"
     end
 
     it "should show command help and namespace help when ambigious" do
-      stderr, stdout = execute("help apps")
+      stderr, stdout = execute("help bots")
       stderr.should == ""
-      stdout.should include "turbot apps"
-      stdout.should include "list your apps"
+      stdout.should include "turbot bots"
+      stdout.should include "list your bots"
       stdout.should include "Additional commands"
-      stdout.should include "apps:info"
+      stdout.should include "bots:info"
     end
 
     it "should show only command help when not ambiguous" do
-      stderr, stdout = execute("help apps:info")
+      stderr, stdout = execute("help bots:info")
       stderr.should == ""
-      stdout.should include "turbot apps:info"
+      stdout.should include "turbot bots:info"
       stdout.should_not include "Additional commands"
     end
 
     it "should show command help with --help" do
-      stderr, stdout = execute("apps:info --help")
+      stderr, stdout = execute("bots:info --help")
       stderr.should == ""
-      stdout.should include "Usage: turbot apps:info"
+      stdout.should include "Usage: turbot bots:info"
       stdout.should_not include "Additional commands"
     end
 
     it "should redirect if the command is an alias" do
       stderr, stdout = execute("help list")
       stderr.should == ""
-      stdout.should include "Alias: list redirects to apps"
-      stdout.should include "Usage: turbot apps"
-      stdout.should include "list your apps"
+      stdout.should include "Alias: list redirects to bots"
+      stdout.should include "Usage: turbot bots"
+      stdout.should include "list your bots"
     end
 
     it "should show if the command does not exist" do

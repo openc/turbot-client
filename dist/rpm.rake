@@ -15,7 +15,7 @@ file pkg("/yum-#{version}/turbot-#{version}.rpm") => "deb:build" do |t|
       f.puts spec_contents.sub(/\n\n/m, "\nRequires: ruby\nBuildArch: noarch\n\n").
         sub(/^.+has_key-vs-hash\[key\].+$/, "").
         sub(/^License: .*/, "License: MIT\nURL: http://turbot.com\n").
-        sub(/^%description/, "%description\nClient library and CLI to deploy apps on Turbot.")
+        sub(/^%description/, "%description\nClient library and CLI to deploy bots on Turbot.")
     end
     sh "sed -i s/ruby1.9.1/ruby/ turbot-#{version}/usr/local/turbot/bin/turbot"
 
