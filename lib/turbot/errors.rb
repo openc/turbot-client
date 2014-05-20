@@ -6,8 +6,8 @@ module Turbot
       class ErrorWithResponse < Error
         attr_reader :response
 
-        def initialize(message, response)
-          message = message << "\nbody: #{response.body.inspect}"
+        def initialize(message, response=nil)
+          message = message << "\nbody: #{response.body.inspect}" if response
           super message
           @response = response
         end
@@ -22,6 +22,7 @@ module Turbot
       class RateLimitExceeded < ErrorWithResponse; end
       class RequestFailed < ErrorWithResponse; end
       class NilApp < ErrorWithResponse; end
+      class MissingManifest < ErrorWithResponse; end
     end
   end
 end
