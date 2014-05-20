@@ -7,7 +7,7 @@ module Turbot
     include Turbot::Helpers
 
     before do
-      ENV['HEROKU_API_KEY'] = nil
+      ENV['TURBOT_API_KEY'] = nil
 
       @cli = Turbot::Auth
       @cli.stub!(:check)
@@ -39,11 +39,11 @@ module Turbot
 
     context "API key is set via environment variable" do
       before do
-        ENV['HEROKU_API_KEY'] = "secret"
+        ENV['TURBOT_API_KEY'] = "secret"
       end
 
       it "gets credentials from environment variables in preference to credentials file" do
-        @cli.read_credentials.should == ['', ENV['HEROKU_API_KEY']]
+        @cli.read_credentials.should == ['', ENV['TURBOT_API_KEY']]
       end
 
       it "returns a blank username" do
@@ -51,7 +51,7 @@ module Turbot
       end
 
       it "returns the api key as the password" do
-        @cli.password.should == ENV['HEROKU_API_KEY']
+        @cli.password.should == ENV['TURBOT_API_KEY']
       end
 
       it "does not overwrite credentials file with environment variable credentials" do
@@ -70,7 +70,7 @@ module Turbot
           Netrc.read(@cli.netrc_path)["api.#{@cli.host}"].should == ['new_user', 'new_password']
         end
         it "returns environment variable credentials" do
-          @cli.read_credentials.should == ['', ENV['HEROKU_API_KEY']]
+          @cli.read_credentials.should == ['', ENV['TURBOT_API_KEY']]
         end
       end
 

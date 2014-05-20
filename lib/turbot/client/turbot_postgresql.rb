@@ -23,12 +23,12 @@ class Turbot::Client::TurbotPostgresql
 
   def turbot_postgresql_host
     if attachment.starter_plan?
-      determine_host(ENV["HEROKU_POSTGRESQL_HOST"], "postgres-starter-api.turbot.com")
+      determine_host(ENV["TURBOT_POSTGRESQL_HOST"], "postgres-starter-api.turbot.com")
     else
       if ENV['SHOGUN']
         "shogun-#{ENV['SHOGUN']}.turbotapp.com"
       else
-        determine_host(ENV["HEROKU_POSTGRESQL_HOST"], "postgres-api.turbot.com")
+        determine_host(ENV["TURBOT_POSTGRESQL_HOST"], "postgres-api.turbot.com")
       end
     end
   end

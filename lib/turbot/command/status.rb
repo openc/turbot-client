@@ -18,7 +18,7 @@ class Turbot::Command::Status < Turbot::Command::Base
   def index
     validate_arguments!
 
-    turbot_status_host = ENV['HEROKU_STATUS_HOST'] || "status.turbot.com"
+    turbot_status_host = ENV['TURBOT_STATUS_HOST'] || "status.turbot.com"
     require('excon')
     status = json_decode(Excon.get("https://#{turbot_status_host}/api/v3/current-status.json", :nonblock => false).body)
 

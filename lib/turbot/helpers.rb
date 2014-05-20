@@ -502,7 +502,7 @@ module Turbot
     end
 
     def org_host
-      ENV["HEROKU_ORG_HOST"] || default_org_host
+      ENV["TURBOT_ORG_HOST"] || default_org_host
     end
 
     def default_org_host

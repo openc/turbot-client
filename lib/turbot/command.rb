@@ -223,7 +223,7 @@ module Turbot
       end
     rescue Turbot::API::Errors::Unauthorized, RestClient::Unauthorized
       puts "Authentication failure"
-      if ENV['HEROKU_API_KEY']
+      if ENV['TURBOT_API_KEY']
         exit 1
       else
         run "login"

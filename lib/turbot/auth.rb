@@ -44,11 +44,11 @@ class Turbot::Auth
     end
 
     def git_host
-      ENV['HEROKU_GIT_HOST'] || host
+      ENV['TURBOT_GIT_HOST'] || host
     end
 
     def host
-      ENV['HEROKU_HOST'] || default_host
+      ENV['TURBOT_HOST'] || default_host
     end
 
     def reauthorize
@@ -105,8 +105,8 @@ class Turbot::Auth
     end
 
     def read_credentials
-      if ENV['HEROKU_API_KEY']
-        ['', ENV['HEROKU_API_KEY']]
+      if ENV['TURBOT_API_KEY']
+        ['', ENV['TURBOT_API_KEY']]
       else
 
         # read netrc credentials if they exist
@@ -295,7 +295,7 @@ class Turbot::Auth
     def verify_host?(host)
       hostname = base_host(host)
       verified = verified_hosts.include?(hostname)
-      verified = false if ENV["HEROKU_SSL_VERIFY"] == "disable"
+      verified = false if ENV["TURBOT_SSL_VERIFY"] == "disable"
       verified
     end
 

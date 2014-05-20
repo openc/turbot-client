@@ -95,14 +95,14 @@ def s3_connect
 
   require "aws/s3"
 
-  unless ENV["HEROKU_RELEASE_ACCESS"] && ENV["HEROKU_RELEASE_SECRET"]
-    puts "please set HEROKU_RELEASE_ACCESS and HEROKU_RELEASE_SECRET in your environment"
+  unless ENV["TURBOT_RELEASE_ACCESS"] && ENV["TURBOT_RELEASE_SECRET"]
+    puts "please set TURBOT_RELEASE_ACCESS and TURBOT_RELEASE_SECRET in your environment"
     exit 1
   end
 
   AWS::S3::Base.establish_connection!(
-    :access_key_id => ENV["HEROKU_RELEASE_ACCESS"],
-    :secret_access_key => ENV["HEROKU_RELEASE_SECRET"]
+    :access_key_id => ENV["TURBOT_RELEASE_ACCESS"],
+    :secret_access_key => ENV["TURBOT_RELEASE_SECRET"]
   )
 
   @s3_connected = true

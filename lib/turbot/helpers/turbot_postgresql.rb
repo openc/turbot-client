@@ -76,7 +76,7 @@ module Turbot::Helpers::TurbotPostgresql
       if ENV['SHOGUN']
         "shogun-#{ENV['SHOGUN']}"
       else
-        ENV['HEROKU_POSTGRESQL_ADDON_NAME'] || 'turbot-postgresql'
+        ENV['TURBOT_POSTGRESQL_ADDON_NAME'] || 'turbot-postgresql'
       end
     end
 
