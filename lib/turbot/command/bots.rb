@@ -87,14 +87,23 @@ class Turbot::Command::Bots < Turbot::Command::Base
   # Creating example... done
 
   def create
-    name    = shift_argument || options[:bot] || ENV['TURBOT_BOT']
-    validate_arguments!
 
-    params = {
-      "name" => name,
-    }
+    working_dir = Dir.pwd
 
-    api.post_bot(params).body
+    manifest = JSON.parse(open(File.join(working_dir,manifest_location)).read)
+    archive_file = File.join(working_dir, 'tmp', "#{manifest['bot_id']}.zip")
+    Zip.continue_on_exists_proc = true
+    Zip::File.open(archive_file, Zip::File::CREATE) do |zipfile|
+      manifest['files'].each { |f| zipfile.add(f, File.join(working_dir,f)) }
+    end
+
+    File.open(archive_file) do |file|
+      params = {
+        "bot[archive]" => file,
+        "bot[manifest]" => manifest
+      }
+      api.post_bot(params).body
+    end
   end
 
   alias_command "create", "bots:create"
