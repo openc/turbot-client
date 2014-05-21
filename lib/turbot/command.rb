@@ -2,6 +2,7 @@ require 'turbot/helpers'
 require 'turbot/plugin'
 require 'turbot/version'
 require "optparse"
+require 'excon'
 
 module Turbot
   module Command
