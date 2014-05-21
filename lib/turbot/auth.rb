@@ -34,7 +34,7 @@ class Turbot::Auth
       delete_credentials
     end
 
-    # just a stub; will raise if not authenticated
+    # will raise if not authenticated
     def check
       api.get_user
     end
@@ -63,9 +63,13 @@ class Turbot::Auth
       get_credentials[1]
     end
 
-    def api_key(user = get_credentials[0], password = get_credentials[1])
+    def api_key
+      api.get_api_key
+    end
+
+    def api_key_for_credentials(user = get_credentials[0], password = get_credentials[1])
       api = Turbot::API.new(default_params)
-      api.get_api_key(user, password)
+      api.get_api_key_for_credentials(user, password)["api_key"]
     end
 
     def get_credentials    # :nodoc:
@@ -156,7 +160,7 @@ class Turbot::Auth
       print "Password (typing will be hidden): "
       password = running_on_windows? ? ask_for_password_on_windows : ask_for_password
 
-      [user, api_key(user, password)]
+      [user, api_key_for_credentials(user, password)]
     end
 
     def ask_for_password_on_windows
@@ -192,12 +196,6 @@ class Turbot::Auth
         @credentials = ask_for_credentials
         # write these to a hidden file
         write_credentials
-        # causes a 403 if not allowed - the request it makes uses the
-        # api_key as the basic auth credentials.  In other words the
-        # API returns the hash of the username and password with its
-        # salt, and then uses that as the basic auth, allowin us to
-        # use either username/password combination, OR the API key
-        # (which is derived from these)
         check
       rescue Turbot::API::Errors::NotFound, Turbot::API::Errors::Unauthorized => e
         delete_credentials
@@ -213,7 +211,7 @@ class Turbot::Auth
     end
 
     def check_for_associated_ssh_key
-      if api.get_ssh_keys.body.empty?
+      if api.get_ssh_keys.empty?
         associate_or_generate_ssh_key
       end
     end
@@ -308,7 +306,7 @@ class Turbot::Auth
           'User-Agent'    => Turbot.user_agent
         },
         :host             => uri.host,
-        :port             => uri.port.to_s,
+        :port             => uri.port,
         :scheme           => uri.scheme,
         :ssl_verify_peer  => verify_host?(host)
       }

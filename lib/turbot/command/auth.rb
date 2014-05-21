@@ -83,4 +83,3 @@ class Turbot::Command::Auth < Turbot::Command::Base
   end
 
 end
-

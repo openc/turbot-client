@@ -4,6 +4,7 @@ gemspec
 
 # XXX move to gemspec when not path-based
 gem 'turbot-api', :path => '/home/seb/Code/turbot-api'
+gem "rubyzip", "> 1.0.0"
 
 group :development, :test do
   gem "rake",  ">= 0.8.7"
@@ -14,7 +15,6 @@ end
 group :development do
   gem "aws-s3"
   gem "fpm"
-  gem "rubyzip"
   gem "debugger"
 end
 

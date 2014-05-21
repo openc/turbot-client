@@ -1,4 +1,5 @@
 require "turbot/command/base"
+require 'zip'
 
 # manage bots (create, destroy)
 #
@@ -14,9 +15,6 @@ class Turbot::Command::Bots < Turbot::Command::Base
   # === My Bots
   # example
   # example2
-  #
-  # === Collaborated Bots
-  # theirapp   other@owner.name
   #
   def index
     validate_arguments!
@@ -67,7 +65,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
         data["Last run status"] = bot_data["last_run_status"]
       end
       if bot_data["last_run_ended"]
-        data["Last run ended"] = format_date(bot_data["last_run_ended"])
+        data["Last run ended"] = format_date(bot_data["last_run_ended"]) if bot_data["last_run_ended"]
       end
       data["Git URL"] = bot_data["git_url"]
       data["Repo Size"] = format_bytes(bot_data["repo_size"]) if bot_data["repo_size"]
@@ -82,27 +80,32 @@ class Turbot::Command::Bots < Turbot::Command::Base
   #
   # create a new bot
   #
-  # # specify a name
-  # $ heroku bots:create example
+  # # Must be run with a path to a manifest.json file
+  # $ heroku bots:create path/to/manifest.json
   # Creating example... done
 
   def create
+    manifest_path    = shift_argument
+    validate_arguments!
 
-    working_dir = Dir.pwd
+    working_dir = File.dirname(manifest_path)
+    manifest = JSON.parse(open(manifest_path).read)
+    #archive_file = File.join(working_dir, 'tmp', "#{manifest['bot_id']}.zip")
+    archive = Tempfile.new(manifest['bot_id'])
+    archive_path = "#{archive.path}.zip"
 
-    manifest = JSON.parse(open(File.join(working_dir,manifest_location)).read)
-    archive_file = File.join(working_dir, 'tmp', "#{manifest['bot_id']}.zip")
     Zip.continue_on_exists_proc = true
-    Zip::File.open(archive_file, Zip::File::CREATE) do |zipfile|
+    Zip::File.open(archive_path, Zip::File::CREATE) do |zipfile|
+      zipfile.add("manifest.json", manifest_path)
       manifest['files'].each { |f| zipfile.add(f, File.join(working_dir,f)) }
     end
 
-    File.open(archive_file) do |file|
+    File.open(archive_path) do |file|
       params = {
         "bot[archive]" => file,
         "bot[manifest]" => manifest
       }
-      api.post_bot(params).body
+      api.post_bot(params)
     end
   end
 

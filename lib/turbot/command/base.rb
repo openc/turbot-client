@@ -174,7 +174,7 @@ protected
 
   def extract_bot_from_dir(dir)
     manifest = `find #{dir} -name manifest.yml`.strip
-    if manifest
+    if !manifest.empty?
       dir.split("/").last
     end
   end

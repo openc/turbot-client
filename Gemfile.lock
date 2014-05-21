@@ -65,7 +65,7 @@ GEM
     rspec-expectations (2.12.1)
       diff-lcs (~> 1.1.3)
     rspec-mocks (2.12.2)
-    rubyzip (0.9.9)
+    rubyzip (1.1.3)
     sqlite3 (1.3.7)
     sqlite3 (1.3.7-x86-mingw32)
     webmock (1.9.0)
@@ -88,7 +88,7 @@ DEPENDENCIES
   rake (>= 0.8.7)
   rr (~> 1.0.2)
   rspec (>= 2.0)
-  rubyzip
+  rubyzip (> 1.0.0)
   sqlite3
   turbot!
   turbot-api!

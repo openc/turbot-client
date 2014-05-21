@@ -109,7 +109,7 @@ module Turbot
       global_options << { :name => name.to_s, :args => args.sort.reverse, :proc => blk }
     end
 
-    global_option :bot, "-a", "--bot APP" do |bot|
+    global_option :bot, "-b", "--bot APP" do |bot|
       raise OptionParser::InvalidOption.new(bot) if bot == "pp"
     end
 

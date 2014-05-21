@@ -28,18 +28,7 @@ class Turbot::Command::Logs < Turbot::Command::Base
     opts << "num=#{options[:num]}"                   if options[:num]
     opts << "ps=#{URI.encode(options[:ps])}"         if options[:ps]
     opts << "source=#{URI.encode(options[:source])}" if options[:source]
-
-    log_displayer = ::Turbot::Helpers::LogDisplayer.new(turbot, bot, opts)
+    log_displayer = ::Turbot::Helpers::LogDisplayer.new(api, bot, opts)
     log_displayer.display_logs
-  end
-
-  # logs:drains
-  #
-  # DEPRECATED: use `turbot drains`
-  #
-  def drains
-    # deprecation notice added 09/30/2011
-    display("~ `turbot logs:drains` has been deprecated and replaced with `turbot drains`")
-    Turbot::Command::Drains.new.index
   end
 end
