@@ -1,7 +1,7 @@
 require "turbot/client"
 require "turbot/updater"
 require "turbot/version"
-require "turbot/api"
+require "turbot_api"
 require "turbot/errors"
 
 module Turbot

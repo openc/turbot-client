@@ -2,6 +2,9 @@ source "https://rubygems.org"
 
 gemspec
 
+# XXX move to gemspec when not path-based
+gem 'turbot-api', :path => '/home/seb/Code/turbot-api'
+
 group :development, :test do
   gem "rake",  ">= 0.8.7"
   gem "rr",    "~> 1.0.2"
@@ -12,6 +15,7 @@ group :development do
   gem "aws-s3"
   gem "fpm"
   gem "rubyzip"
+  gem "debugger"
 end
 
 group :test do

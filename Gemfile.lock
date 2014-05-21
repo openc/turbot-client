@@ -7,6 +7,15 @@ PATH
       rest-client (~> 1.6.1)
       rubyzip
 
+PATH
+  remote: /home/seb/Code/turbot-api
+  specs:
+    turbot-api (0.0.1)
+      launchy (>= 0.3.2)
+      netrc (~> 0.7.7)
+      rest-client (~> 1.6.1)
+      rubyzip
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -22,7 +31,14 @@ GEM
     cabin (0.4.4)
       json
     clamp (0.5.0)
+    columnize (0.3.6)
     crack (0.3.2)
+    debugger (1.6.5)
+      columnize (>= 0.3.1)
+      debugger-linecache (~> 1.2.0)
+      debugger-ruby_core_source (~> 1.3.1)
+    debugger-linecache (1.2.0)
+    debugger-ruby_core_source (1.3.1)
     diff-lcs (1.1.3)
     excon (0.33.0)
     fakefs (0.4.2)
@@ -63,6 +79,7 @@ PLATFORMS
 
 DEPENDENCIES
   aws-s3
+  debugger
   excon
   fakefs
   fpm
@@ -74,4 +91,5 @@ DEPENDENCIES
   rubyzip
   sqlite3
   turbot!
+  turbot-api!
   webmock
