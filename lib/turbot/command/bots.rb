@@ -1,5 +1,9 @@
 require "turbot/command/base"
 require 'zip'
+require 'json-schema'
+require 'open3'
+require 'base64'
+require 'shellwords'
 
 # manage bots (create, destroy)
 #
@@ -76,7 +80,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
   alias_command "info", "bots:info"
 
 
-  # bots:create [NAME]
+  # bots:create [path/to/manifest.json]
   #
   # create a new bot
   #
@@ -110,6 +114,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
   end
 
   alias_command "create", "bots:create"
+
 
   # bots:validate
   #
@@ -160,4 +165,113 @@ class Turbot::Command::Bots < Turbot::Command::Base
     puts "Validated #{count} records successfully!" unless any_errors
   end
 
+  # bots:dump [path/to/scraper.rb]
+  #
+  # Execute bot locally (writes to STDOUT)
+  #
+  # $ heroku bots:dump
+  # {'foo': 'bar'}
+  # {'foo2': 'bar2'}
+
+  def dump
+    # This will need to be language-aware, eventually
+    scraper_path    = shift_argument
+    validate_arguments!
+    count = 0
+    run_scraper_each_line("#{scraper_path} #{bot}") do |line|
+      puts line
+      count += 1
+    end
+  end
+
+  # bots:single
+  #
+  # Execute bot in same way as OpenCorporates single-record update
+  #
+  # $ heroku bots:single
+  # Enter argument (as JSON object):
+  # {"id": "frob123"}
+  # {"id": "frob123", "stuff": "updated-data-for-this-record"}
+
+  def single
+    # This will need to be language-aware, eventually
+    scraper_path    = shift_argument
+    validate_arguments!
+    print 'Arguments (as JSON object, e.g. {"id":"ABC123"}: '
+    arg = ask
+    count = 0
+    run_scraper_each_line("#{scraper_path} #{bot} #{Shellwords.shellescape(arg)}") do |line|
+      raise "Your scraper returned more than one value!" if count > 1
+      puts line
+      count += 1
+    end
+  end
+
+
+  # bots:preview
+  #
+  # Send bot data to Angler for remote previewing / sharing
+  #
+  # Sending example to Angler... done
+  def preview
+    scraper_path    = shift_argument
+    validate_arguments!
+    batch = []
+    count = 0
+    puts "Sending to angler... "
+    result = ""
+    run_scraper_each_line("#{scraper_path} #{bot}") do |line|
+      batch << JSON.parse(line)
+      spinner(count)
+      if count % 20 == 0
+        result = api.send_drafts_to_angler(bot, batch.to_json)
+        batch = []
+      end
+      count += 1
+    end
+    if !batch.empty?
+      result = api.send_drafts_to_angler(bot, batch.to_json)
+    end
+    puts "Sent #{count} records."
+    puts "View your records at #{JSON.parse(result)['url']}"
+  end
+
+  private
+
+  def spinner(p)
+    parts = "\|/-" * 2
+    print parts[p % parts.length] + "\r"
+  end
+
+  def run_scraper_each_line(scraper_path, options={})
+    command = "ruby #{scraper_path}"
+    Open3::popen3(command, options) do |_, stdout, stderr, wait_thread|
+      loop do
+        check_output_with_timeout(stdout)
+
+        begin
+          result = stdout.readline.strip
+          yield result unless result.empty?
+          # add run id and bot name
+        rescue EOFError
+          break
+        end
+      end
+      status = wait_thread.value.exitstatus
+      if status > 0
+        message = "Bot <#{command}> exited with status #{status}: #{stderr.read}"
+        raise RuntimeError.new(message)
+      end
+    end
+  end
+
+  def check_output_with_timeout(stdout, initial_interval = 10, timeout = 21600)
+    interval = initial_interval
+    loop do
+      reads, _, _ = IO.select([stdout], [], [], interval)
+      break if !reads.nil?
+      raise "Timeout! - could not read from external bot after #{timeout} seconds" if reads.nil? && interval > timeout
+      interval *= 2
+    end
+  end
 end
