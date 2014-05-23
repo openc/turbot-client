@@ -24,4 +24,5 @@ Gem::Specification.new do |gem|
   gem.add_dependency "rest-client", "~> 1.6.1"
   gem.add_dependency "launchy",     ">= 0.3.2"
   gem.add_dependency "rubyzip"
+  gem.add_dependency "json-schema"
 end

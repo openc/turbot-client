@@ -110,4 +110,54 @@ class Turbot::Command::Bots < Turbot::Command::Base
   end
 
   alias_command "create", "bots:create"
+
+  # bots:validate
+  #
+  # Validate bot output against its schema
+  #
+  # $ heroku bots:validate
+  # Validating example... done
+
+  def validate
+    scraper_path    = shift_argument
+    validate_arguments!
+
+    config = api.get_config_vars(bot)
+    type = config["data_type"]
+
+    if type == "primary_source"
+      schema = nil
+    else
+      hyphenated_name = type.to_s.gsub("_", "-")
+      schema = File.expand_path("../../../../schema/schemas/#{hyphenated_name}-schema.json", __FILE__)
+    end
+    any_errors = false
+    count = 0
+    run_scraper_each_line("#{scraper_path} #{bot}") do |line|
+      errors = ""
+      if schema
+        errors = JSON::Validator.fully_validate(
+          schema,
+          line.to_json,
+          {:errors_as_objects => true})
+      else
+        begin
+          JSON.parse(line)
+        rescue
+          errors = "Not valid JSON"
+        end
+      end
+      if !errors.empty?
+        any_errors = true
+        puts "LINE WITH ERROR:"
+        puts line
+        puts "ERRORS:"
+        puts errors
+        puts
+      end
+      count += 1
+    end
+    puts "Validated #{count} records successfully!" unless any_errors
+  end
+
 end

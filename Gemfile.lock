@@ -2,6 +2,7 @@ PATH
   remote: .
   specs:
     turbot (0.0.1)
+      json-schema
       launchy (>= 0.3.2)
       netrc (~> 0.7.7)
       rest-client (~> 1.6.1)
@@ -49,6 +50,7 @@ GEM
       clamp
       json
     json (1.7.7)
+    json-schema (2.2.2)
     launchy (2.4.2)
       addressable (~> 2.3)
     mime-types (1.21)
