@@ -80,22 +80,21 @@ class Turbot::Command::Bots < Turbot::Command::Base
   alias_command "info", "bots:info"
 
 
-  # bots:create [path/to/manifest.json]
+  # bots:push
   #
-  # create a new bot
+  # Push bot code to the turbot server. Must be run from a local bot checkout.
   #
-  # # Must be run with a path to a manifest.json file
-  # $ heroku bots:create path/to/manifest.json
+  # $ turbot bots:push
   # Creating example... done
 
-  def create
-    manifest_path    = shift_argument || File.join(Dir.pwd, "manifest.json")
+  def push
     validate_arguments!
 
-    working_dir = File.dirname(manifest_path)
+    working_dir = Dir.pwd
+    manifest_path = "#{working_dir}/manifest.json"
     manifest = JSON.parse(open(manifest_path).read)
     #archive_file = File.join(working_dir, 'tmp', "#{manifest['bot_id']}.zip")
-    archive = Tempfile.new(manifest['bot_id'])
+    archive = Tempfile.new(bot)
     archive_path = "#{archive.path}.zip"
 
     Zip.continue_on_exists_proc = true
