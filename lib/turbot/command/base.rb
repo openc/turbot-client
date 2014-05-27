@@ -23,11 +23,11 @@ class Turbot::Command::Base
       options[:bot]
     elsif ENV.has_key?('TURBOT_BOT')
       ENV['TURBOT_BOT']
-    elsif bot_from_dir = extract_bot_from_dir(Dir.pwd)
-      bot_from_dir
+    elsif bot_from_manifest = extract_bot_from_manifest(Dir.pwd)
+      bot_from_manifest
     else
       # raise instead of using error command to enable rescuing when bot is optional
-      raise Turbot::Command::CommandFailed.new("No bot specified.\nRun this command from an bot folder or specify which bot to use with --bot APP.") unless options[:ignore_no_bot]
+      raise Turbot::Command::CommandFailed.new("No bot specified.\nRun this command from a bot folder containing a `manifest.json`,  or specify which bot to use with --bot BOT_ID.") unless options[:ignore_no_bot]
     end
   end
 
@@ -172,10 +172,11 @@ protected
     Turbot::Command.validate_arguments!
   end
 
-  def extract_bot_from_dir(dir)
-    manifest = `find #{dir} -name manifest.yml`.strip
-    if !manifest.empty?
-      dir.split("/").last
+  def extract_bot_from_manifest(dir)
+    begin
+      config = JSON.load(open("#{dir}/manifest.json").read)
+      config && config["bot_id"]
+    rescue Errno::ENOENT
     end
   end
 

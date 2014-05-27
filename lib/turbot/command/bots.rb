@@ -89,7 +89,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
   # Creating example... done
 
   def create
-    manifest_path    = shift_argument
+    manifest_path    = shift_argument || File.join(Dir.pwd, "manifest.json")
     validate_arguments!
 
     working_dir = File.dirname(manifest_path)
@@ -124,7 +124,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
   # Validating example... done
 
   def validate
-    scraper_path    = shift_argument
+    scraper_path    = shift_argument || File.join(Dir.pwd, "scraper.rb")
     validate_arguments!
 
     config = api.get_config_vars(bot)
@@ -175,7 +175,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
 
   def dump
     # This will need to be language-aware, eventually
-    scraper_path    = shift_argument
+    scraper_path    = shift_argument || File.join(Dir.pwd, "scraper.rb")
     validate_arguments!
     count = 0
     run_scraper_each_line("#{scraper_path} #{bot}") do |line|
@@ -195,7 +195,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
 
   def single
     # This will need to be language-aware, eventually
-    scraper_path    = shift_argument
+    scraper_path    = shift_argument || File.join(Dir.pwd, "scraper.rb")
     validate_arguments!
     print 'Arguments (as JSON object, e.g. {"id":"ABC123"}: '
     arg = ask
@@ -214,7 +214,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
   #
   # Sending example to Angler... done
   def preview
-    scraper_path    = shift_argument
+    scraper_path    = shift_argument || File.join(Dir.pwd, "scraper.rb")
     validate_arguments!
     batch = []
     count = 0
