@@ -125,8 +125,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
     validate_arguments!
 
     working_dir = Dir.pwd
-    manifest_path = "#{working_dir}/manifest.json"
-    manifest = JSON.parse(open(manifest_path).read)
+    manifest = parsed_manifest!(working_dir)
     #archive_file = File.join(working_dir, 'tmp', "#{manifest['bot_id']}.zip")
     archive = Tempfile.new(bot)
     archive_path = "#{archive.path}.zip"
@@ -148,7 +147,6 @@ class Turbot::Command::Bots < Turbot::Command::Base
 
   alias_command "push", "bots:push"
 
-
   # bots:validate
   #
   # Validate bot output against its schema
@@ -159,21 +157,20 @@ class Turbot::Command::Bots < Turbot::Command::Base
   def validate
     scraper_path    = shift_argument || File.join(Dir.pwd, "scraper.rb")
     validate_arguments!
-
-    config = api.get_config_vars(bot)
+    config = parsed_manifest!(Dir.pwd)
     type = config["data_type"]
 
     if type == "primary_source"
       schema = nil
     else
-      hyphenated_name = type.to_s.gsub("_", "-")
+      hyphenated_name = type.to_s.gsub("_", "-").gsub(" ", "-")
       schema = File.expand_path("../../../../schema/schemas/#{hyphenated_name}-schema.json", __FILE__)
     end
     any_errors = false
     count = 0
     run_scraper_each_line("#{scraper_path} #{bot}") do |line|
       errors = ""
-      if schema
+      if File.exists?(schema)
         errors = JSON::Validator.fully_validate(
           schema,
           line.to_json,
@@ -307,4 +304,14 @@ class Turbot::Command::Bots < Turbot::Command::Base
       interval *= 2
     end
   end
+
+  def parsed_manifest!(dir)
+    begin
+      manifest_path = "#{dir}/manifest.json"
+      JSON.parse(open(manifest_path).read)
+    rescue Errno::ENOENT
+      raise "This command must be run from a directory including `manifest.json`"
+    end
+  end
+
 end
