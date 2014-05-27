@@ -2,10 +2,6 @@ source "https://rubygems.org"
 
 gemspec
 
-# XXX move to gemspec when not path-based
-gem 'turbot-api', :git => 'git@github.com:openc/turbot-api.git'
-gem "rubyzip", "> 1.0.0"
-
 group :development, :test do
   gem "rake",  ">= 0.8.7"
   gem "rr",    "~> 1.0.2"
