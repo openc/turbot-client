@@ -80,21 +80,19 @@ class Turbot::Command::Bots < Turbot::Command::Base
   alias_command "info", "bots:info"
 
 
-  # `turbot bot:generate --language=ruby` templating command
-
   # bots:generate --bot name_of_bot
   #
   # Generate stub code for a bot in specified language
   #
-  # -l, --language  # language to generate (currently `ruby` (default) or `python`)
+  #   -l, --language LANGUAGE # language to generate (currently `ruby` (default) or `python`)
 
-  # $ turbot bots:generate --language ruby
-  # Generating ruby code... done
+  # $ turbot bots:generate --language=ruby --bot my_amazing_bot
+  # Created new bot template at my_amazing_bot!
 
   def generate
     validate_arguments!
     language = options[:language] || "ruby"
-    puts "Generating #{language} code..."
+    puts "Generating #{language} codes..."
     FileUtils.mkdir(bot)
     case language
     when "ruby"
@@ -109,8 +107,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
     open("#{bot}/manifest.json", "w") do |f|
       f.write(manifest)
     end
-    FileUtils.cd(bot)
-    puts "Done!"
+    puts "Created new bot template at #{bot}!"
   end
 
 
@@ -155,7 +152,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
   # Validating example... done
 
   def validate
-    scraper_path    = shift_argument || File.join(Dir.pwd, "scraper.rb")
+    scraper_path    = shift_argument || scraper_file(Dir.pwd)
     validate_arguments!
     config = parsed_manifest!(Dir.pwd)
     type = config["data_type"]
@@ -205,7 +202,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
 
   def dump
     # This will need to be language-aware, eventually
-    scraper_path    = shift_argument || File.join(Dir.pwd, "scraper.rb")
+    scraper_path    = shift_argument || scraper_file(Dir.pwd)
     validate_arguments!
     count = 0
     run_scraper_each_line("#{scraper_path} #{bot}") do |line|
@@ -225,7 +222,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
 
   def single
     # This will need to be language-aware, eventually
-    scraper_path    = shift_argument || File.join(Dir.pwd, "scraper.rb")
+    scraper_path    = shift_argument || scraper_file(Dir.pwd)
     validate_arguments!
     print 'Arguments (as JSON object, e.g. {"id":"ABC123"}: '
     arg = ask
@@ -244,7 +241,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
   #
   # Sending example to Angler... done
   def preview
-    scraper_path    = shift_argument || File.join(Dir.pwd, "scraper.rb")
+    scraper_path    = shift_argument || scraper_file(Dir.pwd)
     validate_arguments!
     batch = []
     count = 0
@@ -274,7 +271,16 @@ class Turbot::Command::Bots < Turbot::Command::Base
   end
 
   def run_scraper_each_line(scraper_path, options={})
-    command = "ruby #{scraper_path}"
+    case scraper_path
+    when /scraper.rb /
+      interpreter = "ruby"
+    when /scraper.py /
+      interpreter = "python"
+    else
+      raise "Unsupported file extension at #{scraper_path}"
+    end
+
+    command = "#{interpreter} #{scraper_path}"
     Open3::popen3(command, options) do |_, stdout, stderr, wait_thread|
       loop do
         check_output_with_timeout(stdout)
@@ -312,6 +318,10 @@ class Turbot::Command::Bots < Turbot::Command::Base
     rescue Errno::ENOENT
       raise "This command must be run from a directory including `manifest.json`"
     end
+  end
+
+  def scraper_file(dir)
+    Dir.glob("scraper*").first
   end
 
 end
