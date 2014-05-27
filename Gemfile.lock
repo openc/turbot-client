@@ -1,17 +1,18 @@
-PATH
-  remote: .
+GIT
+  remote: git@github.com:openc/turbot-api.git
+  revision: c73016988bc0f8ae22549234e57a8fbfbdf300fd
   specs:
-    turbot (0.0.1)
-      json-schema
+    turbot-api (0.0.1)
       launchy (>= 0.3.2)
       netrc (~> 0.7.7)
       rest-client (~> 1.6.1)
       rubyzip
 
 PATH
-  remote: /home/seb/Code/turbot-api
+  remote: .
   specs:
-    turbot-api (0.0.1)
+    turbot (0.0.1)
+      json-schema
       launchy (>= 0.3.2)
       netrc (~> 0.7.7)
       rest-client (~> 1.6.1)

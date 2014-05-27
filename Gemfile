@@ -3,7 +3,7 @@ source "https://rubygems.org"
 gemspec
 
 # XXX move to gemspec when not path-based
-gem 'turbot-api', :path => '/home/seb/Code/turbot-api'
+gem 'turbot-api', :git => 'git@github.com:openc/turbot-api.git'
 gem "rubyzip", "> 1.0.0"
 
 group :development, :test do
