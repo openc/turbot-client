@@ -1,0 +1,7 @@
+{
+ "bot_id": "{{bot_id}}",
+ "data_type": "primary data",
+ "identifying_fields": ["number"],
+ "files": ["scraper.rb"],
+ "description": "This is a simple bot"
+}

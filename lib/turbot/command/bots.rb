@@ -80,6 +80,40 @@ class Turbot::Command::Bots < Turbot::Command::Base
   alias_command "info", "bots:info"
 
 
+  # `turbot bot:generate --language=ruby` templating command
+
+  # bots:generate --bot name_of_bot
+  #
+  # Generate stub code for a bot in specified language
+  #
+  # -l, --language  # language to generate (currently `ruby` (default) or `python`)
+
+  # $ turbot bots:generate --language ruby
+  # Generating ruby code... done
+
+  def generate
+    validate_arguments!
+    language = options[:language] || "ruby"
+    puts "Generating #{language} code..."
+    FileUtils.mkdir(bot)
+    case language
+    when "ruby"
+      scraper = "scraper.rb"
+    when "python"
+      scraper = "scraper.py"
+    end
+    manifest_template = File.expand_path("../../../../templates/manifest.json", __FILE__)
+    scraper_template = File.expand_path("../../../../templates/#{scraper}", __FILE__)
+    manifest = open(manifest_template).read.sub(/{{bot_id}}/, bot)
+    FileUtils.cp(scraper_template, "#{bot}/#{scraper}")
+    open("#{bot}/manifest.json", "w") do |f|
+      f.write(manifest)
+    end
+    FileUtils.cd(bot)
+    puts "Done!"
+  end
+
+
   # bots:push
   #
   # Push bot code to the turbot server. Must be run from a local bot checkout.
@@ -112,7 +146,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
     end
   end
 
-  alias_command "create", "bots:create"
+  alias_command "push", "bots:push"
 
 
   # bots:validate
@@ -164,7 +198,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
     puts "Validated #{count} records successfully!" unless any_errors
   end
 
-  # bots:dump [path/to/scraper.rb]
+  # bots:dump
   #
   # Execute bot locally (writes to STDOUT)
   #
