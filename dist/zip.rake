@@ -1,4 +1,4 @@
-require "zip/zip"
+require "zip"
 
 file pkg("turbot-#{version}.zip") => distribution_files("zip") do |t|
   tempdir do |dir|
