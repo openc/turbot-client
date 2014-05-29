@@ -1,4 +1,6 @@
 require "turbot/command/base"
+require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/hash/slice'
 require 'zip'
 require 'json-schema'
 require 'open3'
@@ -155,6 +157,11 @@ class Turbot::Command::Bots < Turbot::Command::Base
     scraper_path    = shift_argument || scraper_file(Dir.pwd)
     validate_arguments!
     config = parsed_manifest(Dir.pwd)
+
+    %w(bot_id data_type identifying_fields files).each do |key|
+      error("Manifest is missing #{key}") unless config.has_key?(key)
+    end
+
     type = config["data_type"]
 
     schema = get_schema(type)
@@ -166,7 +173,6 @@ class Turbot::Command::Bots < Turbot::Command::Base
     count = 0
 
     run_scraper_each_line("#{scraper_path} #{bot}") do |line|
-      errors = ""
       errors = JSON::Validator.fully_validate(
         schema,
         line,
@@ -175,6 +181,11 @@ class Turbot::Command::Bots < Turbot::Command::Base
       if !errors.empty?
         error("LINE WITH ERROR: #{line}\n\nERRORS: #{errors}")
       end
+
+      if JSON.parse(line).slice(*config['identifying_fields']).blank?
+        error("LINE WITH ERROR: #{line}\n\nERRORS: No value provided for identifying fields")
+      end
+
       count += 1
     end
     puts "Validated #{count} records successfully!"
