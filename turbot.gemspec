@@ -24,4 +24,5 @@ Gem::Specification.new do |gem|
   gem.add_dependency "json-schema"
   gem.add_dependency "activesupport"
   gem.add_dependency "turbot-api"
+  gem.add_dependency "excon"
 end
