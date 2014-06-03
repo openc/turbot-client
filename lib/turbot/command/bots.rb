@@ -24,10 +24,10 @@ class Turbot::Command::Bots < Turbot::Command::Base
   #
   def index
     validate_arguments!
-    bots = api.get_bots
+    bots = api.list_bots
     unless bots.empty?
       styled_header("Bots")
-      styled_array(bots.map{|k,data| data['name']})
+      styled_array(bots.map{|bot| bot['bot_id']})
     else
       display("You have no bots.")
     end
@@ -92,9 +92,10 @@ class Turbot::Command::Bots < Turbot::Command::Base
   # Created new bot template at my_amazing_bot!
 
   def generate
+    puts "running generate"
     validate_arguments!
     language = options[:language] || "ruby"
-    puts "Generating #{language} codes..."
+    puts "Generating #{language} code..."
     FileUtils.mkdir(bot)
     case language
     when "ruby"
@@ -104,11 +105,17 @@ class Turbot::Command::Bots < Turbot::Command::Base
     end
     manifest_template = File.expand_path("../../../../templates/manifest.json", __FILE__)
     scraper_template = File.expand_path("../../../../templates/#{scraper}", __FILE__)
-    manifest = open(manifest_template).read.sub(/{{bot_id}}/, bot)
+    manifest = JSON.parse(open(manifest_template).read.sub(/{{bot_id}}/, bot))
+
     FileUtils.cp(scraper_template, "#{bot}/#{scraper}")
     open("#{bot}/manifest.json", "w") do |f|
-      f.write(manifest)
+      f.write(manifest.to_json)
     end
+
+    api.create_bot(bot, manifest)
+
+    # TODO handle errors
+
     puts "Created new bot template at #{bot}!"
   end
 
@@ -136,11 +143,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
     end
 
     File.open(archive_path) do |file|
-      params = {
-        "bot[archive]" => file,
-        "bot[manifest]" => manifest
-      }
-      api.post_bot(params)
+      api.update_code(bot, file)
     end
   end
 
@@ -243,27 +246,25 @@ class Turbot::Command::Bots < Turbot::Command::Base
     scraper_path    = shift_argument || scraper_file(Dir.pwd)
     validate_arguments!
 
-    bots = api.get_bots
-    raise "You have not pushed your bot" unless bots.include?(bot)
-
     batch = []
     count = 0
+    config = parsed_manifest(Dir.pwd)
     puts "Sending to angler... "
     result = ""
     run_scraper_each_line("#{scraper_path} #{bot}") do |line|
       batch << JSON.parse(line)
       spinner(count)
       if count % 20 == 0
-        result = api.send_drafts_to_angler(bot, batch.to_json)
+        result = api.update_draft_data(bot, config, batch.to_json)
         batch = []
       end
       count += 1
     end
     if !batch.empty?
-      result = api.send_drafts_to_angler(bot, batch.to_json)
+      result = api.update_draft_data(bot, config, batch.to_json)
     end
     puts "Sent #{count} records."
-    puts "View your records at #{JSON.parse(result)['url']}"
+    puts "View your records at #{result['url']}"
   end
 
   private
