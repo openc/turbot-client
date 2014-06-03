@@ -12,11 +12,6 @@ Gem::Specification.new do |gem|
   gem.description = "Client library and command-line tool to deploy and manage apps on Turbot."
   gem.executables = "turbot"
   gem.license     = "MIT"
-  gem.post_install_message = <<-MESSAGE
- !    The `turbot` gem has been deprecated and replaced with the Turbot Toolbelt.
- !    Download and install from: https://toolbelt.turbot.com
- !    For API access, see: https://github.com/turbot/turbot.rb
-  MESSAGE
 
   gem.files = %x{ git ls-files }.split("\n").select { |d| d =~ %r{^(License|README|bin/|data/|ext/|lib/|spec/|test/|templates/)} }
 
