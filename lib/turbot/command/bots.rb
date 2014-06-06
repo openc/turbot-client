@@ -105,9 +105,11 @@ class Turbot::Command::Bots < Turbot::Command::Base
     end
     manifest_template = File.expand_path("../../../../templates/manifest.json", __FILE__)
     scraper_template = File.expand_path("../../../../templates/#{scraper}", __FILE__)
+    license_template = File.expand_path("../../../../templates/LICENSE.txt", __FILE__)
     manifest = JSON.parse(open(manifest_template).read.sub(/{{bot_id}}/, bot))
 
     FileUtils.cp(scraper_template, "#{bot}/#{scraper}")
+    FileUtils.cp(license_template, "#{bot}/LICENSE.txt")
     open("#{bot}/manifest.json", "w") do |f|
       f.write(manifest.to_json)
     end
@@ -324,7 +326,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
   end
 
   def scraper_file(dir)
-    Dir.glob("scraper*").first
+    Dir.glob("scraper*").reject{|n| !n.match(/(rb|py)$/)}.first
   end
 
   def manifest_path
@@ -333,6 +335,6 @@ class Turbot::Command::Bots < Turbot::Command::Base
 
   def get_schema(type)
     hyphenated_name = type.to_s.gsub("_", "-").gsub(" ", "-")
-    schema = File.expand_path("../../../../schema/schemas/#{hyphenated_name}-schema.json", __FILE__)
+    File.expand_path("../../../../schema/schemas/#{hyphenated_name}-schema.json", __FILE__)
   end
 end
