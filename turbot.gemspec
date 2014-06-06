@@ -13,7 +13,7 @@ Gem::Specification.new do |gem|
   gem.executables = "turbot"
   gem.license     = "MIT"
 
-  gem.files = %x{ git ls-files }.split("\n").select { |d| d =~ %r{^(License|README|bin/|data/|ext/|lib/|spec/|test/|templates/)} }
+  gem.files = %x{ git ls-files }.split("\n").select { |d| d =~ %r{^(License|README|bin/|data/|ext/|lib/|spec/|test/|templates/|schema/)} }
 
   gem.required_ruby_version = '>=1.9.2'
 
