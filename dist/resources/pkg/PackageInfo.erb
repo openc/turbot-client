@@ -1,5 +1,5 @@
 <pkg-info format-version="2" identifier="com.turbot.toolbelt" version="<%= version %>" install-location="/usr/local/turbot" auth="root">
-  <payload installKBytes="<%= kbytes %>" numberOfFiles="<%= num_files %>"/>
+  <payload installKBytes="<%= kbytes.strip %>" numberOfFiles="<%= num_files.strip %>"/>
   <scripts>
     <postinstall file="./postinstall"/>
   </scripts>

@@ -10,6 +10,6 @@
     <pkg-ref id="com.turbot.client"/>
     <pkg-ref id="org.ruby-lang.installer"/>
   </choice>
-  <pkg-ref id="com.turbot.client" installKBytes="<%= kbytes %>" version="<%= version %>" auth="Root">#turbot-client.pkg</pkg-ref>
+  <pkg-ref id="com.turbot.client" installKBytes="<%= kbytes.strip %>" version="<%= version.strip %>" auth="Root">#turbot-client.pkg</pkg-ref>
   <pkg-ref id="org.ruby-lang.installer" installKBytes="9132" auth="Root">#ruby.pkg</pkg-ref>
 </installer-script>
