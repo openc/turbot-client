@@ -14,6 +14,7 @@ Gem::Specification.new do |gem|
   gem.license     = "MIT"
 
   gem.files = %x{ git ls-files }.split("\n").select { |d| d =~ %r{^(License|README|bin/|data/|ext/|lib/|spec/|test/|templates/|schema/)} }
+  gem.files << %x{git submodule foreach --recursive git ls-files}.split("\n").select { |d| d =~ %r{^(schemas/)} }
 
   gem.required_ruby_version = '>=1.9.2'
 
