@@ -13,8 +13,18 @@ Gem::Specification.new do |gem|
   gem.executables = "turbot"
   gem.license     = "MIT"
 
-  gem.files = %x{ git ls-files }.split("\n").select { |d| d =~ %r{^(License|README|bin/|data/|ext/|lib/|spec/|test/|templates/|schema/)} }
-  gem.files << %x{git submodule foreach --recursive git ls-files}.split("\n").select { |d| d =~ %r{^(schemas/)} }
+  # use git to list files in main repo
+  gem_files = %x{ git ls-files }.split("\n").select do |d|
+    d =~ %r{^(License|README|bin/|data/|ext/|lib/|spec/|test/|templates/|schema/)}
+  end
+  # now add files from the schema submodule; if we add more submodules
+  # later, change this not to be hard coded
+  submodule_files = %x{git submodule foreach --recursive git ls-files}.split("\n").select do |d|
+    d =~ %r{^(schemas/)}
+  end.map{|x| "schema/#{x}"}
+  gem_files.concat(submodule_files)
+
+  gem.files = gem_files
 
   gem.required_ruby_version = '>=1.9.2'
 
