@@ -12,6 +12,7 @@ group :development do
   gem "aws-s3"
   gem "fpm"
   gem "debugger"
+  gem "pry"
 end
 
 group :test do
