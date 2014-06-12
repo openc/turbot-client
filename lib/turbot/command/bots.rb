@@ -24,10 +24,10 @@ class Turbot::Command::Bots < Turbot::Command::Base
   #
   def index
     validate_arguments!
-    bots = api.list_bots
+    bots = api.list_bots.data
     unless bots.empty?
       styled_header("Bots")
-      styled_array(bots.map{|bot| bot['bot_id']})
+      styled_array(bots.map{|bot| bot[:bot_id]})
     else
       display("You have no bots.")
     end
