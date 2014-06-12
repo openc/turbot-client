@@ -134,7 +134,12 @@ class Turbot::Command::Bots < Turbot::Command::Base
   def register
     working_dir = Dir.pwd
     manifest = parsed_manifest(working_dir)
-    api.create_bot(bot, manifest)
+    response = api.create_bot(bot, manifest)
+    if response.is_a? Turbot::API::FailureResponse
+      error(response.message)
+    else
+      puts "Registered #{bot}!"
+    end
   end
 
   # bots:push
