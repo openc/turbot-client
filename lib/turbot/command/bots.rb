@@ -272,18 +272,21 @@ class Turbot::Command::Bots < Turbot::Command::Base
     count = 0
     config = parsed_manifest(Dir.pwd)
     puts "Sending to angler... "
+
+    api.destroy_draft_data(bot)
+
     result = ""
     run_scraper_each_line("#{scraper_path} #{bot}") do |line|
       batch << JSON.parse(line)
       spinner(count)
       if count % 20 == 0
-        result = api.update_draft_data(bot, config, batch.to_json)
+        result = api.create_draft_data(bot, config, batch.to_json)
         batch = []
       end
       count += 1
     end
     if !batch.empty?
-      result = api.update_draft_data(bot, config, batch.to_json)
+      result = api.create_draft_data(bot, config, batch.to_json)
     end
     puts "Sent #{count} records."
     index_name = "#{bot}-#{config['data_type']}"
