@@ -1,7 +1,8 @@
 {
  "bot_id": "{{bot_id}}",
+ "description": "This is a simple bot",
  "data_type": "primary data",
  "identifying_fields": ["number"],
  "files": ["{{scraper_name}}"],
- "description": "This is a simple bot"
+ "frequency": "monthly"
 }
