@@ -96,31 +96,46 @@ class Turbot::Command::Bots < Turbot::Command::Base
     validate_arguments!
     language = options[:language] || "ruby"
     puts "Generating #{language} code..."
-    FileUtils.mkdir(bot)
-    case language
-    when "ruby"
-      scraper = "scraper.rb"
-    when "python"
-      scraper = "scraper.py"
-    end
     manifest_template = File.expand_path("../../../../templates/manifest.json", __FILE__)
-    scraper_template = File.expand_path("../../../../templates/#{scraper}", __FILE__)
+    scraper_template = File.expand_path("../../../../templates/#{language}", __FILE__)
     license_template = File.expand_path("../../../../templates/LICENSE.txt", __FILE__)
-    manifest = JSON.parse(open(manifest_template).read.sub(/{{bot_id}}/, bot))
+    manifest = open(manifest_template).read.sub("{{bot_id}}", bot)
+    scraper_name = case language
+      when "ruby"
+        "scraper.rb"
+      when "python"
+        "scraper.py"
+      end
 
-    FileUtils.cp(scraper_template, "#{bot}/#{scraper}")
+    manifest = manifest.sub("{{scraper_name}}", scraper_name)
+
+    # Language-specific stuff
+    FileUtils.cp_r(scraper_template, bot)
+
+    # Same for all languages
     FileUtils.cp(license_template, "#{bot}/LICENSE.txt")
     open("#{bot}/manifest.json", "w") do |f|
-      f.write(manifest.to_json)
+      f.write(JSON.pretty_generate(JSON.parse(manifest)))
     end
 
     api.create_bot(bot, manifest)
 
-    # TODO handle errors
-
     puts "Created new bot template at #{bot}!"
   end
 
+
+  # bots:register
+  #
+  # Register a bot with turbot. Must be run from a folder containing scraper and manifest.json
+
+  # $ turbot bots:register
+  # Registered my_amazing_bot!
+
+  def register
+    working_dir = Dir.pwd
+    manifest = parsed_manifest(working_dir)
+    api.create_bot(bot, manifest)
+  end
 
   # bots:push
   #

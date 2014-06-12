@@ -2,6 +2,6 @@
  "bot_id": "{{bot_id}}",
  "data_type": "primary data",
  "identifying_fields": ["number"],
- "files": ["scraper.rb"],
+ "files": ["{{scraper_name}}"],
  "description": "This is a simple bot"
 }
