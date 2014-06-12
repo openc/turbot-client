@@ -286,7 +286,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
       result = api.update_draft_data(bot, config, batch.to_json)
     end
     puts "Sent #{count} records."
-    puts "View your records at #{result.data[:url]}"
+    puts "View your records at http://turbot.opencorporates.com/bots/#{bot}"
   end
 
   private
