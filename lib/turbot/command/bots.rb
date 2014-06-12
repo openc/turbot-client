@@ -117,9 +117,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
     open("#{bot}/manifest.json", "w") do |f|
       f.write(JSON.pretty_generate(JSON.parse(manifest)))
     end
-
-    api.create_bot(bot, manifest)
-
+    api.create_bot(bot, JSON.parse(manifest))
     puts "Created new bot template at #{bot}!"
   end
 
