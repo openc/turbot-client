@@ -179,7 +179,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
   # $ heroku bots:validate
   # Validating example... done
 
-  def validate
+  def validate(opts={})
     scraper_path    = shift_argument || scraper_file(Dir.pwd)
     validate_arguments!
     config = parsed_manifest(Dir.pwd)
@@ -207,14 +207,14 @@ class Turbot::Command::Bots < Turbot::Command::Base
       if !errors.empty?
         error("LINE WITH ERROR: #{line}\n\nERRORS: #{errors}")
       end
-
+      puts line if opts[:dump]
       if JSON.parse(line).slice(*config['identifying_fields']).blank?
         error("LINE WITH ERROR: #{line}\n\nERRORS: No value provided for identifying fields")
       end
 
       count += 1
     end
-    puts "Validated #{count} records successfully!"
+    puts "Validated #{count} records successfully!" if !opts[:dump]
   end
 
   # bots:dump
@@ -226,14 +226,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
   # {'foo2': 'bar2'}
 
   def dump
-    # This will need to be language-aware, eventually
-    scraper_path    = shift_argument || scraper_file(Dir.pwd)
-    validate_arguments!
-    count = 0
-    run_scraper_each_line("#{scraper_path} #{bot}") do |line|
-      puts line
-      count += 1
-    end
+    validate(:dump => true)
   end
 
   # bots:single
