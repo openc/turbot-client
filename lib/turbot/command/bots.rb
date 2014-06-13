@@ -93,6 +93,10 @@ class Turbot::Command::Bots < Turbot::Command::Base
 
   def generate
     puts "running generate"
+    response = api.show_bot(bot)
+    if response.is_a? Turbot::API::SuccessResponse
+      error("There's already a bot called #{bot}")
+    end
     validate_arguments!
     language = options[:language] || "ruby"
     puts "Generating #{language} code..."
