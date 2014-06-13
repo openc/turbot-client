@@ -92,14 +92,12 @@ class Turbot::Command::Bots < Turbot::Command::Base
   # Created new bot template at my_amazing_bot!
 
   def generate
-    puts "running generate"
     response = api.show_bot(bot)
     if response.is_a? Turbot::API::SuccessResponse
       error("There's already a bot called #{bot}")
     end
     validate_arguments!
     language = options[:language] || "ruby"
-    puts "Generating #{language} code..."
     manifest_template = File.expand_path("../../../../templates/manifest.json", __FILE__)
     scraper_template = File.expand_path("../../../../templates/#{language}", __FILE__)
     license_template = File.expand_path("../../../../templates/LICENSE.txt", __FILE__)
