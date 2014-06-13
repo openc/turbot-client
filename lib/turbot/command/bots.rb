@@ -263,9 +263,9 @@ class Turbot::Command::Bots < Turbot::Command::Base
 
   # bots:preview
   #
-  # Send bot data to Angler for remote previewing / sharing
+  # Send bot data to Turbot for remote previewing / sharing
   #
-  # Sending example to Angler... done
+  # Sending example to turbot... done
   def preview
     scraper_path    = shift_argument || scraper_file(Dir.pwd)
     validate_arguments!
@@ -273,7 +273,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
     batch = []
     count = 0
     config = parsed_manifest(Dir.pwd)
-    puts "Sending to angler... "
+    puts "Sending to turbot... "
 
     api.destroy_draft_data(bot)
 
