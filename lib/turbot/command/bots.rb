@@ -167,6 +167,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
     File.open(archive_path) do |file|
       api.update_code(bot, file)
     end
+    puts "Your bot has been pushed to Turbot and will be reviewed for inclusion as soon as we can. THANKYOU!"
   end
 
   alias_command "push", "bots:push"
