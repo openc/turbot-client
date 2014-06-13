@@ -147,7 +147,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
   # Push bot code to the turbot server. Must be run from a local bot checkout.
   #
   # $ turbot bots:push
-  # Creating example... done
+  # Your bot has been pushed to Turbot and will be reviewed for inclusion as soon as we can. THANKYOU!
 
   def push
     validate_arguments!
