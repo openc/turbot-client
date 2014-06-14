@@ -7,7 +7,7 @@ require 'open3'
 require 'base64'
 require 'shellwords'
 
-# manage bots (create, destroy)
+# manage bots (create, submit data and code)
 #
 class Turbot::Command::Bots < Turbot::Command::Base
 
@@ -209,7 +209,8 @@ class Turbot::Command::Bots < Turbot::Command::Base
       end
       puts line if opts[:dump]
       if JSON.parse(line).slice(*config['identifying_fields']).blank?
-        error("LINE WITH ERROR: #{line}\n\nERRORS: No value provided for identifying fields")
+        error = "Couldn't find any of #{config['identifying_fields']}"
+        error("LINE WITH ERROR: #{line}\n\nERRORS: #{error}")
       end
 
       count += 1
@@ -229,28 +230,28 @@ class Turbot::Command::Bots < Turbot::Command::Base
     validate(:dump => true)
   end
 
-  # bots:single
-  #
-  # Execute bot in same way as OpenCorporates single-record update
-  #
-  # $ heroku bots:single
-  # Enter argument (as JSON object):
-  # {"id": "frob123"}
-  # {"id": "frob123", "stuff": "updated-data-for-this-record"}
-
-  def single
-    # This will need to be language-aware, eventually
-    scraper_path    = shift_argument || scraper_file(Dir.pwd)
-    validate_arguments!
-    print 'Arguments (as JSON object, e.g. {"id":"ABC123"}: '
-    arg = ask
-    count = 0
-    run_scraper_each_line("#{scraper_path} #{bot} #{Shellwords.shellescape(arg)}") do |line|
-      raise "Your scraper returned more than one value!" if count > 1
-      puts line
-      count += 1
-    end
-  end
+#  # bots:single
+#  #
+#  # Execute bot in same way as OpenCorporates single-record update
+#  #
+#  # $ heroku bots:single
+#  # Enter argument (as JSON object):
+#  # {"id": "frob123"}
+#  # {"id": "frob123", "stuff": "updated-data-for-this-record"}
+#
+#  def single
+#    # This will need to be language-aware, eventually
+#    scraper_path    = shift_argument || scraper_file(Dir.pwd)
+#    validate_arguments!
+#    print 'Arguments (as JSON object, e.g. {"id":"ABC123"}: '
+#    arg = ask
+#    count = 0
+#    run_scraper_each_line("#{scraper_path} #{bot} #{Shellwords.shellescape(arg)}") do |line|
+#      raise "Your scraper returned more than one value!" if count > 1
+#      puts line
+#      count += 1
+#    end
+#  end
 
 
   # bots:preview
@@ -269,14 +270,31 @@ class Turbot::Command::Bots < Turbot::Command::Base
 
     api.destroy_draft_data(bot)
 
+    type = config["data_type"]
+    schema = get_schema(type)
+
     result = ""
     run_scraper_each_line("#{scraper_path} #{bot}") do |line|
-      batch << JSON.parse(line)
       spinner(count)
-      if count % 20 == 0
-        result = api.create_draft_data(bot, config, batch.to_json)
-        batch = []
+
+      errors = JSON::Validator.fully_validate(
+        schema,
+        line,
+        {:errors_as_objects => true})
+
+      if errors.empty?
+        batch << JSON.parse(line)
+        if count % 20 == 0
+          result = api.create_draft_data(bot, config, batch.to_json)
+          batch = []
+        end
+      else
+        puts "The following record was not sent to turbot because it didn't validate against the schema:"
+        puts line
+        puts "The validation error was:"
+        puts errors
       end
+
       count += 1
     end
     if !batch.empty?
