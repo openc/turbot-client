@@ -288,6 +288,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
           result = api.create_draft_data(bot, config, batch.to_json)
           batch = []
         end
+        count += 1
       else
         puts "The following record was not sent to turbot because it didn't validate against the schema:"
         puts line
@@ -295,7 +296,6 @@ class Turbot::Command::Bots < Turbot::Command::Base
         puts errors
       end
 
-      count += 1
     end
     if !batch.empty?
       result = api.create_draft_data(bot, config, batch.to_json)
