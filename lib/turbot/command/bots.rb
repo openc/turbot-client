@@ -112,7 +112,8 @@ class Turbot::Command::Bots < Turbot::Command::Base
     manifest = manifest.sub("{{scraper_name}}", scraper_name)
 
     # Language-specific stuff
-    FileUtils.cp_r(scraper_template, bot)
+    FileUtils.mkdir(bot)
+    FileUtils.cp_r(Dir["#{scraper_template}/*"], bot)
 
     # Same for all languages
     FileUtils.cp(license_template, "#{bot}/LICENSE.txt")
