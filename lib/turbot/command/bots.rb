@@ -290,6 +290,54 @@ class Turbot::Command::Bots < Turbot::Command::Base
           batch = []
         end
         count += 1
+
+        config['transformers'].each do |transformer|
+          case transformer['file']
+          when /\.rb$/
+            interpreter = 'ruby'
+          when /\.py$/
+            interpreter = 'python'
+          else
+            raise "Don't know how to run #{transformer['file']}"
+          end
+
+          command = "#{interpreter} #{transformer['file']}"
+
+          transformed_line = Open3::popen3(command) do |stdin, stdout, _, _|
+            stdin.puts(line)
+            stdin.close
+
+            begin
+              stdout.readline.strip
+            rescue EOFError
+              ''
+            end
+          end
+
+          transformed_data = JSON.parse(transformed_line)
+          transformed_data[:data_type] = transformer['data_type']
+
+          errors = JSON::Validator.fully_validate(
+            get_schema(transformer['data_type']),
+            transformed_line,
+            {:errors_as_objects => true}
+          )
+
+          if errors.empty?
+            batch << transformed_data
+
+            if count % 20 == 0
+              result = api.create_draft_data(bot, config, batch.to_json)
+              batch = []
+            end
+            count += 1
+          else
+            puts "The following record was not sent to turbot because it didn't validate against the schema:"
+            puts line
+            puts "The validation error was:"
+            puts errors
+          end
+        end
       else
         puts "The following record was not sent to turbot because it didn't validate against the schema:"
         puts line
@@ -372,5 +420,9 @@ class Turbot::Command::Bots < Turbot::Command::Base
   def get_schema(type)
     hyphenated_name = type.to_s.gsub("_", "-").gsub(" ", "-")
     File.expand_path("../../../../schema/schemas/#{hyphenated_name}-schema.json", __FILE__)
+  end
+
+  def validate(record, schema)
+    JSON::Validator.fully_validate(schema, record, :errors_as_objects => true)
   end
 end
