@@ -205,10 +205,11 @@ class Turbot::Command::Bots < Turbot::Command::Base
         line,
         {:errors_as_objects => true})
 
-      if !errors.empty?
+      if errors.empty?
+        puts "VALID: #{line[0..68]}..."
+      else
         error("LINE WITH ERROR: #{line}\n\nERRORS: #{errors}")
       end
-      puts line if opts[:dump]
       if JSON.parse(line).slice(*config['identifying_fields']).blank?
         error = "Couldn't find any of #{config['identifying_fields']}"
         error("LINE WITH ERROR: #{line}\n\nERRORS: #{error}")
