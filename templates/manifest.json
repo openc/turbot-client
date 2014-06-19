@@ -1,5 +1,6 @@
 {
  "bot_id": "{{bot_id}}",
+ "title": "My simple bot"
  "description": "This is a simple bot",
  "data_type": "primary data",
  "identifying_fields": ["number"],
