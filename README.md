@@ -28,6 +28,10 @@ If you're working on the CLI and you can smoke-test your changes:
 
     $ bundle exec turbot
 
+If you need to do this from a different folder, try:
+
+    alias tb="TURBOT_HOST=http://localhost:3000 RBENV_VERSION=[version] BUNDLE_GEMFILE=/path/to/turbot-client/Gemfile bundle exec turbot"
+
 Meta
 ----
 
