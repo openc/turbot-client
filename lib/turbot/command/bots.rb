@@ -277,7 +277,6 @@ class Turbot::Command::Bots < Turbot::Command::Base
 
     result = ""
     run_scraper_each_line("#{scraper_path} #{bot}") do |line|
-      spinner(count)
 
       errors = JSON::Validator.fully_validate(
         schema,
@@ -288,6 +287,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
         batch << JSON.parse(line)
         if count % 20 == 0
           result = api.create_draft_data(bot, config, batch.to_json)
+          puts "sent #{count} records to Turbot..."
           batch = []
         end
         count += 1
