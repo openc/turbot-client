@@ -92,14 +92,17 @@ class Turbot::Command::Bots < Turbot::Command::Base
   # Created new bot template at my_amazing_bot!
 
   def generate
+    validate_arguments!
     response = api.show_bot(bot)
     if response.is_a? Turbot::API::SuccessResponse
-      error("There's already a bot called #{bot}")
+      error("There's already a bot called #{bot} registered with Turbot. Bot names must be unique.")
     end
-    validate_arguments!
+
     language = options[:language] || "ruby"
-    manifest_template = File.expand_path("../../../../templates/manifest.json", __FILE__)
     scraper_template = File.expand_path("../../../../templates/#{language}", __FILE__)
+    error("unsupported language #{language}") if !File.exists?(scraper_template)
+
+    manifest_template = File.expand_path("../../../../templates/manifest.json", __FILE__)
     license_template = File.expand_path("../../../../templates/LICENSE.txt", __FILE__)
     manifest = open(manifest_template).read.sub("{{bot_id}}", bot)
     scraper_name = case language
@@ -112,6 +115,10 @@ class Turbot::Command::Bots < Turbot::Command::Base
     manifest = manifest.sub("{{scraper_name}}", scraper_name)
 
     # Language-specific stuff
+    # Language-specific stuff:
+    if File.exists? bot
+      error("There's already a folder called #{bot}; move it out the way or try a different name")
+    end
     FileUtils.mkdir(bot)
     FileUtils.cp_r(Dir["#{scraper_template}/*"], bot)
 
