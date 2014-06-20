@@ -7,5 +7,6 @@ require 'json'
     sample_date: Time.now,
     source_url: "http://somewhere.com/#{n}"
   }
+  # The Turbot specification simply requires us to output lines of JSON
   puts JSON.dump(data)
 end
