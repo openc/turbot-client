@@ -206,7 +206,7 @@ class Turbot::Auth
         delete_credentials
         raise e
       end
-      check_for_associated_ssh_key unless Turbot::Command.current_command == "keys:add"
+      # check_for_associated_ssh_key unless Turbot::Command.current_command == "keys:add"
       @credentials
     end
 
