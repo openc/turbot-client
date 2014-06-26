@@ -6,6 +6,7 @@ require 'json-schema'
 require 'open3'
 require 'base64'
 require 'shellwords'
+require 'turbot_runner'
 
 # manage bots (create, submit data and code)
 #
@@ -184,10 +185,10 @@ class Turbot::Command::Bots < Turbot::Command::Base
   #
   # Validate bot output against its schema
   #
-  # $ heroku bots:validate
+  # $ turbot bots:validate
   # Validating example... done
 
-  def validate(opts={})
+  def validate
     scraper_path    = shift_argument || scraper_file(Dir.pwd)
     validate_arguments!
     config = parsed_manifest(Dir.pwd)
@@ -204,46 +205,29 @@ class Turbot::Command::Bots < Turbot::Command::Base
       error("No schema found for data_type: #{type}")
     end
 
-    count = 0
-
-    run_scraper_each_line("#{scraper_path} #{bot}") do |line|
-      errors = JSON::Validator.fully_validate(
-        schema,
-        line,
-        {:errors_as_objects => true})
-
-      if errors.empty?
-        puts "VALID: #{line[0..68]}..."
-      else
-        error("LINE WITH ERROR: #{line}\n\nERRORS: #{errors}")
-      end
-      if JSON.parse(line).slice(*config['identifying_fields']).blank?
-        error = "Couldn't find any of #{config['identifying_fields']}"
-        error("LINE WITH ERROR: #{line}\n\nERRORS: #{error}")
-      end
-
-      count += 1
-    end
-    puts "Validated #{count} records successfully!" if !opts[:dump]
+    runner = ValidationRunner.new(Dir.pwd)
+    runner.run
   end
 
   # bots:dump
   #
   # Execute bot locally (writes to STDOUT)
   #
-  # $ heroku bots:dump
+  # $ turbot bots:dump
   # {'foo': 'bar'}
   # {'foo2': 'bar2'}
 
   def dump
-    validate(:dump => true)
+    validate_arguments!
+    runner = DumpRunner.new(Dir.pwd)
+    runner.run
   end
 
 #  # bots:single
 #  #
 #  # Execute bot in same way as OpenCorporates single-record update
 #  #
-#  # $ heroku bots:single
+#  # $ turbot bots:single
 #  # Enter argument (as JSON object):
 #  # {"id": "frob123"}
 #  # {"id": "frob123", "stuff": "updated-data-for-this-record"}
@@ -269,144 +253,21 @@ class Turbot::Command::Bots < Turbot::Command::Base
   #
   # Sending example to turbot... done
   def preview
-    scraper_path    = shift_argument || scraper_file(Dir.pwd)
     validate_arguments!
 
-    batch = []
-    count = 0
     config = parsed_manifest(Dir.pwd)
+    api.update_bot(bot, parsed_manifest(Dir.pwd))
+    api.destroy_draft_data(bot)
     puts "Sending to turbot... "
 
-    api.destroy_draft_data(bot)
-
-    type = config["data_type"]
-    schema = get_schema(type)
-
-    result = ""
-    run_scraper_each_line("#{scraper_path} #{bot}") do |line|
-
-      errors = JSON::Validator.fully_validate(
-        schema,
-        line,
-        {:errors_as_objects => true})
-
-      if errors.empty?
-        batch << JSON.parse(line)
-        if count % 20 == 0
-          result = api.create_draft_data(bot, config, batch.to_json)
-          puts "sent #{count} records to Turbot..."
-          batch = []
-        end
-        count += 1
-
-        config['transformers'].each do |transformer|
-          case transformer['file']
-          when /\.rb$/
-            interpreter = 'ruby'
-          when /\.py$/
-            interpreter = 'python'
-          else
-            raise "Don't know how to run #{transformer['file']}"
-          end
-
-          command = "#{interpreter} #{transformer['file']}"
-
-          transformed_line = Open3::popen3(command) do |stdin, stdout, _, _|
-            stdin.puts(line)
-            stdin.close
-
-            begin
-              stdout.readline.strip
-            rescue EOFError
-              ''
-            end
-          end
-
-          transformed_data = JSON.parse(transformed_line)
-          transformed_data[:data_type] = transformer['data_type']
-
-          errors = JSON::Validator.fully_validate(
-            get_schema(transformer['data_type']),
-            transformed_line,
-            {:errors_as_objects => true}
-          )
-
-          if errors.empty?
-            batch << transformed_data
-
-            if count % 20 == 0
-              result = api.create_draft_data(bot, config, batch.to_json)
-              batch = []
-            end
-            count += 1
-          else
-            puts "The following record was not sent to turbot because it didn't validate against the schema:"
-            puts line
-            puts "The validation error was:"
-            puts errors
-          end
-        end
-      else
-        puts "The following record was not sent to turbot because it didn't validate against the schema:"
-        puts line
-        puts "The validation error was:"
-        puts errors
-      end
-
-    end
-    if !batch.empty?
-      result = api.create_draft_data(bot, config, batch.to_json)
-    end
-    puts "Sent #{count} records."
-    puts "View your records at #{result.data[:url]}"
+    runner = PreviewRunner.new(bot, api)
+    runner.run
   end
 
   private
-
   def spinner(p)
     parts = "\|/-" * 2
     print parts[p % parts.length] + "\r"
-  end
-
-  def run_scraper_each_line(scraper_path, options={})
-    case scraper_path
-    when /scraper.rb /
-      interpreter = "ruby"
-    when /scraper.py /
-      interpreter = "python"
-    else
-      raise "Unsupported file extension at #{scraper_path}"
-    end
-
-    command = "#{interpreter} #{scraper_path}"
-    Open3::popen3(command, options) do |_, stdout, stderr, wait_thread|
-      loop do
-        check_output_with_timeout(stdout)
-
-        begin
-          result = stdout.readline.strip
-          yield result unless result.empty?
-          # add run id and bot name
-        rescue EOFError
-          break
-        end
-      end
-      status = wait_thread.value.exitstatus
-      if status > 0
-        message = "Bot <#{command}> exited with status #{status}: #{stderr.read}"
-        raise RuntimeError.new(message)
-      end
-    end
-  end
-
-  def check_output_with_timeout(stdout, initial_interval = 10, timeout = 21600)
-    interval = initial_interval
-    loop do
-      reads, _, _ = IO.select([stdout], [], [], interval)
-      break if !reads.nil?
-      raise "Timeout! - could not read from external bot after #{timeout} seconds" if reads.nil? && interval > timeout
-      interval *= 2
-    end
   end
 
   def parsed_manifest(dir)
@@ -429,8 +290,97 @@ class Turbot::Command::Bots < Turbot::Command::Base
     hyphenated_name = type.to_s.gsub("_", "-").gsub(" ", "-")
     File.expand_path("../../../../schema/schemas/#{hyphenated_name}-schema.json", __FILE__)
   end
+end
 
-  def validate(record, schema)
-    JSON::Validator.fully_validate(schema, record, :errors_as_objects => true)
+class PreviewRunner < TurbotRunner::BaseRunner
+  def initialize(bot_name, api)
+    @bot_name = bot_name
+    @api = api
+    @batch = []
+    @count = 0
+    super(Dir.pwd)
+  end
+
+  def handle_valid_record(record, data_type)
+    #spinner(@count)
+    @count += 1
+    @batch << record
+
+    if @count % 20 == 0
+      result = submit_batch
+    end
+  end
+
+  def handle_invalid_record(record, data_type, errors)
+    puts
+    puts "The following record was not sent to turbot because it didn't validate against the schema:"
+    puts record.to_json
+    errors.each {|error| puts " * #{error}"}
+    puts
+  end
+
+  def handle_successful_run
+    result = submit_batch
+    puts "Sent #{@count} records."
+    puts "View your records at #{result.data[:url]}"
+  end
+
+  private
+  def submit_batch
+    result = @api.create_draft_data(@bot_name, @batch.to_json)
+    @batch = []
+    result
+  end
+end
+
+class DumpRunner < TurbotRunner::BaseRunner
+  def handle_valid_record(record, data_type)
+    puts record.to_json
+  end
+
+  def handle_invalid_record(record, data_type, errors)
+    puts
+    puts "The following record is invalid:"
+    puts record.to_json
+    errors.each {|error| puts " * #{error}"}
+    puts
+  end
+
+  def handle_failed_run(output)
+    puts "Bot did not run to completion:"
+    puts output
+  end
+end
+
+class ValidationRunner < TurbotRunner::BaseRunner
+  def initialize(*)
+    @count = 0
+    super
+  end
+
+  def handle_valid_record(record, data_type)
+    @count += 1
+  end
+
+  def handle_invalid_record(record, data_type, errors)
+    puts
+    puts "The following record is invalid:"
+    puts record.to_json
+    errors.each {|error| puts " * #{error}"}
+    puts
+    interrupt
+  end
+
+  def handle_failed_run(output)
+    puts "Bot did not run to completion:"
+    puts output
+  end
+
+  def handle_interrupted_run
+    puts "Validated #{@count} records before finding invalid record"
+  end
+
+  def handle_successful_run
+    puts "Validated #{@count} records"
   end
 end
