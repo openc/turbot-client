@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    turbot (0.0.27)
+    turbot (0.0.28)
       activesupport (= 3.2.17)
       excon
       json-schema
@@ -9,7 +9,7 @@ PATH
       netrc (~> 0.7.7)
       rest-client (~> 1.6.1)
       rubyzip (>= 1.0.0)
-      turbot-api (= 0.0.11)
+      turbot-api (= 0.0.12)
       turbot-runner (= 0.0.2)
 
 GEM
@@ -82,7 +82,7 @@ GEM
     slop (3.5.0)
     sqlite3 (1.3.7)
     sqlite3 (1.3.7-x86-mingw32)
-    turbot-api (0.0.11)
+    turbot-api (0.0.12)
       rest-client (~> 1.6.1)
       rubyzip
     turbot-runner (0.0.2)
