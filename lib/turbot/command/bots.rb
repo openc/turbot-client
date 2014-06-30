@@ -325,6 +325,11 @@ class PreviewRunner < TurbotRunner::BaseRunner
     puts "View your records at #{result.data[:url]}"
   end
 
+  def handle_failed_run(output)
+    puts "Bot did not run to completion:"
+    puts output
+  end
+
   private
   def submit_batch
     result = @api.create_draft_data(@bot_name, @batch.to_json)
