@@ -1,4 +1,9 @@
+# -*- coding: utf-8 -*-
+
 require 'json'
+require 'turbotlib'
+
+Turbotlib.log("Starting run...")
 
 (1...20).each do |n|
   data = {
@@ -10,3 +15,5 @@ require 'json'
   # The Turbot specification simply requires us to output lines of JSON
   puts JSON.dump(data)
 end
+
+Turbotlib.log("Done!")

@@ -1,5 +1,10 @@
+# -*- coding: utf-8 -*-
+
 import json
 import datetime
+import turbotlib
+
+turbotlib.log("starting run...")
 
 for n in range(0,20):
     data = {"number": n,
@@ -8,3 +13,5 @@ for n in range(0,20):
             "source_url": "http://somewhere.com/%s" % n}
     # The Turbot specification simply requires us to output lines of JSON
     print json.dumps(data)
+
+turbotlib.log("done!")
