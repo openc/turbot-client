@@ -3,7 +3,7 @@
 require 'json'
 require 'turbotlib'
 
-Turbotlib.log("Starting run...")
+Turbotlib.log("Starting run...") # optional debug logging
 
 (1...20).each do |n|
   data = {
@@ -15,5 +15,3 @@ Turbotlib.log("Starting run...")
   # The Turbot specification simply requires us to output lines of JSON
   puts JSON.dump(data)
 end
-
-Turbotlib.log("Done!")
