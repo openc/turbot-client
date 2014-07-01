@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    turbot (0.0.29)
+    turbot (0.0.30)
       activesupport (= 3.2.17)
       excon
       json-schema
@@ -10,7 +10,7 @@ PATH
       rest-client (~> 1.6.1)
       rubyzip (>= 1.0.0)
       turbot-api (= 0.0.12)
-      turbot-runner (= 0.0.2)
+      turbot-runner (= 0.0.3)
 
 GEM
   remote: https://rubygems.org/
@@ -85,7 +85,7 @@ GEM
     turbot-api (0.0.12)
       rest-client (~> 1.6.1)
       rubyzip
-    turbot-runner (0.0.2)
+    turbot-runner (0.0.3)
       json-schema (= 2.2.2)
     webmock (1.9.0)
       addressable (>= 2.2.7)

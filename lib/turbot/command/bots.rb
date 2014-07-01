@@ -325,9 +325,8 @@ class PreviewRunner < TurbotRunner::BaseRunner
     puts "View your records at #{result.data[:url]}"
   end
 
-  def handle_failed_run(output)
+  def handle_failed_run
     puts "Bot did not run to completion:"
-    puts output
   end
 
   private
@@ -351,9 +350,8 @@ class DumpRunner < TurbotRunner::BaseRunner
     puts
   end
 
-  def handle_failed_run(output)
+  def handle_failed_run
     puts "Bot did not run to completion:"
-    puts output
   end
 end
 
@@ -376,9 +374,8 @@ class ValidationRunner < TurbotRunner::BaseRunner
     interrupt
   end
 
-  def handle_failed_run(output)
+  def handle_failed_run
     puts "Bot did not run to completion:"
-    puts output
   end
 
   def handle_interrupted_run
