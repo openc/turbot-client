@@ -264,6 +264,10 @@ class Turbot::Command::Bots < Turbot::Command::Base
     puts "Sending to turbot... "
 
     runner = PreviewRunner.new(bot, api)
+    Signal.trap("INT") do
+      Process.kill("ABRT", runner.wait_thread[:pid])
+      runner.interrupt
+    end
     runner.run
   end
 
@@ -320,6 +324,13 @@ class PreviewRunner < TurbotRunner::BaseRunner
     puts record.to_json
     errors.each {|error| puts " * #{error}"}
     puts
+  end
+
+  def handle_interrupted_run
+    result = submit_batch
+    puts "Run interrupted!"
+    puts "Sent #{@count} records."
+    puts "View your records at #{result.data[:url]}"
   end
 
   def handle_successful_run
