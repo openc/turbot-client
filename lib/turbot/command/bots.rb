@@ -160,7 +160,10 @@ class Turbot::Command::Bots < Turbot::Command::Base
 
   def push
     validate_arguments!
-
+    puts "This will submit your bot and its data for review."
+    puts "Are you happy your bot produces valid data (e.g. with `turbot bots:validate`)? [Y/n]"
+    confirmed = ask
+    error("Aborting push") if !confirmed.downcase.empty? && confirmed.downcase != "y"
     working_dir = Dir.pwd
     manifest = parsed_manifest(working_dir)
     #archive_file = File.join(working_dir, 'tmp', "#{manifest['bot_id']}.zip")
