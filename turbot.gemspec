@@ -35,6 +35,6 @@ Gem::Specification.new do |gem|
   gem.add_dependency "json-schema"
   gem.add_dependency "activesupport", "3.2.17"
   gem.add_dependency "turbot-api", "0.0.12"
-  gem.add_dependency "turbot-runner", "0.0.3"
+  gem.add_dependency "turbot-runner", "0.0.4"
   gem.add_dependency "excon"
 end
