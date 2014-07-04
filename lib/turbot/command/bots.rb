@@ -311,7 +311,7 @@ class PreviewRunner < TurbotRunner::BaseRunner
   def handle_valid_record(record, data_type)
     #spinner(@count)
     @count += 1
-    @batch << record
+    @batch << record.merge(:data_type => data_type)
 
     if @count % 20 == 0
       result = submit_batch
