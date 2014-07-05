@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    turbot (0.0.33)
+    turbot (0.0.34)
       activesupport (= 4.1.4)
       excon
       json-schema
@@ -10,7 +10,7 @@ PATH
       rest-client (~> 1.6.1)
       rubyzip (>= 1.0.0)
       turbot-api (= 0.0.12)
-      turbot-runner (= 0.0.4)
+      turbot-runner (= 0.0.5)
 
 GEM
   remote: https://rubygems.org/
@@ -89,7 +89,7 @@ GEM
     turbot-api (0.0.12)
       rest-client (~> 1.6.1)
       rubyzip
-    turbot-runner (0.0.4)
+    turbot-runner (0.0.5)
       json-schema (= 2.2.2)
     tzinfo (1.2.1)
       thread_safe (~> 0.1)
