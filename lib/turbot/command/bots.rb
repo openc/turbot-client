@@ -311,7 +311,7 @@ class PreviewRunner < TurbotRunner::BaseRunner
   def handle_valid_record(record, data_type)
     #spinner(@count)
     @count += 1
-    @batch << record
+    @batch << record.merge(:data_type => data_type)
 
     if @count % 20 == 0
       result = submit_batch
@@ -324,6 +324,12 @@ class PreviewRunner < TurbotRunner::BaseRunner
     puts record.to_json
     errors.each {|error| puts " * #{error}"}
     puts
+  end
+
+  def handle_non_json_output(line)
+    puts "The following line was not valid JSON:"
+    puts line
+    interrupt
   end
 
   def handle_interrupted_run
@@ -364,6 +370,12 @@ class DumpRunner < TurbotRunner::BaseRunner
     puts
   end
 
+  def handle_non_json_output(line)
+    puts "The following line was not valid JSON:"
+    puts line
+    interrupt
+  end
+
   def handle_failed_run
     puts "Bot did not run to completion:"
   end
@@ -385,6 +397,12 @@ class ValidationRunner < TurbotRunner::BaseRunner
     puts record.to_json
     errors.each {|error| puts " * #{error}"}
     puts
+    interrupt
+  end
+
+  def handle_non_json_output(line)
+    puts "The following line was not valid JSON:"
+    puts line
     interrupt
   end
 

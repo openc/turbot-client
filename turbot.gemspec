@@ -33,7 +33,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency "launchy",     ">= 0.3.2"
   gem.add_dependency "rubyzip",     ">= 1.0.0"
   gem.add_dependency "json-schema"
-  gem.add_dependency "activesupport", "3.2.17"
+  gem.add_dependency "activesupport", "4.1.4"
   gem.add_dependency "turbot-api", "0.0.12"
   gem.add_dependency "turbot-runner", "0.0.5"
   gem.add_dependency "excon"
