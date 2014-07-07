@@ -142,6 +142,11 @@ class Turbot::Command::Bots < Turbot::Command::Base
   # Registered my_amazing_bot!
 
   def register
+    response = api.show_bot(bot)
+    if response.is_a? Turbot::API::SuccessResponse
+      error("There's already a bot called #{bot} registered with Turbot. Bot names must be unique.")
+    end
+
     working_dir = Dir.pwd
     manifest = parsed_manifest(working_dir)
     response = api.create_bot(bot, manifest)
