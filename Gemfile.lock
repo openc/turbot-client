@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    turbot (0.0.38)
+    turbot (0.0.39)
       activesupport (= 4.1.4)
       excon
       json-schema

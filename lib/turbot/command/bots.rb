@@ -182,10 +182,13 @@ class Turbot::Command::Bots < Turbot::Command::Base
       manifest['files'].each { |f| zipfile.add(f, File.join(working_dir,f)) }
     end
 
-    File.open(archive_path) do |file|
-      api.update_code(bot, file)
+    response = File.open(archive_path) {|file| api.update_code(bot, file)}
+    case response
+    when SuccessResponse
+      puts "Your bot has been pushed to Turbot and will be reviewed for inclusion as soon as we can. THANKYOU!"
+    when FailureResponse
+      error(response.message)
     end
-    puts "Your bot has been pushed to Turbot and will be reviewed for inclusion as soon as we can. THANKYOU!"
   end
 
   alias_command "push", "bots:push"
