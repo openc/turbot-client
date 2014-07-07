@@ -114,6 +114,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
       end
 
     manifest = manifest.sub("{{scraper_name}}", scraper_name)
+    manifest = manifest.sub("{{language}}", language)
 
     # Language-specific stuff
     # Language-specific stuff:
