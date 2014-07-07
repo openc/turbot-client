@@ -184,9 +184,9 @@ class Turbot::Command::Bots < Turbot::Command::Base
 
     response = File.open(archive_path) {|file| api.update_code(bot, file)}
     case response
-    when SuccessResponse
+    when Turbot::API::SuccessResponse
       puts "Your bot has been pushed to Turbot and will be reviewed for inclusion as soon as we can. THANKYOU!"
-    when FailureResponse
+    when Turbot::API::FailureResponse
       error(response.message)
     end
   end
