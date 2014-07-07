@@ -333,12 +333,14 @@ class PreviewRunner < TurbotRunner::BaseRunner
   end
 
   def handle_non_json_output(line)
+    puts
     puts "The following line was not valid JSON:"
     puts line
     interrupt
   end
 
   def handle_interrupted_run
+    puts
     result = submit_batch
     puts "Run interrupted!"
     puts "Sent #{@count} records."
@@ -347,6 +349,7 @@ class PreviewRunner < TurbotRunner::BaseRunner
 
   def handle_successful_run
     result = submit_batch
+    puts
     puts "Sent #{@count} records."
     puts "View your records at #{result.data[:url]}"
   end
@@ -357,6 +360,7 @@ class PreviewRunner < TurbotRunner::BaseRunner
 
   private
   def submit_batch
+    STDOUT.write('.')
     result = @api.create_draft_data(@bot_name, @batch.to_json)
     @batch = []
     result
