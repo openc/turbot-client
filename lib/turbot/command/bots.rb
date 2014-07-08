@@ -182,10 +182,13 @@ class Turbot::Command::Bots < Turbot::Command::Base
       manifest['files'].each { |f| zipfile.add(f, File.join(working_dir,f)) }
     end
 
-    File.open(archive_path) do |file|
-      api.update_code(bot, file)
+    response = File.open(archive_path) {|file| api.update_code(bot, file)}
+    case response
+    when Turbot::API::SuccessResponse
+      puts "Your bot has been pushed to Turbot and will be reviewed for inclusion as soon as we can. THANKYOU!"
+    when Turbot::API::FailureResponse
+      error(response.message)
     end
-    puts "Your bot has been pushed to Turbot and will be reviewed for inclusion as soon as we can. THANKYOU!"
   end
 
   alias_command "push", "bots:push"
@@ -333,12 +336,14 @@ class PreviewRunner < TurbotRunner::BaseRunner
   end
 
   def handle_non_json_output(line)
+    puts
     puts "The following line was not valid JSON:"
     puts line
     interrupt
   end
 
   def handle_interrupted_run
+    puts
     result = submit_batch
     puts "Run interrupted!"
     puts "Sent #{@count} records."
@@ -347,6 +352,7 @@ class PreviewRunner < TurbotRunner::BaseRunner
 
   def handle_successful_run
     result = submit_batch
+    puts
     puts "Sent #{@count} records."
     puts "View your records at #{result.data[:url]}"
   end
@@ -357,6 +363,7 @@ class PreviewRunner < TurbotRunner::BaseRunner
 
   private
   def submit_batch
+    STDOUT.write('.')
     result = @api.create_draft_data(@bot_name, @batch.to_json)
     @batch = []
     result
