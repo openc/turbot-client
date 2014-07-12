@@ -352,13 +352,23 @@ class PreviewRunner < TurbotRunner::BaseRunner
 
   def handle_successful_run
     result = submit_batch
-    puts
-    puts "Sent #{@count} records."
-    puts "View your records at #{result.data[:url]}"
+    if result.is_a? Turbot::API::FailureResponse
+      @status = :failed
+      handle_failed_run(result.message)
+    else
+      puts "Run completed!"
+      if @count > 0
+        puts "Sent #{@count} records"
+        puts "View your records at #{result.data[:url]}"
+      else
+        puts "No records sent"
+      end
+    end
   end
 
-  def handle_failed_run
-    puts "Bot did not run to completion:"
+  def handle_failed_run(message=nil)
+    STDERR.puts("Error:")
+    STDERR.puts(message) if message
   end
 
   private
