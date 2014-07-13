@@ -172,15 +172,9 @@ class Turbot::Command::Bots < Turbot::Command::Base
     error("Aborting push") if !confirmed.downcase.empty? && confirmed.downcase != "y"
     working_dir = Dir.pwd
     manifest = parsed_manifest(working_dir)
-    #archive_file = File.join(working_dir, 'tmp', "#{manifest['bot_id']}.zip")
     archive = Tempfile.new(bot)
     archive_path = "#{archive.path}.zip"
-
-    Zip.continue_on_exists_proc = true
-    Zip::File.open(archive_path, Zip::File::CREATE) do |zipfile|
-      zipfile.add("manifest.json", manifest_path)
-      manifest['files'].each { |f| zipfile.add(f, File.join(working_dir,f)) }
-    end
+    create_zip_archive(archive_path, working_dir, manifest['files'] + ['manifest.json'])
 
     response = File.open(archive_path) {|file| api.update_code(bot, file)}
     case response
@@ -305,6 +299,24 @@ class Turbot::Command::Bots < Turbot::Command::Base
   def get_schema(type)
     hyphenated_name = type.to_s.gsub("_", "-").gsub(" ", "-")
     File.expand_path("../../../../schema/schemas/#{hyphenated_name}-schema.json", __FILE__)
+  end
+
+  def create_zip_archive(archive_path, basepath, subpaths)
+    Zip.continue_on_exists_proc = true
+    Zip::File.open(archive_path, Zip::File::CREATE) do |zipfile|
+      subpaths.each do |subpath|
+        path = File.join(basepath, subpath)
+
+        if File.directory?(path)
+          Dir["#{path}/**/*"].each do |path1|
+            subpath1 = Pathname.new(path1).relative_path_from(Pathname.new(basepath))
+            zipfile.add(subpath1, path1)
+          end
+        else
+          zipfile.add(subpath, path)
+        end
+      end
+    end
   end
 end
 

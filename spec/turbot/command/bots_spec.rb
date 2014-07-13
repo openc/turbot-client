@@ -86,4 +86,23 @@ describe Turbot::Command::Bots do
       end
     end
   end
+
+  describe '#create_zip_archive' do
+    it 'adds all given files to archive' do
+      dirs = ['a', 'b', 'a/p', 'b/p']
+      paths = ['a/p/x', 'a/y', 'b/p/x', 'b/y', 'z']
+
+      base_dir = Dir.mktmpdir
+      dirs.each {|dir| Dir.mkdir(File.join(base_dir, dir))}
+      paths.each {|path| FileUtils.touch(File.join(base_dir, path))}
+
+      command = Turbot::Command::Bots.new
+      archive_path = Tempfile.new('test').path
+      command.send(:create_zip_archive, archive_path, base_dir, ['a', 'b/p/x', 'b/y', 'z'])
+
+      Zip::File.open(archive_path) do |zipfile|
+        expect(zipfile.map {|entry| entry.to_s}).to match_array(paths + ['a/p/'])
+      end
+    end
+  end
 end
