@@ -268,7 +268,6 @@ class Turbot::Command::Bots < Turbot::Command::Base
 
     runner = PreviewRunner.new(bot, api)
     Signal.trap("INT") do
-      Process.kill("ABRT", runner.wait_thread[:pid])
       runner.interrupt
     end
     runner.run
