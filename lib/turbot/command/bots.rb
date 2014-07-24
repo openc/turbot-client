@@ -411,7 +411,7 @@ class DumpRunner < TurbotRunner::BaseRunner
   end
 
   def handle_failed_run
-    puts "Bot did not run to completion:"
+    puts "Bot did not run to completion: #{error}"
   end
 end
 
@@ -441,7 +441,7 @@ class ValidationRunner < TurbotRunner::BaseRunner
   end
 
   def handle_failed_run
-    puts "Bot did not run to completion:"
+    puts "Bot did not run to completion: #{error}"
   end
 
   def handle_interrupted_run
