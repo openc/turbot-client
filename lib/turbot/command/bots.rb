@@ -199,7 +199,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
     validate_arguments!
     config = parsed_manifest(Dir.pwd)
 
-    %w(bot_id data_type identifying_fields files).each do |key|
+    %w(bot_id data_type identifying_fields files publisher).each do |key|
       error("Manifest is missing #{key}") unless config.has_key?(key)
     end
 
