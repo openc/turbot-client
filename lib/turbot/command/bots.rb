@@ -211,8 +211,16 @@ class Turbot::Command::Bots < Turbot::Command::Base
       error("No schema found for data_type: #{type}")
     end
 
-    runner = ValidationRunner.new(Dir.pwd)
-    runner.run
+    handler = ValidationHandler.new
+    runner = TurbotRunner::Runner.new(Dir.pwd, :record_handler => handler)
+    rc = runner.run
+
+    puts
+    if rc
+      puts "Validated #{handler.count} records!"
+    else
+      puts "Validated #{handler.count} records before bot failed!"
+    end
   end
 
   # bots:dump
@@ -225,8 +233,17 @@ class Turbot::Command::Bots < Turbot::Command::Base
 
   def dump
     validate_arguments!
-    runner = DumpRunner.new(Dir.pwd)
-    runner.run
+
+    handler = DumpHandler.new
+    runner = TurbotRunner::Runner.new(Dir.pwd, :record_handler => handler)
+    rc = runner.run
+
+    puts
+    if rc
+      puts "Bot ran successfully!"
+    else
+      puts "Bot failed!"
+    end
   end
 
 #  # bots:single
@@ -266,11 +283,24 @@ class Turbot::Command::Bots < Turbot::Command::Base
     api.destroy_draft_data(bot)
     puts "Sending to turbot... "
 
-    runner = PreviewRunner.new(bot, api)
-    Signal.trap("INT") do
-      runner.interrupt
+    handler = PreviewHandler.new(bot, api)
+    runner = TurbotRunner::Runner.new(Dir.pwd, :record_handler => handler)
+    rc = runner.run
+
+    puts
+
+    if rc
+      response = handler.submit_batch
+      if handler.count > 0
+        puts "Submitted #{handler.count} records to turbot"
+        puts "View your records at #{response.data[:url]}"
+      else
+        puts "No records sent"
+      end
+    else
+      puts
+      puts "Bot failed!"
     end
-    runner.run
   end
 
   private
@@ -319,83 +349,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
   end
 end
 
-class PreviewRunner < TurbotRunner::BaseRunner
-  def initialize(bot_name, api)
-    @bot_name = bot_name
-    @api = api
-    @batch = []
-    @count = 0
-    super(Dir.pwd)
-  end
-
-  def handle_valid_record(record, data_type)
-    #spinner(@count)
-    @count += 1
-    @batch << record.merge(:data_type => data_type)
-
-    if @count % 20 == 0
-      result = submit_batch
-    end
-  end
-
-  def handle_invalid_record(record, data_type, errors)
-    puts
-    puts "The following record was not sent to turbot because it didn't validate against the schema:"
-    puts record.to_json
-    errors.each {|error| puts " * #{error}"}
-    puts
-  end
-
-  def handle_non_json_output(line)
-    puts
-    puts "The following line was not valid JSON:"
-    puts line
-    interrupt
-  end
-
-  def handle_interrupted_run
-    puts
-    result = submit_batch
-    puts "Run interrupted!"
-    puts "Sent #{@count} records."
-    puts "View your records at #{result.data[:url]}"
-  end
-
-  def handle_successful_run
-    result = submit_batch
-    if result.is_a? Turbot::API::FailureResponse
-      @status = :failed
-      handle_failed_run(result.message)
-    else
-      puts "Run completed!"
-      if @count > 0
-        puts "Sent #{@count} records"
-        puts "View your records at #{result.data[:url]}"
-      else
-        puts "No records sent"
-      end
-    end
-  end
-
-  def handle_failed_run(message=nil)
-    STDERR.puts("Error:")
-    STDERR.puts(message) if message
-  end
-
-  private
-  def submit_batch
-    STDOUT.write('.')
-    result = @api.create_draft_data(@bot_name, @batch.to_json)
-    @batch = []
-    result
-  end
-end
-
-class DumpRunner < TurbotRunner::BaseRunner
-  def handle_valid_record(record, data_type)
-    puts record.to_json
-  end
-
+class TurbotClientHandler < TurbotRunner::BaseHandler
   def handle_invalid_record(record, data_type, errors)
     puts
     puts "The following record is invalid:"
@@ -405,17 +359,23 @@ class DumpRunner < TurbotRunner::BaseRunner
   end
 
   def handle_non_json_output(line)
+    puts
     puts "The following line was not valid JSON:"
     puts line
-    interrupt
-  end
-
-  def handle_failed_run
-    puts "Bot did not run to completion: #{error}"
   end
 end
 
-class ValidationRunner < TurbotRunner::BaseRunner
+
+class DumpHandler < TurbotClientHandler
+  def handle_valid_record(record, data_type)
+    puts record.to_json
+  end
+end
+
+
+class ValidationHandler < TurbotClientHandler
+  attr_reader :count
+
   def initialize(*)
     @count = 0
     super
@@ -423,6 +383,7 @@ class ValidationRunner < TurbotRunner::BaseRunner
 
   def handle_valid_record(record, data_type)
     @count += 1
+    STDOUT.write('.')
   end
 
   def handle_invalid_record(record, data_type, errors)
@@ -431,24 +392,37 @@ class ValidationRunner < TurbotRunner::BaseRunner
     puts record.to_json
     errors.each {|error| puts " * #{error}"}
     puts
-    interrupt
   end
 
-  def handle_non_json_output(line)
+  def handle_invalid_json(line)
+    puts
     puts "The following line was not valid JSON:"
     puts line
-    interrupt
+  end
+end
+
+
+class PreviewHandler < TurbotClientHandler
+  attr_reader :count
+
+  def initialize(bot_name, api)
+    @bot_name = bot_name
+    @api = api
+    @batch = []
+    @count = 0
+    super()
   end
 
-  def handle_failed_run
-    puts "Bot did not run to completion: #{error}"
+  def handle_valid_record(record, data_type)
+    @count += 1
+    STDOUT.write('.')
+    @batch << record.merge(:data_type => data_type)
+    submit_batch if @count % 20 == 0
   end
 
-  def handle_interrupted_run
-    puts "Validated #{@count} records before finding invalid record"
-  end
-
-  def handle_successful_run
-    puts "Validated #{@count} records"
+  def submit_batch
+    result = @api.create_draft_data(@bot_name, @batch.to_json)
+    @batch = []
+    result
   end
 end
