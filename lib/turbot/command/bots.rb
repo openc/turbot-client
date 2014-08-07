@@ -369,7 +369,6 @@ end
 class DumpHandler < TurbotClientHandler
   def handle_valid_record(record, data_type)
     puts record.to_json
-    true
   end
 end
 
@@ -385,7 +384,6 @@ class ValidationHandler < TurbotClientHandler
   def handle_valid_record(record, data_type)
     @count += 1
     STDOUT.write('.')
-    true
   end
 
   def handle_invalid_record(record, data_type, errors)
@@ -420,7 +418,6 @@ class PreviewHandler < TurbotClientHandler
     STDOUT.write('.')
     @batch << record.merge(:data_type => data_type)
     submit_batch if @count % 20 == 0
-    true
   end
 
   def submit_batch
