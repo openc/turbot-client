@@ -39,6 +39,7 @@ GEM_BLACKLIST = %w( bundler turbot )
 
 def assemble_gems(target_dir=Dir.pwd)
   lines = %x{ bundle show }.strip.split("\n")
+  puts lines
   raise "error running bundler" unless $?.success?
 
   %x{ env BUNDLE_WITHOUT="development:test" bundle show }.split("\n").each do |line|
