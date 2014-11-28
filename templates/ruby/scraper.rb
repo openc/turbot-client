@@ -8,6 +8,7 @@ Turbotlib.log("Starting run...") # optional debug logging
 (1...20).each do |n|
   data = {
     number: n,
+    company: "Company #{n} Ltd",
     message: "Hello #{n}",
     sample_date: Time.now,
     source_url: "http://somewhere.com/#{n}"
