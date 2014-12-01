@@ -10,7 +10,7 @@ PATH
       rest-client (~> 1.6.1)
       rubyzip (>= 1.0.0)
       turbot-api (= 0.0.14)
-      turbot-runner (= 0.1.11)
+      turbot-runner (= 0.1.12)
 
 GEM
   remote: https://rubygems.org/
@@ -92,7 +92,7 @@ GEM
     turbot-api (0.0.14)
       rest-client (~> 1.6.1)
       rubyzip
-    turbot-runner (0.1.11)
+    turbot-runner (0.1.12)
       json-schema (= 2.2.2)
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
