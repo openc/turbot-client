@@ -11,7 +11,7 @@ end
 group :development do
   gem "aws-s3"
   gem "fpm"
-  gem "debugger"
+  gem "byebug"
   gem "pry"
 end
 
@@ -23,3 +23,4 @@ group :test do
   gem "sqlite3"
   gem "webmock"
 end
+

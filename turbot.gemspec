@@ -28,6 +28,7 @@ Gem::Specification.new do |gem|
 
   gem.required_ruby_version = '>=1.9.2'
 
+  gem.add_dependency "turbotlib",       "~> 0.0.8"
   gem.add_dependency "netrc",       "~> 0.7.7"
   gem.add_dependency "rest-client", "~> 1.6.1"
   gem.add_dependency "launchy",     ">= 0.3.2"
@@ -35,6 +36,6 @@ Gem::Specification.new do |gem|
   gem.add_dependency "json-schema"
   gem.add_dependency "activesupport", "4.1.4"
   gem.add_dependency "turbot-api", "0.0.14"
-  gem.add_dependency "turbot-runner", "0.1.11"
+  gem.add_dependency "turbot-runner", "0.1.12"
   gem.add_dependency "excon"
 end
