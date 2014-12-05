@@ -10,7 +10,7 @@ file pkg("/apt-#{version}/turbot-#{version}.deb") => distribution_files("deb") d
     assemble resource("deb/postinst"), "postinst"
 
     sh "tar czvf data.tar.gz usr/local/turbot --owner=root --group=root"
-    sh "tar czvf control.tar.gz control postinst"
+    sh "tar czvf control.tar.gz control postinst --owner=root --group=root --preserve-permissions"
 
     File.open("debian-binary", "w") do |f|
       f.puts "2.0"

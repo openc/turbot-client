@@ -1,8 +1,10 @@
 Package: turbot
 Version: <%= version %>
-Section: main
+Section: utils
 Priority: standard
-Architecture: all
-Depends: ruby1.9.1, libopenssl-ruby1.9.1, libreadline-ruby1.9.1, libssl0.9.8 (>= 0.9.8k) | libssl1.0.0
-Maintainer: Turbot
+Architecture: amd64
+Depends: ruby (>= 1.9.1), libopenssl-ruby (>= 1.9.1), libreadline-ruby (>= 1.9.1), libssl0.9.8 (>= 0.9.8k) | libssl1.0.0, libc6
+Maintainer: Turbot <info@opencorporates.com>
 Description: Client library and CLI to deploy apps on Turbot.
+ Turbot is a command line tool to help validate and post scrapers
+ ("bots") to the opencorporates data ingestion pipeline.
