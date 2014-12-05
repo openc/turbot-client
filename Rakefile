@@ -35,12 +35,16 @@ def assemble_distribution(target_dir=Dir.pwd)
   end
 end
 
+# The turbot gem resolves to this folder as it looks in the gemspec
 GEM_BLACKLIST = %w( bundler turbot )
 
 def assemble_gems(target_dir=Dir.pwd)
   lines = %x{ bundle show }.strip.split("\n")
+  puts lines
   raise "error running bundler" unless $?.success?
 
+  # TODO: The bundle without setting doesn't actually work so we're packaging some
+  # gems unecessarily
   %x{ env BUNDLE_WITHOUT="development:test" bundle show }.split("\n").each do |line|
     if line =~ /^  \* (.*?) \((.*?)\)/
       next if GEM_BLACKLIST.include?($1)

@@ -33,9 +33,13 @@ file pkg("turbot-#{version}.pkg") => distribution_files("pkg") do |t|
       sh %{ pax -wz -x cpio . > ../pkg/turbot-client.pkg/Payload }
     end
 
-    sh %{ curl http://turbot-toolbelt.s3.amazonaws.com/ruby.pkg -o ruby.pkg }
+    sh %{ curl http://s3.amazonaws.com/static.xavierriley.co.uk/ruby-1.9.3-p194.pkg -o ruby.pkg }
     sh %{ pkgutil --expand ruby.pkg ruby }
+    package_info_file = "ruby/ruby-1.9.3-p194.pkg/PackageInfo"
+    text = File.read(package_info_file)
+    File.open(package_info_file, "w") { |file| file << text.gsub("heroku", "turbot") }
     mv "ruby/ruby-1.9.3-p194.pkg", "pkg/ruby.pkg"
+    cp_r resource("pkg/ruby/ruby-1.9.3-p194.pkg"), "pkg/ruby.pkg"
 
     sh %{ pkgutil --flatten pkg turbot-#{version}.pkg }
 
