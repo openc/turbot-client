@@ -11,7 +11,6 @@ end
 group :development do
   gem "aws-s3"
   gem "fpm"
-  gem "byebug"
   gem "pry"
 end
 
