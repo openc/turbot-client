@@ -199,13 +199,8 @@ class Turbot::Command::Bots < Turbot::Command::Base
     validate_arguments!
     config = parsed_manifest(Dir.pwd)
 
-    %w(bot_id data_type identifying_fields company_fields files publisher).each do |key|
+    %w(bot_id data_type identifying_fields files publisher).each do |key|
       error("Manifest is missing #{key}") unless config.has_key?(key)
-    end
-
-    company_field_keys = %w(name company_number jurisdiction)
-    unless Set.new(config['company_fields'].keys).subset?(Set.new(company_field_keys))
-      error("In manifest, company_fields should contain at least one of #{company_field_keys}")
     end
 
     type = config["data_type"]
