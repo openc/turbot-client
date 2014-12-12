@@ -1,209 +1,33 @@
-require "rubygems"
+# For Bundler.with_clean_env
+require 'bundler/setup'
+require 'turbot'
+require 'open-uri'
+require 'rss'
 
-PROJECT_ROOT = File.expand_path("..", __FILE__)
-$:.unshift "#{PROJECT_ROOT}/lib"
-
-require "turbot/version"
-require "rspec/core/rake_task"
-
-desc "Run all specs"
-RSpec::Core::RakeTask.new(:spec) do |t|
-  t.verbose = true
-end
-
-task :default => :spec
-
-## dist
-
-require "erb"
-require "fileutils"
-require "tmpdir"
-
-def assemble(source, target, perms=0644)
-  FileUtils.mkdir_p(File.dirname(target))
-  File.open(target, "w") do |f|
-    f.puts ERB.new(File.read(source)).result(binding)
-  end
-  File.chmod(perms, target)
-end
-
-def assemble_distribution(target_dir=Dir.pwd)
-  distribution_files.each do |source|
-    target = source.gsub(/^#{project_root}/, target_dir)
-    FileUtils.mkdir_p(File.dirname(target))
-    FileUtils.cp(source, target)
-  end
-end
-
-# The turbot gem resolves to this folder as it looks in the gemspec
-GEM_BLACKLIST = %w( bundler turbot )
-
-def assemble_gems(target_dir=Dir.pwd)
-  lines = %x{ bundle show }.strip.split("\n")
-  puts lines
-  raise "error running bundler" unless $?.success?
-
-  # TODO: The bundle without setting doesn't actually work so we're packaging some
-  # gems unecessarily
-  %x{ env BUNDLE_WITHOUT="development:test" bundle show }.split("\n").each do |line|
-    if line =~ /^  \* (.*?) \((.*?)\)/
-      next if GEM_BLACKLIST.include?($1)
-      puts "vendoring: #{$1}-#{$2}"
-      gem_dir = %x{ bundle show #{$1} }.strip
-      FileUtils.mkdir_p "#{target_dir}/vendor/gems"
-      %x{ cp -R "#{gem_dir}" "#{target_dir}/vendor/gems" }
-    end
-  end.compact
-end
-
-def beta?
-  Turbot::VERSION.to_s =~ /pre/
-end
-
-def clean(file)
-  rm file if File.exists?(file)
-end
-
-def distribution_files(type=nil)
-  require "turbot/distribution"
-  base_files = Turbot::Distribution.files
-  type_files = type ?
-    Dir[File.expand_path("../dist/resources/#{type}/**/*", __FILE__)] :
-    []
-  #base_files.concat(type_files)
-  base_files
-end
-
-def mkchdir(dir)
-  FileUtils.mkdir_p(dir)
-  Dir.chdir(dir) do |dir|
-    yield(File.expand_path(dir))
-  end
-end
-
-def pkg(filename)
-  FileUtils.mkdir_p("pkg")
-  File.expand_path("../pkg/#{filename}", __FILE__)
-end
-
-def project_root
-  File.dirname(__FILE__)
-end
-
-def resource(name)
-  File.expand_path("../dist/resources/#{name}", __FILE__)
-end
-
-def s3_connect
-  return if @s3_connected
-
-  require "aws/s3"
-
-  unless ENV["TURBOT_RELEASE_ACCESS"] && ENV["TURBOT_RELEASE_SECRET"]
-    puts "please set TURBOT_RELEASE_ACCESS and TURBOT_RELEASE_SECRET in your environment"
-    exit 1
-  end
-
-  AWS::S3::Base.establish_connection!(
-    :access_key_id => ENV["TURBOT_RELEASE_ACCESS"],
-    :secret_access_key => ENV["TURBOT_RELEASE_SECRET"]
-  )
-
-  @s3_connected = true
-end
-
-def store(package_file, filename, bucket="assets.turbot.com")
-  s3_connect
-  puts "storing: #{filename}"
-  AWS::S3::S3Object.store(filename, File.open(package_file), bucket, :access => :public_read)
-end
-
-def tempdir
-  Dir.mktmpdir do |dir|
-    Dir.chdir(dir) do
-      yield(dir)
+desc "Make a release"
+task :release do
+  version = Turbot::VERSION
+  rubygems_versions = []
+  open('http://rubygems.org/gems/turbot/versions.atom') do |rss|
+    feed = RSS::Parser.parse(rss, false)
+    rubygems_versions = feed.items.map do |i|
+      i.id.content.split("/").last
     end
   end
-end
-
-def version
-  require "turbot/version"
-  Turbot::VERSION
-end
-
-Dir[File.expand_path("../dist/**/*.rake", __FILE__)].each do |rake|
-  import rake
-end
-
-def poll_ci
-  require("vendor/turbot/okjson")
-  require("net/http")
-  data = Turbot::OkJson.decode(Net::HTTP.get("travis-ci.org", "/turbot/turbot.json"))
-  case data["last_build_status"]
-  when nil
-    print(".")
-    sleep(1)
-    poll_ci
-  when 0
-    puts("SUCCESS")
-  when 1
-    puts("FAILURE")
-  end
-end
-
-desc("Check current ci status and/or wait for build to finish.")
-task "ci" do
-  poll_ci
-end
-
-desc("open jenkins")
-task "jenkins" do
-  `open http://dx-jenkins.herokai.com`
-end
-
-desc("Create a new changelog article")
-task "changelog" do
-  changelog = <<-CHANGELOG
-Turbot CLI v#{version} released with 
-
-A new version of the Turbot CLI is available with 
-
-See the [CLI changelog](https://github.com/turbot/turbot/blob/master/CHANGELOG) for details and update by using \\`turbot update\\`.
-CHANGELOG
-
-  `echo "#{changelog}" | pbcopy`
-
-  `open http://devcenter.turbot.com/admin/changelog_items/new`
-end
-
-desc("Release the latest version")
-task "release" => ["gem:release", "jenkins", "tgz:release", "zip:release", "manifest:update"] do
-  puts("Released v#{version}")
-end
-
-desc("Display statistics")
-task "stats" do
-  require "turbot/command"
-  Dir[File.join(File.dirname(__FILE__), 'lib', 'turbot', 'command', '*.rb')].each do |file|
-    require(file)
-  end
-  commands, namespaces = Hash.new {|hash, key| hash[key] = 0}, []
-  Turbot::Command.commands.keys.each do |key|
-    data = key.split(':')
-    unless data.first == data.last
-      commands[data.last] += 1
+  if rubygems_versions.include? version
+    puts "Latest version already published; quitting"
+    exit 0
+  else
+    begin
+      puts "Building gem..."
+      system("gem build turbot.gemspec")
+      puts "Pushing gem..."
+      system("gem push $(ls *gem|tail -1)")
+    ensure
+      system("rm *gem")
     end
-    namespaces |= [data.first]
-  end
-  puts "#{namespaces.length} Namespaces:"
-  puts "#{namespaces.join(', ')}"
-  puts
-  puts "#{commands.keys.length} Commands:"
-  max = commands.values.max
-  max.downto(0).each do |count|
-    keys = commands.keys.select {|key| commands[key] == count}
-    unless keys.empty?
-      puts("#{count}x #{keys.join(', ')}")
-    end
+    puts "Writing new version on turbot server"
+    system(%Q{ssh turbot1 "echo #{version} > /home/openc/sites/turbot_server/current/public/version.txt"})
+    puts "Now chance the build_version in omnibus-turbot-client/turbot-client.rb and build the new targets"
   end
 end
