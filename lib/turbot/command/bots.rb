@@ -291,11 +291,15 @@ class Turbot::Command::Bots < Turbot::Command::Base
 
     if rc
       response = handler.submit_batch
-      if handler.count > 0
-        puts "Submitted #{handler.count} records to turbot"
-        puts "View your records at #{response.data[:url]}"
+      if response.is_a? Turbot::API::SuccessResponse
+        if handler.count > 0
+          puts "Submitted #{handler.count} records to turbot"
+          puts "View your records at #{response.data[:url]}"
+        else
+          puts "No records sent"
+        end
       else
-        puts "No records sent"
+        error(response.message)
       end
     else
       puts
