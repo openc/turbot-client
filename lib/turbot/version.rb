@@ -1,1 +1,3 @@
-0.1.9
+module Turbot
+  VERSION = "0.1.9"
+end
