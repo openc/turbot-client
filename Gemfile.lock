@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    turbot (0.1.7)
+    turbot (0.1.10)
       activesupport (= 4.1.4)
       excon
       json-schema
@@ -10,7 +10,7 @@ PATH
       rest-client (~> 1.6.1)
       rubyzip (>= 1.0.0)
       turbot-api (= 0.0.14)
-      turbot-runner (= 0.1.14)
+      turbot-runner (= 0.1.22)
       turbotlib (~> 0.0.8)
 
 GEM
@@ -51,15 +51,16 @@ GEM
       clamp (~> 0.6)
       ffi
       json (>= 1.7.7)
-    httpclient (2.5.3.3)
-    i18n (0.6.11)
+    httpclient (2.6.0.1)
+    i18n (0.7.0)
     json (1.8.1)
-    json-schema (2.2.2)
+    json-schema (2.5.0)
+      addressable (~> 2.3)
     launchy (2.4.3)
       addressable (~> 2.3)
     method_source (0.8.2)
     mime-types (1.25.1)
-    minitest (5.4.3)
+    minitest (5.5.1)
     netrc (0.7.9)
     pry (0.10.1)
       coderay (~> 1.1.0)
@@ -103,8 +104,8 @@ GEM
     turbot-api (0.0.14)
       rest-client (~> 1.6.1)
       rubyzip
-    turbot-runner (0.1.14)
-      json-schema (= 2.2.2)
+    turbot-runner (0.1.22)
+      json-schema (= 2.5.0)
     turbotlib (0.0.8)
       scraperwiki (= 3.0.2)
     tzinfo (1.2.2)
