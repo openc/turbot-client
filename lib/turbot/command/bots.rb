@@ -354,11 +354,11 @@ class Turbot::Command::Bots < Turbot::Command::Base
 end
 
 class TurbotClientHandler < TurbotRunner::BaseHandler
-  def handle_invalid_record(record, data_type, errors)
+  def handle_invalid_record(record, data_type, error_message)
     puts
     puts "The following record is invalid:"
     puts record.to_json
-    errors.each {|error| puts " * #{error}"}
+    puts " * #{error_message}"
     puts
   end
 
@@ -390,11 +390,11 @@ class ValidationHandler < TurbotClientHandler
     STDOUT.write('.')
   end
 
-  def handle_invalid_record(record, data_type, errors)
+  def handle_invalid_record(record, data_type, error_message)
     puts
     puts "The following record is invalid:"
     puts record.to_json
-    errors.each {|error| puts " * #{error}"}
+    puts " * #{error_message}"
     puts
   end
 
