@@ -1,10 +1,17 @@
+GIT
+  remote: git://github.com/ruby-json-schema/json-schema.git
+  revision: aded4d798a48545184dae7ae0a3bb41ec2794c88
+  ref: aded4d798a48545184dae7ae0a3bb41ec2794c88
+  specs:
+    json-schema (2.5.0)
+      addressable (~> 2.3)
+
 PATH
   remote: .
   specs:
-    turbot (0.1.14)
+    turbot (0.1.15)
       activesupport (= 4.1.4)
       excon
-      json-schema
       launchy (>= 0.3.2)
       netrc (~> 0.7.7)
       rest-client (~> 1.6.1)
@@ -54,8 +61,6 @@ GEM
     httpclient (2.6.0.1)
     i18n (0.7.0)
     json (1.8.1)
-    json-schema (2.5.0)
-      addressable (~> 2.3)
     launchy (2.4.3)
       addressable (~> 2.3)
     method_source (0.8.2)
@@ -128,6 +133,7 @@ DEPENDENCIES
   fpm
   jruby-openssl
   json
+  json-schema!
   pry
   rake (>= 0.8.7)
   rr (~> 1.0.2)
