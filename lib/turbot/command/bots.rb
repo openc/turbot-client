@@ -2,7 +2,6 @@ require "turbot/command/base"
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/hash/slice'
 require 'zip'
-require 'json-schema'
 require 'open3'
 require 'base64'
 require 'shellwords'
@@ -205,12 +204,6 @@ class Turbot::Command::Bots < Turbot::Command::Base
 
     type = config["data_type"]
 
-    schema = get_schema(type)
-
-    if !schema || !File.exists?(schema)
-      error("No schema found for data_type: #{type}")
-    end
-
     handler = ValidationHandler.new
     runner = TurbotRunner::Runner.new(Dir.pwd, :record_handler => handler)
     rc = runner.run
@@ -327,11 +320,6 @@ class Turbot::Command::Bots < Turbot::Command::Base
 
   def manifest_path
     File.join(Dir.pwd, 'manifest.json')
-  end
-
-  def get_schema(type)
-    hyphenated_name = type.to_s.gsub("_", "-").gsub(" ", "-")
-    File.expand_path("../../../../schema/schemas/#{hyphenated_name}-schema.json", __FILE__)
   end
 
   def create_zip_archive(archive_path, basepath, subpaths)
