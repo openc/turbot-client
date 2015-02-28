@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    turbot (0.1.21)
+    turbot (0.1.22)
       activesupport (= 4.1.4)
       excon
       launchy (>= 0.3.2)
@@ -9,7 +9,7 @@ PATH
       rest-client (~> 1.6.1)
       rubyzip (>= 1.0.0)
       turbot-api (= 0.0.14)
-      turbot-runner (= 0.1.34)
+      turbot-runner (= 0.1.35)
       turbotlib (~> 0.0.8)
 
 GEM
@@ -105,7 +105,7 @@ GEM
     turbot-api (0.0.14)
       rest-client (~> 1.6.1)
       rubyzip
-    turbot-runner (0.1.34)
+    turbot-runner (0.1.35)
       openc-json_schema (= 0.0.11)
     turbotlib (0.0.8)
       scraperwiki (= 3.0.2)
