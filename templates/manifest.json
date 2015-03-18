@@ -5,7 +5,6 @@
  "language": "{{language}}",
  "data_type": "primary data",
  "identifying_fields": ["number"],
- "company_fields": {"name": "company"},
  "files": ["{{scraper_name}}"],
  "frequency": "monthly",
  "publisher": {
