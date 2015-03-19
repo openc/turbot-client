@@ -277,8 +277,17 @@ class Turbot::Command::Bots < Turbot::Command::Base
     validate_arguments!
 
     config = parsed_manifest(Dir.pwd)
-    api.update_bot(bot, parsed_manifest(Dir.pwd))
-    api.destroy_draft_data(bot)
+
+    response = api.update_bot(bot, parsed_manifest(Dir.pwd))
+    if !response.is_a? Turbot::API::SuccessResponse
+      error(response.message)
+    end
+
+    response = api.destroy_draft_data(bot)
+    if !response.is_a? Turbot::API::SuccessResponse
+      error(response.message)
+    end
+
     puts "Sending to turbot... "
 
     handler = PreviewHandler.new(bot, api)
