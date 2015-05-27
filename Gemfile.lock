@@ -9,7 +9,7 @@ PATH
       rest-client (~> 1.6.1)
       rubyzip (>= 1.0.0)
       turbot-api (= 0.0.14)
-      turbot-runner (= 0.1.42)
+      turbot-runner (= 0.1.43)
       turbotlib (~> 0.0.8)
 
 GEM
@@ -105,7 +105,7 @@ GEM
     turbot-api (0.0.14)
       rest-client (~> 1.6.1)
       rubyzip
-    turbot-runner (0.1.42)
+    turbot-runner (0.1.43)
       activesupport (= 4.1.4)
       openc-json_schema (= 0.0.13)
     turbotlib (0.0.8)
