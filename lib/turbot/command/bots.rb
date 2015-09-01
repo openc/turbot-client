@@ -214,7 +214,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
     rc = runner.run
 
     puts
-    if rc
+    if rc == TurbotRunner::Runner::RC_OK
       puts "Validated #{handler.count} records!"
     else
       puts "Validated #{handler.count} records before bot failed!"
@@ -237,7 +237,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
     rc = runner.run
 
     puts
-    if rc
+    if rc == TurbotRunner::Runner::RC_OK
       puts "Bot ran successfully!"
     else
       puts "Bot failed!"
@@ -296,7 +296,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
 
     puts
 
-    if rc
+    if rc == TurbotRunner::Runner::RC_OK
       response = handler.submit_batch
       if response.is_a? Turbot::API::SuccessResponse
         if handler.count > 0
