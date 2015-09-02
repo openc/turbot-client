@@ -7,7 +7,7 @@ require 'base64'
 require 'shellwords'
 require 'turbot_runner'
 
-# manage bots (create, submit data and code)
+# manage bots (generate skeleton, validate data, submit code)
 #
 class Turbot::Command::Bots < Turbot::Command::Base
 
