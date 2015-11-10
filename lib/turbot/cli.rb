@@ -25,6 +25,10 @@ class Turbot::CLI
       end
       command = args.shift.strip rescue "help"
       Turbot::Command.load
+      trap "SIGINT" do
+        # Script terminated by Control-C.
+        exit 130
+      end
       Turbot::Command.run(command, args)
     rescue Interrupt
       `stty icanon echo`
