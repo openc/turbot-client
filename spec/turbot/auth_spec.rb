@@ -107,7 +107,7 @@ module Turbot
       @cli.stub!(:write_credentials)
       @cli.stub!(:retry_login?).and_return(false)
       @cli.stub!(:ask_for_credentials).and_return("username", "apikey")
-      @cli.stub!(:check) { raise Turbot::API::Errors::Unauthorized.new("Login Failed", Excon::Response.new) }
+      @cli.stub!(:check) { raise RestClient::Unauthorized }
       @cli.should_receive(:delete_credentials)
       lambda { @cli.ask_for_and_save_credentials }.should raise_error(SystemExit)
     end
@@ -117,7 +117,7 @@ module Turbot
       @cli.stub!(:write_credentials)
       @cli.stub!(:delete_credentials)
       @cli.stub!(:ask_for_credentials).and_return("username", "apikey")
-      @cli.stub!(:check) { raise Turbot::API::Errors::Unauthorized.new("Login Failed", Excon::Response.new) }
+      @cli.stub!(:check) { raise RestClient::Unauthorized }
       @cli.should_receive(:ask_for_credentials).exactly(3).times
       lambda { @cli.ask_for_and_save_credentials }.should raise_error(SystemExit)
     end
