@@ -6,7 +6,7 @@ Gem::Specification.new do |gem|
   gem.version = Turbot::VERSION
 
   gem.author      = "Turbot"
-  gem.email       = "community@opencorporates.conm"
+  gem.email       = "support@turbot.opencorporates.com"
   gem.homepage    = "https://turbot.opencorporates.com/"
   gem.summary     = "Client library and CLI to deploy apps on Turbot."
   gem.description = "Client library and command-line tool to deploy and manage apps on Turbot."
