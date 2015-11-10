@@ -151,8 +151,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
       error("There's already a bot called #{bot} registered with Turbot. Bot names must be unique.")
     end
 
-    working_dir = Dir.pwd
-    manifest = parsed_manifest(working_dir)
+    manifest = parsed_manifest(working_directory)
     response = api.create_bot(bot, manifest)
     if response.is_a? Turbot::API::FailureResponse
       error(response.message)
@@ -174,11 +173,10 @@ class Turbot::Command::Bots < Turbot::Command::Base
     puts "Are you happy your bot produces valid data (e.g. with `turbot bots:validate`)? [Y/n]"
     confirmed = ask
     error("Aborting push") if !confirmed.downcase.empty? && confirmed.downcase != "y"
-    working_dir = Dir.pwd
-    manifest = parsed_manifest(working_dir)
+    manifest = parsed_manifest(working_directory)
     archive = Tempfile.new(bot)
     archive_path = "#{archive.path}.zip"
-    create_zip_archive(archive_path, working_dir, manifest['files'] + ['manifest.json'])
+    create_zip_archive(archive_path, working_directory, manifest['files'] + ['manifest.json'])
 
     response = File.open(archive_path) {|file| api.update_code(bot, file)}
     case response
@@ -199,18 +197,18 @@ class Turbot::Command::Bots < Turbot::Command::Base
   # Validating example... done
 
   def validate
-    scraper_path    = shift_argument || scraper_file(Dir.pwd)
+    scraper_path    = shift_argument || scraper_file(working_directory)
     validate_arguments!
-    config = parsed_manifest(Dir.pwd)
+    config = parsed_manifest(working_directory)
 
-    %w(bot_id data_type identifying_fields files publisher).each do |key|
+    %w(bot_id data_type identifying_fields files language publisher).each do |key|
       error("Manifest is missing #{key}") unless config.has_key?(key)
     end
 
     type = config["data_type"]
 
     handler = ValidationHandler.new
-    runner = TurbotRunner::Runner.new(Dir.pwd, :record_handler => handler)
+    runner = TurbotRunner::Runner.new(working_directory, :record_handler => handler)
     rc = runner.run
 
     puts
@@ -233,7 +231,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
     validate_arguments!
 
     handler = DumpHandler.new
-    runner = TurbotRunner::Runner.new(Dir.pwd, :record_handler => handler)
+    runner = TurbotRunner::Runner.new(working_directory, :record_handler => handler)
     rc = runner.run
 
     puts
@@ -255,7 +253,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
 #
 #  def single
 #    # This will need to be language-aware, eventually
-#    scraper_path    = shift_argument || scraper_file(Dir.pwd)
+#    scraper_path    = shift_argument || scraper_file(working_directory)
 #    validate_arguments!
 #    print 'Arguments (as JSON object, e.g. {"id":"ABC123"}: '
 #    arg = ask
@@ -276,9 +274,9 @@ class Turbot::Command::Bots < Turbot::Command::Base
   def preview
     validate_arguments!
 
-    config = parsed_manifest(Dir.pwd)
+    config = parsed_manifest(working_directory)
 
-    response = api.update_bot(bot, parsed_manifest(Dir.pwd))
+    response = api.update_bot(bot, parsed_manifest(working_directory))
     if !response.is_a? Turbot::API::SuccessResponse
       error(response.message)
     end
@@ -291,7 +289,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
     puts "Sending to turbot... "
 
     handler = PreviewHandler.new(bot, api)
-    runner = TurbotRunner::Runner.new(Dir.pwd, :record_handler => handler)
+    runner = TurbotRunner::Runner.new(working_directory, :record_handler => handler)
     rc = runner.run
 
     puts
@@ -332,8 +330,12 @@ class Turbot::Command::Bots < Turbot::Command::Base
     Dir.glob("scraper*").reject{|n| !n.match(/(rb|py)$/)}.first
   end
 
+  def working_directory
+    Dir.pwd
+  end
+
   def manifest_path
-    File.join(Dir.pwd, 'manifest.json')
+    File.join(working_directory, 'manifest.json')
   end
 
   def create_zip_archive(archive_path, basepath, subpaths)

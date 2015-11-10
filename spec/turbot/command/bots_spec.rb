@@ -3,70 +3,96 @@ require "turbot/command/bots"
 
 describe Turbot::Command::Bots do
   describe "validate" do
+    let :working_directory do
+      Dir.mktmpdir
+    end
+
+    let :schemas_directory do
+      Dir.mktmpdir
+    end
+
     before do
       config = {
         'bot_id' => 'dummy bot',
         'data_type' => 'dummy',
         'identifying_fields' => ['name'],
         'files' => 'scraper.rb',
+        'language' => 'ruby',
+        'publisher' => {
+          'name' => 'Dummy',
+          'url' => 'http://example.com/',
+          'terms' => 'MIT',
+          'terms_url' => 'http://opensource.org/licenses/MIT',
+        },
       }
       Turbot::Command::Bots.any_instance.stub(:parsed_manifest).and_return(config)
+
+      # Create a manifest.json file for TurbotRunner to find.
+      File.open(File.join(working_directory, 'manifest.json'), 'w') { |f| f << JSON.dump(config) }
+      Turbot::Command::Bots.any_instance.stub(:working_directory).and_return(working_directory)
+
+      # Change the path to TurbotRunner's schemas.
+      begin
+        old_verbose, $VERBOSE = $VERBOSE, nil
+        TurbotRunner::SCHEMAS_PATH = File.expand_path('../../../schemas', __FILE__)
+      ensure
+        $VERBOSE = old_verbose
+      end
+    end
+
+    after do
+      FileUtils.remove_entry_secure(working_directory)
+      FileUtils.remove_entry_secure(schemas_directory)
+    end
+
+    def define_scraper(hash)
+      File.open(File.join(working_directory, 'scraper.rb'), 'w') do |f|
+        f << <<-EOL
+require 'json'
+puts JSON.dump(#{hash})
+        EOL
+      end
     end
 
     context "for data_type with schema" do
-      before do
-        Turbot::Command::Bots.any_instance.
-          stub(:get_schema).
-          and_return(File.expand_path('../../../schemas/dummy_schema.json', __FILE__))
-
-      end
-
       it "says bot is valid if its output matches the schema" do
-        Turbot::Command::Bots.any_instance.
-          stub(:run_scraper_each_line).
-          and_yield({name: 'One'}.to_json)
+        define_scraper(name: 'One')
 
         stderr, stdout = execute("bots:validate")
 
+        stdout.should include 'Validated 1 records!'
         stderr.should == ""
-        stdout.should include 'Validated 1 records successfully'
       end
 
       it "says bot is invalid if its output doesn't match the schema" do
-        Turbot::Command::Bots.any_instance.
-          stub(:run_scraper_each_line).
-          and_yield({name: 123}.to_json)
+        define_scraper(name: 123)
 
         stderr, stdout = execute("bots:validate")
 
-        stdout.should == ""
-        stderr.should include 'ERRORS'
+        stdout.should include 'Property of wrong type'
+        stderr.should == ""
       end
 
       context "for bot that doesn't output identifying fields" do
         it "says bot is invalid" do
-          Turbot::Command::Bots.any_instance.
-            stub(:run_scraper_each_line).
-            and_yield({title: 'One'}.to_json)
+          define_scraper(title: 'One')
 
           stderr, stdout = execute("bots:validate")
 
-          stdout.should == ""
-          stderr.should include 'No value provided for identifying fields'
+          stdout.should include 'There were no values provided for any of the identifying fields'
+          stderr.should == ""
         end
       end
     end
 
     context "for data_type without schema" do
       it "says bot is invalid" do
-        Turbot::Command::Bots.any_instance.
-          stub(:get_schema).
-          and_return(nil)
+        define_scraper({})
 
         stderr, stdout = execute("bots:validate")
 
-        stdout.should == ""
-        stderr.should include 'No schema found'
+        stdout.should include "Validated 0 records before bot failed!"
+        stderr.should == ""
       end
     end
 
