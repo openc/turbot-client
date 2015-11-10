@@ -63,7 +63,7 @@ module Turbot
         before do
           @cli.stub!(:ask_for_credentials).and_return(['new_user', 'new_password'])
           @cli.stub!(:check)
-          @cli.should_receive(:check_for_associated_ssh_key)
+          # @cli.should_receive(:check_for_associated_ssh_key)
           @cli.reauthorize
         end
         it "updates saved credentials" do
@@ -89,7 +89,7 @@ module Turbot
     it "asks for credentials when the file doesn't exist" do
       @cli.delete_credentials
       @cli.should_receive(:ask_for_credentials).and_return(["u", "p"])
-      @cli.should_receive(:check_for_associated_ssh_key)
+      # @cli.should_receive(:check_for_associated_ssh_key)
       @cli.user.should == 'u'
       @cli.password.should == 'p'
     end
@@ -99,7 +99,7 @@ module Turbot
       @cli.stub!(:check)
       @cli.stub!(:ask_for_credentials).and_return("username", "apikey")
       @cli.should_receive(:write_credentials)
-      @cli.should_receive(:check_for_associated_ssh_key)
+      # @cli.should_receive(:check_for_associated_ssh_key)
       @cli.ask_for_and_save_credentials
     end
 
@@ -125,7 +125,7 @@ module Turbot
     it "writes the login information to the credentials file for the 'turbot login' command" do
       @cli.stub!(:ask_for_credentials).and_return(['one', 'two'])
       @cli.stub!(:check)
-      @cli.should_receive(:check_for_associated_ssh_key)
+      # @cli.should_receive(:check_for_associated_ssh_key)
       @cli.reauthorize
       Netrc.read(@cli.netrc_path)["api.#{@cli.host}"].should == (['one', 'two'])
     end
@@ -141,74 +141,74 @@ module Turbot
       end
     end
 
-    describe "automatic key uploading" do
-      before(:each) do
-        FileUtils.mkdir_p("#{@cli.home_directory}/.ssh")
-        @cli.stub!(:ask_for_credentials).and_return("username", "apikey")
-      end
+    # describe "automatic key uploading" do
+    #   before(:each) do
+    #     FileUtils.mkdir_p("#{@cli.home_directory}/.ssh")
+    #     @cli.stub!(:ask_for_credentials).and_return("username", "apikey")
+    #   end
 
-      describe "an account with existing keys" do
-        before :each do
-          @api = mock(Object)
-          @response = mock(Object)
-          @response.should_receive(:body).and_return(['existingkeys'])
-          @api.should_receive(:get_ssh_keys).and_return(@response)
-          @cli.should_receive(:api).and_return(@api)
-        end
+    #   describe "an account with existing keys" do
+    #     before :each do
+    #       @api = mock(Object)
+    #       @response = mock(Object)
+    #       @response.should_receive(:body).and_return(['existingkeys'])
+    #       @api.should_receive(:get_ssh_keys).and_return(@response)
+    #       @cli.should_receive(:api).and_return(@api)
+    #     end
 
-        it "should not do anything if the account already has keys" do
-          @cli.should_not_receive(:associate_key)
-          @cli.check_for_associated_ssh_key
-        end
-      end
+    #     it "should not do anything if the account already has keys" do
+    #       @cli.should_not_receive(:associate_key)
+    #       @cli.check_for_associated_ssh_key
+    #     end
+    #   end
 
-      describe "an account with no keys" do
-        before :each do
-          @api = mock(Object)
-          @response = mock(Object)
-          @response.should_receive(:body).and_return([])
-          @api.should_receive(:get_ssh_keys).and_return(@response)
-          @cli.should_receive(:api).and_return(@api)
-        end
+    #   describe "an account with no keys" do
+    #     before :each do
+    #       @api = mock(Object)
+    #       @response = mock(Object)
+    #       @response.should_receive(:body).and_return([])
+    #       @api.should_receive(:get_ssh_keys).and_return(@response)
+    #       @cli.should_receive(:api).and_return(@api)
+    #     end
 
-        describe "with zero public keys" do
-          it "should ask to generate a key" do
-            @cli.should_receive(:ask).and_return("y")
-            @cli.should_receive(:generate_ssh_key).with("id_rsa")
-            @cli.should_receive(:associate_key).with("#{@cli.home_directory}/.ssh/id_rsa.pub")
-            @cli.check_for_associated_ssh_key
-          end
-        end
+    #     describe "with zero public keys" do
+    #       it "should ask to generate a key" do
+    #         @cli.should_receive(:ask).and_return("y")
+    #         @cli.should_receive(:generate_ssh_key).with("id_rsa")
+    #         @cli.should_receive(:associate_key).with("#{@cli.home_directory}/.ssh/id_rsa.pub")
+    #         @cli.check_for_associated_ssh_key
+    #       end
+    #     end
 
-        describe "with one public key" do
-          before(:each) { FileUtils.touch("#{@cli.home_directory}/.ssh/id_rsa.pub") }
-          after(:each)  { FileUtils.rm("#{@cli.home_directory}/.ssh/id_rsa.pub") }
+    #     describe "with one public key" do
+    #       before(:each) { FileUtils.touch("#{@cli.home_directory}/.ssh/id_rsa.pub") }
+    #       after(:each)  { FileUtils.rm("#{@cli.home_directory}/.ssh/id_rsa.pub") }
 
-          it "should upload the key" do
-            @cli.should_receive(:associate_key).with("#{@cli.home_directory}/.ssh/id_rsa.pub")
-            @cli.check_for_associated_ssh_key
-          end
-        end
+    #       it "should upload the key" do
+    #         @cli.should_receive(:associate_key).with("#{@cli.home_directory}/.ssh/id_rsa.pub")
+    #         @cli.check_for_associated_ssh_key
+    #       end
+    #     end
 
-        describe "with many public keys" do
-          before(:each) do
-            FileUtils.touch("#{@cli.home_directory}/.ssh/id_rsa.pub")
-            FileUtils.touch("#{@cli.home_directory}/.ssh/id_rsa2.pub")
-          end
+    #     describe "with many public keys" do
+    #       before(:each) do
+    #         FileUtils.touch("#{@cli.home_directory}/.ssh/id_rsa.pub")
+    #         FileUtils.touch("#{@cli.home_directory}/.ssh/id_rsa2.pub")
+    #       end
 
-          after(:each) do
-            FileUtils.rm("#{@cli.home_directory}/.ssh/id_rsa.pub")
-            FileUtils.rm("#{@cli.home_directory}/.ssh/id_rsa2.pub")
-          end
+    #       after(:each) do
+    #         FileUtils.rm("#{@cli.home_directory}/.ssh/id_rsa.pub")
+    #         FileUtils.rm("#{@cli.home_directory}/.ssh/id_rsa2.pub")
+    #       end
 
-          it "should ask which key to upload" do
-            File.open("#{@cli.home_directory}/.ssh/id_rsa.pub", "w") { |f| f.puts }
-            @cli.should_receive(:associate_key).with("#{@cli.home_directory}/.ssh/id_rsa2.pub")
-            @cli.should_receive(:ask).and_return("2")
-            @cli.check_for_associated_ssh_key
-          end
-        end
-      end
-    end
+    #       it "should ask which key to upload" do
+    #         File.open("#{@cli.home_directory}/.ssh/id_rsa.pub", "w") { |f| f.puts }
+    #         @cli.should_receive(:associate_key).with("#{@cli.home_directory}/.ssh/id_rsa2.pub")
+    #         @cli.should_receive(:ask).and_return("2")
+    #         @cli.check_for_associated_ssh_key
+    #       end
+    #     end
+    #   end
+    # end
   end
 end
