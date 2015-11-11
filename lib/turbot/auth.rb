@@ -206,68 +206,7 @@ class Turbot::Auth
         delete_credentials
         raise e
       end
-      # check_for_associated_ssh_key unless Turbot::Command.current_command == "keys:add"
       @credentials
-    end
-
-    def check_for_associated_ssh_key
-      if api.get_ssh_keys.empty?
-        associate_or_generate_ssh_key
-      end
-    end
-
-    def associate_or_generate_ssh_key
-      public_keys = Dir.glob("#{home_directory}/.ssh/*.pub").sort
-
-      case public_keys.length
-      when 0 then
-        display "Could not find an existing public key."
-        display "Would you like to generate one? [Yn] ", false
-        unless ask.strip.downcase == "n"
-          display "Generating new SSH public key."
-          generate_ssh_key("id_rsa")
-          associate_key("#{home_directory}/.ssh/id_rsa.pub")
-        end
-      when 1 then
-        display "Found existing public key: #{public_keys.first}"
-        associate_key(public_keys.first)
-      else
-        display "Found the following SSH public keys:"
-        public_keys.each_with_index do |key, index|
-          display "#{index+1}) #{File.basename(key)}"
-        end
-        display "Which would you like to use with your Turbot account? ", false
-        choice = ask.to_i - 1
-        chosen = public_keys[choice]
-        if choice == -1 || chosen.nil?
-          error("Invalid choice")
-        end
-        associate_key(chosen)
-      end
-    end
-
-    def generate_ssh_key(keyfile)
-      ssh_dir = File.join(home_directory, ".ssh")
-      unless File.exists?(ssh_dir)
-        FileUtils.mkdir_p ssh_dir
-        unless running_on_windows?
-          File.chmod(0700, ssh_dir)
-        end
-      end
-      output = `ssh-keygen -t rsa -N "" -f \"#{home_directory}/.ssh/#{keyfile}\" 2>&1`
-      if ! $?.success?
-        error("Could not generate key: #{output}")
-      end
-    end
-
-    def associate_key(key)
-      action("Uploading SSH public key #{key}") do
-        if File.exists?(key)
-          api.post_key(File.read(key))
-        else
-          error("Could not upload SSH public key: key file '" + key + "' does not exist")
-        end
-      end
     end
 
     def retry_login?
