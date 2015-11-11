@@ -197,7 +197,7 @@ class Turbot::Auth
         # write these to a hidden file
         write_credentials
         check
-      rescue Turbot::API::Errors::NotFound, Turbot::API::Errors::Unauthorized => e
+      rescue RestClient::Unauthorized, Turbot::API::Errors::NotFound, Turbot::API::Errors::Unauthorized => e
         delete_credentials
         display "Authentication failed."
         retry if retry_login?

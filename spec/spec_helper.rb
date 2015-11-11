@@ -30,7 +30,7 @@ def org_api
 end
 
 def stub_api_request(method, path)
-  stub_request(method, "https://api.turbot.com#{path}")
+  stub_request(method, "http://turbot.opencorporates.com#{path}")
 end
 
 def prepare_command(klass)

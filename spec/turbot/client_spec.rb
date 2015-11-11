@@ -14,7 +14,7 @@ describe Turbot::Client do
 
   it "Client.auth -> get user details" do
     user_info = { "api_key" => "abc" }
-    stub_request(:post, "https://foo:bar@api.turbot.com/login").to_return(:body => json_encode(user_info))
+    stub_request(:post, "http://foo:bar@turbot.opencorporates.com/login").to_return(:body => json_encode(user_info))
     capture_stderr do # capture deprecation message
       Turbot::Client.auth("foo", "bar").should == user_info
     end
@@ -450,7 +450,7 @@ describe Turbot::Client do
     end
 
     it "install_addon(bot_name, addon_name) with response" do
-      stub_request(:post, "https://api.turbot.com/bots/example/addons/addon1").
+      stub_request(:post, "http://turbot.opencorporates.com/bots/example/addons/addon1").
         to_return(:body => json_encode({'price' => 'free', 'message' => "Don't Panic"}))
 
       @client.install_addon('example', 'addon1').
@@ -458,7 +458,7 @@ describe Turbot::Client do
     end
 
     it "upgrade_addon(bot_name, addon_name) with response" do
-      stub_request(:put, "https://api.turbot.com/bots/example/addons/addon1").
+      stub_request(:put, "http://turbot.opencorporates.com/bots/example/addons/addon1").
         to_return(:body => json_encode('price' => 'free', 'message' => "Don't Panic"))
 
       @client.upgrade_addon('example', 'addon1').
@@ -466,7 +466,7 @@ describe Turbot::Client do
     end
 
     it "downgrade_addon(bot_name, addon_name) with response" do
-      stub_request(:put, "https://api.turbot.com/bots/example/addons/addon1").
+      stub_request(:put, "http://turbot.opencorporates.com/bots/example/addons/addon1").
         to_return(:body => json_encode('price' => 'free', 'message' => "Don't Panic"))
 
       @client.downgrade_addon('example', 'addon1').
