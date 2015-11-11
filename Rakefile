@@ -1,8 +1,10 @@
 # For Bundler.with_clean_env
 require 'bundler/setup'
-require 'turbot'
+
 require 'open-uri'
+
 require 'rss'
+require 'turbot'
 
 desc "Make a release"
 task :release do
@@ -31,3 +33,8 @@ task :release do
     puts "Now chance the build_version in omnibus-turbot-client/turbot-client.rb and build the new targets"
   end
 end
+
+require 'rspec/core/rake_task'
+RSpec::Core::RakeTask.new(:spec)
+
+task :default => :spec
