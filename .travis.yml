@@ -1,11 +1,12 @@
+sudo: false
+language: ruby
+cache: bundler
+rvm:
+  - 1.9.2
+  - 1.9.3
 before_script:
   - git config --global user.email "bot@turbot.com"
   - git config --global user.name "Turbot Bot (Travis CI)"
-
-bundler_args: --without development
-
-language: ruby
-
 notifications:
   email: false
   webhooks:
@@ -13,9 +14,3 @@ notifications:
     on_failure: always
     urls:
       - http://dx-helper.turbotapp.com/travis
-
-rvm:
-  - 1.9.2
-  - 1.9.3
-
-script: bundle exec rspec -bfs spec
