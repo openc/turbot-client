@@ -34,8 +34,6 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency("launchy", ">= 0.3.2")
   gem.add_runtime_dependency("rubyzip", ">= 1.0.0")
   gem.add_runtime_dependency("activesupport", "4.1.4")
-  # activesupport dependency. 0.7.0 requires Ruby version >= 1.9.3.
-  gem.add_runtime_dependency("i18n", "~> 0.6.11")
   gem.add_runtime_dependency("turbot-api", "0.0.14")
   gem.add_runtime_dependency("turbot-runner", "0.2.3")
   gem.add_runtime_dependency("excon")
