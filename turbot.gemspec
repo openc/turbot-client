@@ -34,6 +34,8 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency("launchy", ">= 0.3.2")
   gem.add_runtime_dependency("rubyzip", ">= 1.0.0")
   gem.add_runtime_dependency("activesupport", "4.1.4")
+  # activesupport dependency. 0.7.0 requires Ruby version >= 1.9.3.
+  gem.add_runtime_dependency("i18n", "~> 0.6.11")
   gem.add_runtime_dependency("turbot-api", "0.0.14")
   gem.add_runtime_dependency("turbot-runner", "0.2.3")
   gem.add_runtime_dependency("excon")
@@ -45,5 +47,7 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency("rr", "~> 1.0.2")
   gem.add_development_dependency("rspec", "2.13.0")
   gem.add_development_dependency("sqlite3")
+  # coveralls dependency. 1.7.0 requires Ruby version >= 2.0.
+  gem.add_development_dependency("tins", "~> 1.6.0")
   gem.add_development_dependency("webmock")
 end
