@@ -2,6 +2,13 @@ $stdin = File.new("/dev/null")
 
 require "rubygems"
 
+require "simplecov"
+require "coveralls"
+SimpleCov.formatter = Coveralls::SimpleCov::Formatter
+SimpleCov.start do
+  add_filter "spec"
+end
+
 require "excon"
 Excon.defaults[:mock] = true
 
