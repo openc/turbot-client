@@ -38,6 +38,7 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency("turbot-runner", "0.2.3")
   gem.add_runtime_dependency("excon")
 
+  gem.add_development_dependency("coveralls")
   gem.add_development_dependency("fakefs")
   gem.add_development_dependency("json")
   gem.add_development_dependency("rake", ">= 0.8.7")
