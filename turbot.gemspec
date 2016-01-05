@@ -35,7 +35,7 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency("rubyzip", ">= 1.0.0")
   gem.add_runtime_dependency("activesupport", "4.1.4")
   gem.add_runtime_dependency("turbot-api", "0.0.14")
-  gem.add_runtime_dependency("turbot-runner", "0.2.3")
+  gem.add_runtime_dependency("turbot-runner", "0.2.7")
   gem.add_runtime_dependency("excon")
 
   gem.add_development_dependency("coveralls")
