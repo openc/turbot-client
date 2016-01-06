@@ -1,5 +1,6 @@
 # For Bundler.with_clean_env
-require 'bundler/setup'
+require 'bundler'
+Bundler::GemHelper.install_tasks
 
 require 'open-uri'
 
