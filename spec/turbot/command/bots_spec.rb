@@ -11,8 +11,8 @@ describe Turbot::Command::Bots do
       Dir.mktmpdir
     end
 
-    before do
-      config = {
+    let :valid_config do
+      {
         'bot_id' => 'dummy bot',
         'data_type' => 'dummy',
         'identifying_fields' => ['name'],
@@ -25,10 +25,13 @@ describe Turbot::Command::Bots do
           'terms_url' => 'http://opensource.org/licenses/MIT',
         },
       }
-      Turbot::Command::Bots.any_instance.stub(:parsed_manifest).and_return(config)
+    end
+
+    before do
+      Turbot::Command::Bots.any_instance.stub(:parsed_manifest).and_return(valid_config)
 
       # Create a manifest.json file for TurbotRunner to find.
-      File.open(File.join(working_directory, 'manifest.json'), 'w') { |f| f << JSON.dump(config) }
+      File.open(File.join(working_directory, 'manifest.json'), 'w') { |f| f << JSON.dump(valid_config) }
       Turbot::Command::Bots.any_instance.stub(:working_directory).and_return(working_directory)
 
       # Change the path to TurbotRunner's schemas.
@@ -109,6 +112,18 @@ puts JSON.dump(#{hash})
 
         stdout.should == ""
         stderr.should include 'Manifest is missing data_type'
+      end
+    end
+
+    context "for bot with manifest with nil identifying_fields" do
+      it "says bot is invalid" do
+        config = valid_config.merge('identifying_fields' => nil)
+        Turbot::Command::Bots.any_instance.stub(:parsed_manifest).and_return(config)
+
+        stderr, stdout = execute("bots:validate")
+
+        stdout.should == ""
+        stderr.should == ""
       end
     end
   end
