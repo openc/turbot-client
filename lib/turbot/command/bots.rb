@@ -56,7 +56,12 @@ class Turbot::Command::Bots < Turbot::Command::Base
   #
   def info
     validate_arguments!
-    bot_data = api.get_bot(bot)
+    response = api.show_bot(bot)
+    if response.is_a? Turbot::API::FailureResponse
+      error(response.message)
+    end
+
+    bot_data = response.data
     unless options[:shell]
       styled_header(bot_data["name"])
     end

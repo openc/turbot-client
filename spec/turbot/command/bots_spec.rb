@@ -2,6 +2,8 @@ require "spec_helper"
 require "turbot/command/bots"
 
 describe Turbot::Command::Bots do
+  include Turbot::Helpers
+
   describe "validate" do
     let :working_directory do
       Dir.mktmpdir
@@ -13,7 +15,7 @@ describe Turbot::Command::Bots do
 
     before do
       config = {
-        'bot_id' => 'dummy bot',
+        'bot_id' => 'dummy_bot',
         'data_type' => 'dummy',
         'identifying_fields' => ['name'],
         'files' => 'scraper.rb',
@@ -51,6 +53,23 @@ describe Turbot::Command::Bots do
 require 'json'
 puts JSON.dump(#{hash})
         EOL
+      end
+    end
+
+    describe "#info" do
+      it "should succeed" do
+        stub_api_request(:get, "/api/bots/example?api_key=apikey01").to_return({
+          :body => json_encode({
+            "data" => {
+              "bot_id" => "dummy_bot",
+              "created_at" => "2010-01-01T00:00:00.000Z",
+              "updated_at" => "2010-01-02T00:00:00.000Z",
+              "state" => "scheduled",
+            }
+          })
+        })
+
+        expect{ execute("bots:info") }.to_not raise_error
       end
     end
 
@@ -99,7 +118,7 @@ puts JSON.dump(#{hash})
     context "for bot with manifest missing some required fields" do
       it "says bot is invalid" do
         config = {
-          'bot_id' => 'dummy bot',
+          'bot_id' => 'dummy_bot',
           'identifying_fields' => ['name'],
           'files' => 'scraper.rb',
         }
