@@ -20,10 +20,6 @@ Once installed, you'll have access to the `turbot` command from your command she
     Enter your Turbot credentials.
     Email: adam@example.com
     Password:
-    Could not find an existing public key.
-    Would you like to generate one? [Yn]
-    Generating new SSH public key.
-    Uploading SSH public key /Users/adam/.ssh/id_rsa.pub
 
 Press enter at the prompt to upload your existing `SSH` key or create a new one, used for pushing code later on.
 
