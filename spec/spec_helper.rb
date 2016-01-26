@@ -42,12 +42,12 @@ end
 
 def prepare_command(klass)
   command = klass.new
-  command.stub!(:bot).and_return("example")
-  command.stub!(:ask).and_return("")
-  command.stub!(:display)
-  command.stub!(:hputs)
-  command.stub!(:hprint)
-  command.stub!(:turbot).and_return(mock('turbot client', :host => 'turbot.com'))
+  command.stub(:bot).and_return("example")
+  command.stub(:ask).and_return("")
+  command.stub(:display)
+  command.stub(:hputs)
+  command.stub(:hprint)
+  command.stub(:turbot).and_return(double('turbot client', :host => 'turbot.com'))
   command
 end
 
@@ -219,7 +219,7 @@ require "support/organizations_mock_helper"
 require "support/dummy_api"
 
 RSpec.configure do |config|
-  config.color_enabled = true
+  config.color = true
   config.include DisplayMessageMatcher
   config.order = 'rand'
   config.before { Turbot::Helpers.error_with_failure = false }

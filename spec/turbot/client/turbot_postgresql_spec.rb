@@ -14,7 +14,7 @@ describe Turbot::Client::TurbotPostgresql do
 
   describe 'api choosing' do
     it "sends an ingress request to the client for production plans" do
-      attachment.stub! :starter_plan? => false
+      attachment.stub :starter_plan? => false
       host = 'postgres-api.turbot.com'
       url  = "https://user@example.com:apitoken@#{host}/client/v11/databases/#{attachment.resource_name}/ingress"
 
@@ -29,7 +29,7 @@ describe Turbot::Client::TurbotPostgresql do
     end
 
     it "sends an ingress request to the client for production plans" do
-      attachment.stub! :starter_plan? => true
+      attachment.stub :starter_plan? => true
       host = 'postgres-starter-api.turbot.com'
       url  = "https://user@example.com:apitoken@#{host}/client/v11/databases/#{attachment.resource_name}/ingress"
 

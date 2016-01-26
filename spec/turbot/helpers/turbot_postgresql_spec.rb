@@ -6,7 +6,7 @@ include Turbot::Helpers::TurbotPostgresql
 describe Turbot::Helpers::TurbotPostgresql::Resolver do
 
   before do
-    @resolver = described_class.new('appname', mock(:api))
+    @resolver = described_class.new('appname', double(:api))
     @resolver.stub(:bot_config_vars) { bot_config_vars }
     @resolver.stub(:bot_attachments) { bot_attachments }
   end
@@ -54,11 +54,11 @@ describe Turbot::Helpers::TurbotPostgresql::Resolver do
 
   context "when no bot is specified or inferred, and identifier does not have bot::db shorthand" do
     it 'exits, complaining about the missing bot' do
-      api = mock('api')
+      api = double('api')
       api.stub(:get_attachments).and_raise("getting this far will cause an inaccurate 'internal server error' message")
 
       no_bot_resolver = described_class.new(nil, api)
-      no_bot_resolver.should_receive(:error).with { |msg| expect(msg).to match(/No bot specified/) }.and_raise(SystemExit)
+      no_bot_resolver.should_receive(:error){ |msg| expect(msg).to match(/No bot specified/) }.and_raise(SystemExit)
       expect { no_bot_resolver.resolve('black') }.to raise_error(SystemExit)
     end
   end

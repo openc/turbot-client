@@ -10,16 +10,16 @@ module Turbot
       ENV['TURBOT_API_KEY'] = nil
 
       @cli = Turbot::Auth
-      @cli.stub!(:check)
-      @cli.stub!(:display)
-      @cli.stub!(:running_on_a_mac?).and_return(false)
+      @cli.stub(:check)
+      @cli.stub(:display)
+      @cli.stub(:running_on_a_mac?).and_return(false)
       @cli.credentials = nil
 
       FakeFS.activate!
 
-      FakeFS::File.stub!(:stat).and_return(double('stat', :mode => "0600".to_i(8)))
-      FakeFS::FileUtils.stub!(:chmod)
-      FakeFS::File.stub!(:readlines) do |path|
+      FakeFS::File.stub(:stat).and_return(double('stat', :mode => "0600".to_i(8)))
+      FakeFS::FileUtils.stub(:chmod)
+      FakeFS::File.stub(:readlines) do |path|
         File.read(path).split("\n").map {|line| "#{line}\n"}
       end
 
@@ -61,8 +61,8 @@ module Turbot
 
       context "reauthenticating" do
         before do
-          @cli.stub!(:ask_for_credentials).and_return(['new_user', 'new_password'])
-          @cli.stub!(:check)
+          @cli.stub(:ask_for_credentials).and_return(['new_user', 'new_password'])
+          @cli.stub(:check)
           @cli.reauthorize
         end
         it "updates saved credentials" do
@@ -93,35 +93,35 @@ module Turbot
     end
 
     it "writes credentials and uploads authkey when credentials are saved" do
-      @cli.stub!(:credentials)
-      @cli.stub!(:check)
-      @cli.stub!(:ask_for_credentials).and_return("username", "apikey")
+      @cli.stub(:credentials)
+      @cli.stub(:check)
+      @cli.stub(:ask_for_credentials).and_return("username", "apikey")
       @cli.should_receive(:write_credentials)
       @cli.ask_for_and_save_credentials
     end
 
     it "save_credentials deletes the credentials when the upload authkey is unauthorized" do
-      @cli.stub!(:write_credentials)
-      @cli.stub!(:retry_login?).and_return(false)
-      @cli.stub!(:ask_for_credentials).and_return("username", "apikey")
-      @cli.stub!(:check) { raise RestClient::Unauthorized }
+      @cli.stub(:write_credentials)
+      @cli.stub(:retry_login?).and_return(false)
+      @cli.stub(:ask_for_credentials).and_return("username", "apikey")
+      @cli.stub(:check) { raise RestClient::Unauthorized }
       @cli.should_receive(:delete_credentials)
       lambda { @cli.ask_for_and_save_credentials }.should raise_error(SystemExit)
     end
 
     it "asks for login again when not authorized, for three times" do
-      @cli.stub!(:read_credentials)
-      @cli.stub!(:write_credentials)
-      @cli.stub!(:delete_credentials)
-      @cli.stub!(:ask_for_credentials).and_return("username", "apikey")
-      @cli.stub!(:check) { raise RestClient::Unauthorized }
+      @cli.stub(:read_credentials)
+      @cli.stub(:write_credentials)
+      @cli.stub(:delete_credentials)
+      @cli.stub(:ask_for_credentials).and_return("username", "apikey")
+      @cli.stub(:check) { raise RestClient::Unauthorized }
       @cli.should_receive(:ask_for_credentials).exactly(3).times
       lambda { @cli.ask_for_and_save_credentials }.should raise_error(SystemExit)
     end
 
     it "writes the login information to the credentials file for the 'turbot login' command" do
-      @cli.stub!(:ask_for_credentials).and_return(['one', 'two'])
-      @cli.stub!(:check)
+      @cli.stub(:ask_for_credentials).and_return(['one', 'two'])
+      @cli.stub(:check)
       @cli.reauthorize
       Netrc.read(@cli.netrc_path)["api.#{@cli.host}"].should == (['one', 'two'])
     end
