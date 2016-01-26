@@ -1,0 +1,114 @@
+{
+  "type": "object",
+  "properties": {
+    "bot_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9._-]+$"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "language": {
+      "type": "string",
+      "enum": [
+        "python",
+        "ruby"
+      ]
+    },
+    "data_type": {
+      "type": "string"
+    },
+    "identifying_fields": {
+      "$ref": "!#/definitions/string_array"
+    },
+    "files": {
+      "$ref": "!#/definitions/string_array"
+    },
+    "frequency": {
+      "type": "string",
+      "enum": [
+        "oneoff",
+        "daily",
+        "weekly",
+        "monthly",
+        "yearly"
+      ]
+    },
+    "publisher": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "terms": {
+          "type": "string"
+        },
+        "terms_url": {
+          "type": "string",
+          "format": "uri"
+        }
+      },
+      "additionalProperties": false
+    },
+    "tags": {
+      "$ref": "!#/definitions/string_array"
+    },
+    "incremental": {
+      "type": "boolean"
+    },
+    "manually_end_run": {
+      "type": "boolean"
+    },
+    "transformers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string"
+          },
+          "data_type": {
+            "type": "string"
+          },
+          "identifying_fields": {
+            "$ref": "!#/definitions/string_array"
+          }
+        },
+        "required": [
+          "file",
+          "data_type",
+          "identifying_fields"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "public_repo_url": {
+      "type": "string",
+      "format": "uri"
+    }
+  },
+  "required": [
+    "bot_id",
+    "data_type",
+    "identifying_fields",
+    "files",
+    "language",
+    "publisher"
+  ],
+  "additionalProperties": false,
+  "definitions": {
+    "string_array": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}
