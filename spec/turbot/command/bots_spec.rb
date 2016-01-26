@@ -58,6 +58,7 @@ puts JSON.dump(#{hash})
 
     describe "#info" do
       it "should succeed" do
+        Turbot::Auth.delete_credentials
         allow(Turbot::Auth).to receive(:read_credentials).and_return(['email@example.com', 'apikey01'])
         allow(Turbot::Auth).to receive(:api_key).and_return('apikey01')
 

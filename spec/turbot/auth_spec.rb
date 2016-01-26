@@ -13,7 +13,7 @@ module Turbot
       allow(@cli).to receive(:check)
       allow(@cli).to receive(:display)
       allow(@cli).to receive(:running_on_a_mac?).and_return(false)
-      @cli.credentials = nil
+      @cli.delete_credentials
 
       FakeFS.activate!
 
