@@ -64,7 +64,12 @@ class Turbot::Command::Auth < Turbot::Command::Base
   def token
     validate_arguments!
 
-    display Turbot::Auth.api_key
+    api_key = Turbot::Auth.api_key
+    if api_key
+      display api_key
+    else
+      error "not logged in"
+    end
   end
 
   # auth:whoami
@@ -79,7 +84,12 @@ class Turbot::Command::Auth < Turbot::Command::Base
   def whoami
     validate_arguments!
 
-    display Turbot::Auth.user
+    user = Turbot::Auth.user(false)
+    if user.empty?
+      error "not logged in"
+    else
+      display user
+    end
   end
 
 end
