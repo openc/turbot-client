@@ -42,12 +42,12 @@ end
 
 def prepare_command(klass)
   command = klass.new
-  command.stub!(:bot).and_return("example")
-  command.stub!(:ask).and_return("")
-  command.stub!(:display)
-  command.stub!(:hputs)
-  command.stub!(:hprint)
-  command.stub!(:turbot).and_return(mock('turbot client', :host => 'turbot.com'))
+  allow(command).to receive(:bot).and_return("example")
+  allow(command).to receive(:ask).and_return("")
+  allow(command).to receive(:display)
+  allow(command).to receive(:hputs)
+  allow(command).to receive(:hprint)
+  allow(command).to receive(:turbot).and_return(double('turbot client', :host => 'turbot.com'))
   command
 end
 
@@ -132,7 +132,7 @@ def stub_pg
   @stubbed_pg ||= begin
     stubbed_pg = nil
     any_instance_of(Turbot::Client::TurbotPostgresql) do |pg|
-      stubbed_pg = stub(pg)
+      stubbed_pg = double(pg)
     end
     stubbed_pg
   end
@@ -142,7 +142,7 @@ def stub_pgbackups
   @stubbed_pgbackups ||= begin
     stubbed_pgbackups = nil
     any_instance_of(Turbot::Client::Pgbackups) do |pgbackups|
-      stubbed_pgbackups = stub(pgbackups)
+      stubbed_pgbackups = double(pgbackups)
     end
     stubbed_pgbackups
   end
@@ -152,7 +152,7 @@ def stub_rendezvous
   @stubbed_rendezvous ||= begin
     stubbed_rendezvous = nil
     any_instance_of(Turbot::Client::Rendezvous) do |rendezvous|
-      stubbed_rendezvous = stub(rendezvous)
+      stubbed_rendezvous = double(rendezvous)
     end
     stubbed_rendezvous
   end
@@ -162,7 +162,7 @@ def stub_cisaurus
   @stub_cisaurus ||= begin
     stub_cisaurus = nil
     any_instance_of(Turbot::Client::Cisaurus) do |cisaurus|
-      stub_cisaurus = stub(cisaurus)
+      stub_cisaurus = double(cisaurus)
     end
     stub_cisaurus
   end
@@ -203,7 +203,7 @@ require "support/organizations_mock_helper"
 require "support/dummy_api"
 
 RSpec.configure do |config|
-  config.color_enabled = true
+  config.color = true
   config.include DisplayMessageMatcher
   config.order = 'rand'
   config.before { Turbot::Helpers.error_with_failure = false }

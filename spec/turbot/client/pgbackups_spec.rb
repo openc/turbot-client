@@ -14,16 +14,16 @@ describe Turbot::Client::Pgbackups do
     let(:version) { Turbot::Client.version }
 
     it 'still has a turbot gem version' do
-      version.should be
-      version.split(/\./).first.to_i.should >= 0
+      expect(version).to be
+      expect(version.split(/\./).first.to_i).to be >= 0
     end
 
     it 'includes the turbot gem version' do
       stub_request(:get, transfer_path)
       client.get_transfers
-      a_request(:get, transfer_path).with(
+      expect(a_request(:get, transfer_path).with(
         :headers => {'X-Turbot-Gem-Version' => version}
-      ).should have_been_made.once
+      )).to have_been_made.once
     end
   end
 
@@ -36,7 +36,7 @@ describe Turbot::Client::Pgbackups do
 
       client.create_transfer("postgres://from", "postgres://to", "FROMNAME", "TO_NAME")
 
-      a_request(:post, transfer_path).should have_been_made.once
+      expect(a_request(:post, transfer_path)).to have_been_made.once
     end
   end
 

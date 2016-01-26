@@ -27,11 +27,11 @@ describe Turbot::Command::Bots do
           'terms_url' => 'http://opensource.org/licenses/MIT',
         },
       }
-      Turbot::Command::Bots.any_instance.stub(:parsed_manifest).and_return(config)
+      allow_any_instance_of(Turbot::Command::Bots).to receive(:parsed_manifest).and_return(config)
 
       # Create a manifest.json file for TurbotRunner to find.
       File.open(File.join(working_directory, 'manifest.json'), 'w') { |f| f << JSON.dump(config) }
-      Turbot::Command::Bots.any_instance.stub(:working_directory).and_return(working_directory)
+      allow_any_instance_of(Turbot::Command::Bots).to receive(:working_directory).and_return(working_directory)
 
       # Change the path to TurbotRunner's schemas.
       begin
@@ -58,8 +58,9 @@ puts JSON.dump(#{hash})
 
     describe "#info" do
       it "should succeed" do
-        Turbot::Auth.stub(:read_credentials).and_return(['email@example.com', 'apikey01'])
-        Turbot::Auth.stub(:api_key).and_return('apikey01')
+        Turbot::Auth.delete_credentials
+        allow(Turbot::Auth).to receive(:read_credentials).and_return(['email@example.com', 'apikey01'])
+        allow(Turbot::Auth).to receive(:api_key).and_return('apikey01')
 
         stub_api_request(:get, "/api/bots/example?api_key=apikey01").to_return({
           :body => json_encode({
@@ -82,8 +83,8 @@ puts JSON.dump(#{hash})
 
         stderr, stdout = execute("bots:validate")
 
-        stdout.should include 'Validated 1 records!'
-        stderr.should == ""
+        expect(stdout).to include 'Validated 1 records!'
+        expect(stderr).to eq("")
       end
 
       it "says bot is invalid if its output doesn't match the schema" do
@@ -91,8 +92,8 @@ puts JSON.dump(#{hash})
 
         stderr, stdout = execute("bots:validate")
 
-        stdout.should include 'Property of wrong type'
-        stderr.should == ""
+        expect(stdout).to include 'Property of wrong type'
+        expect(stderr).to eq("")
       end
 
       context "for bot that doesn't output identifying fields" do
@@ -101,8 +102,8 @@ puts JSON.dump(#{hash})
 
           stderr, stdout = execute("bots:validate")
 
-          stdout.should include 'There were no values provided for any of the identifying fields'
-          stderr.should == ""
+          expect(stdout).to include 'There were no values provided for any of the identifying fields'
+          expect(stderr).to eq("")
         end
       end
     end
@@ -113,8 +114,8 @@ puts JSON.dump(#{hash})
 
         stderr, stdout = execute("bots:validate")
 
-        stdout.should include "Validated 0 records before bot failed!"
-        stderr.should == ""
+        expect(stdout).to include "Validated 0 records before bot failed!"
+        expect(stderr).to eq("")
       end
     end
 
@@ -125,12 +126,12 @@ puts JSON.dump(#{hash})
           'identifying_fields' => ['name'],
           'files' => 'scraper.rb',
         }
-        Turbot::Command::Bots.any_instance.stub(:parsed_manifest).and_return(config)
+        allow_any_instance_of(Turbot::Command::Bots).to receive(:parsed_manifest).and_return(config)
 
         stderr, stdout = execute("bots:validate")
 
-        stdout.should == ""
-        stderr.should include 'Manifest is missing data_type'
+        expect(stdout).to eq("")
+        expect(stderr).to include 'Manifest is missing data_type'
       end
     end
   end

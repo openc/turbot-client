@@ -43,7 +43,7 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency("json")
   gem.add_development_dependency("rake", ">= 0.8.7")
   gem.add_development_dependency("rr", "~> 1.0.2")
-  gem.add_development_dependency("rspec", "2.13.0")
+  gem.add_development_dependency("rspec", "~> 3.4.0")
   gem.add_development_dependency("sqlite3")
   # coveralls dependency. 1.7.0 requires Ruby version >= 2.0.
   gem.add_development_dependency("tins", "~> 1.6.0")

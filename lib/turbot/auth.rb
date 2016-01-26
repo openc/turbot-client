@@ -83,7 +83,7 @@ class Turbot::Auth
         elsif ask_for_credentials
           ask_for_and_save_credentials
         else
-          ['', '']
+          []
         end
       end
     end
