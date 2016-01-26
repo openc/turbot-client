@@ -52,28 +52,40 @@ class Turbot::Auth
     end
 
     def reauthorize
-      @credentials = ask_for_and_save_credentials
+      self.credentials = ask_for_and_save_credentials
     end
 
-    def user    # :nodoc:
-      get_credentials[0]
+    def user(ask_for_credentials = true)    # :nodoc:
+      get_credentials(ask_for_credentials)[0]
     end
 
-    def password    # :nodoc:
-      get_credentials[1]
+    def password(ask_for_credentials = true)    # :nodoc:
+      get_credentials(ask_for_credentials)[1]
     end
 
-    def api_key
-      api.get_api_key
+    def api_key(ask_for_credentials = true)
+      api.get_api_key(ask_for_credentials)
     end
 
     def api_key_for_credentials(user = get_credentials[0], password = get_credentials[1])
-      api = Turbot::API.new(default_params)
-      api.get_api_key_for_credentials(user, password)["api_key"]
+      user, password = get_credentials(ask_for_credentials)
+      unless user.empty? && password.empty?
+        api = Turbot::API.new(default_params)
+        api.get_api_key_for_credentials(user, password)["api_key"]
+      end
     end
 
-    def get_credentials    # :nodoc:
-      @credentials ||= (read_credentials || ask_for_and_save_credentials)
+    def get_credentials(ask_for_credentials = true)    # :nodoc:
+      self.credentials ||= begin
+        value = read_credentials
+        if value
+          value
+        elsif ask_for_credentials
+          ask_for_and_save_credentials
+        else
+          ['', '']
+        end
+      end
     end
 
     def delete_credentials
@@ -82,7 +94,9 @@ class Turbot::Auth
         netrc.delete("code.#{host}")
         netrc.save
       end
-      @api, @client, @credentials = nil, nil
+      @api = nil
+      @client = nil
+      self.credentials = nil
     end
 
     def netrc_path
@@ -111,20 +125,16 @@ class Turbot::Auth
     def read_credentials
       if ENV['TURBOT_API_KEY']
         ['', ENV['TURBOT_API_KEY']]
-      else
-
+      elsif netrc
         # read netrc credentials if they exist
-        if netrc
-          # force migration of long api tokens (80 chars) to short ones (40)
-          # #write_credentials rewrites both api.* and code.*
-          credentials = netrc["api.#{host}"]
-          if credentials && credentials[1].length > 40
-            @credentials = [ credentials[0], credentials[1][0,40] ]
-            write_credentials
-          end
-
-          netrc["api.#{host}"]
+        # force migration of long api tokens (80 chars) to short ones (40)
+        # #write_credentials rewrites both api.* and code.*
+        value = netrc["api.#{host}"]
+        if value && value[1].length > 40
+          self.credentials = [ value[0], value[1][0,40] ]
+          write_credentials
         end
+        netrc["api.#{host}"]
       end
     end
 
@@ -134,8 +144,8 @@ class Turbot::Auth
       unless running_on_windows?
         FileUtils.chmod(0600, netrc_path)
       end
-      netrc["api.#{host}"] = self.credentials
-      netrc["code.#{host}"] = self.credentials
+      netrc["api.#{host}"] = credentials
+      netrc["code.#{host}"] = credentials
       netrc.save
     end
 
@@ -193,7 +203,7 @@ class Turbot::Auth
       begin
         # ask for username and password, look up API key against API given these
         # In looking up the API key it also attempts to log the user in
-        @credentials = ask_for_credentials
+        self.credentials = ask_for_credentials
         # write these to a hidden file
         write_credentials
         check
@@ -206,7 +216,7 @@ class Turbot::Auth
         delete_credentials
         raise e
       end
-      @credentials
+      credentials
     end
 
     def retry_login?

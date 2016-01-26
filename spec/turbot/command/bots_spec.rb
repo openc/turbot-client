@@ -58,6 +58,9 @@ puts JSON.dump(#{hash})
 
     describe "#info" do
       it "should succeed" do
+        Turbot::Auth.stub(:read_credentials).and_return(['email@example.com', 'apikey01'])
+        Turbot::Auth.stub(:api_key).and_return('apikey01')
+
         stub_api_request(:get, "/api/bots/example?api_key=apikey01").to_return({
           :body => json_encode({
             "data" => {

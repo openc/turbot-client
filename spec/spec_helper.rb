@@ -64,9 +64,6 @@ def execute(command_line)
     stub(base).bot.returns("example")
   end
 
-  stub(Turbot::Auth).get_credentials.returns(['email@example.com', 'apikey01'])
-  stub(Turbot::Auth).api_key.returns('apikey01')
-
   original_stdin, original_stderr, original_stdout = $stdin, $stderr, $stdout
 
   $stdin  = captured_stdin  = StringIO.new
@@ -129,19 +126,6 @@ end
 
 def fail_command(message)
   raise_error(Turbot::Command::CommandFailed, message)
-end
-
-def stub_core
-  @stubbed_core ||= begin
-    stubbed_core = nil
-    any_instance_of(Turbot::Client) do |core|
-      stubbed_core = stub(core)
-    end
-    stub(Turbot::Auth).user.returns("email@example.com")
-    stub(Turbot::Auth).password.returns("pass")
-    stub(Turbot::Client).auth.returns("apikey01")
-    stubbed_core
-  end
 end
 
 def stub_pg
