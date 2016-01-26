@@ -19,7 +19,6 @@ end
 describe Turbot::Command do
   before {
     Turbot::Command.load
-    stub_core # setup fake auth
   }
 
   describe "parsing errors" do
