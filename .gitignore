@@ -12,3 +12,4 @@
 /.gems
 /.ruby-version
 Gemfile.lock
+/.netrc
