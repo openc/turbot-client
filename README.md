@@ -1,5 +1,4 @@
-Turbot CLI
-==========
+# Turbot CLI
 
 [![Gem Version](https://badge.fury.io/rb/turbot.svg)](https://badge.fury.io/rb/turbot)
 [![Build Status](https://secure.travis-ci.org/openc/turbot-client.png)](https://travis-ci.org/openc/turbot-client)
@@ -9,8 +8,7 @@ Turbot CLI
 
 The Turbot CLI is used to manage Turbot apps from the command line.
 
-Setup
------
+## Setup
 
 (Platform-specific installers to follow)
 
@@ -23,8 +21,7 @@ Once installed, you'll have access to the `turbot` command from your command she
 
 Press enter at the prompt to upload your existing `SSH` key or create a new one, used for pushing code later on.
 
-Development
------------
+## Development
 
 If you're working on the CLI and you can smoke-test your changes:
 
@@ -34,9 +31,4 @@ If you need to do this from a different folder, try:
 
     alias tb="RBENV_GEMSETS=.gems TURBOT_HOST=http://localhost:3000 RBENV_VERSION=[version] BUNDLE_GEMFILE=/path/to/turbot-client/Gemfile bundle exec turbot"
 
-Meta
-----
-
-Released under the MIT license; see the file License.
-
-Based on the Heroku client created by [Adam Wiggins and others](https://github.com/turbot/turbot/contributors)
+Copyright (c) 2015 Chrinon Ltd, released under the MIT license
