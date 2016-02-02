@@ -1,30 +1,19 @@
-$:.unshift File.expand_path("../lib", __FILE__)
-require "turbot/version"
+require File.expand_path('../lib/turbot/version', __FILE__)
 
 Gem::Specification.new do |gem|
   gem.name    = "turbot"
   gem.version = Turbot::VERSION
 
-  gem.author      = "Turbot"
-  gem.email       = "support@turbot.opencorporates.com"
-  gem.homepage    = "https://turbot.opencorporates.com/"
-  gem.summary     = "Client library and CLI to deploy apps on Turbot."
-  gem.description = "Client library and command-line tool to deploy and manage apps on Turbot."
-  gem.executables = "turbot"
+  gem.author      = "OpenCorporates"
+  gem.email       = "bots@opencorporates.com"
+  gem.homepage    = "https://github.com/openc/turbot-client"
+  gem.summary     = "Client library and CLI to deploy and manage bots on Turbot"
   gem.license     = "MIT"
 
-  # use git to list files in main repo
-  gem_files = %x{ git ls-files }.split("\n").select do |d|
-    d =~ %r{^(License|README|bin/|data/|ext/|lib/|spec/|test/|templates/|schema/)}
-  end
-  # now add files from the schema submodule; if we add more submodules
-  # later, change this not to be hard coded
-  submodule_files = %x{git submodule foreach --recursive git ls-files}.split("\n").select do |d|
-    d =~ %r{^(schemas/)}
-  end.map{|x| "schema/#{x}"}
-  gem_files.concat(submodule_files)
-
-  gem.files = gem_files
+  gem.files         = `git ls-files`.split("\n")
+  gem.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
+  gem.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
+  gem.require_paths = ["lib"]
 
   gem.required_ruby_version = '>=1.9.2'
 
