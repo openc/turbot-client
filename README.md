@@ -19,16 +19,6 @@ You now have access to the `turbot` command.  Log in using your Turbot account's
     Email: email@example.com
     Password (typing will be hidden):
 
-## Development
-
-If you're working on the CLI and you can smoke-test your changes:
-
-    bundle exec turbot
-
-If you need to do this from a different folder, try:
-
-    alias tb="ReleasingBENV_GEMSETS=.gems TURBOT_HOST=http://localhost:3000 RBENV_VERSION=[version] BUNDLE_GEMFILE=/path/to/turbot-client/Gemfile bundle exec turbot"
-
 ## Releasing a new version
 
 Bump the version in `lib/turbot/version.rb` according to the [Semantic Versioning](http://semver.org/) convention, then:
