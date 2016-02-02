@@ -6,29 +6,36 @@
 [![Coverage Status](https://coveralls.io/repos/openc/turbot-client/badge.png)](https://coveralls.io/r/openc/turbot-client)
 [![Code Climate](https://codeclimate.com/github/openc/turbot-client.png)](https://codeclimate.com/github/openc/turbot-client)
 
-The Turbot CLI is used to manage Turbot apps from the command line.
+The Turbot CLI is used to manage Turbot bots from the command line.
 
-## Setup
+## Getting Started
 
-(Platform-specific installers to follow)
+    gem install turbot
 
-Once installed, you'll have access to the `turbot` command from your command shell.  Log in using the email address and password you used when creating your Turbot account:
+You now have access to the `turbot` command.  Log in using your Turbot account's email and password:
 
     $ turbot login
     Enter your Turbot credentials.
-    Email: adam@example.com
-    Password:
-
-Press enter at the prompt to upload your existing `SSH` key or create a new one, used for pushing code later on.
+    Email: email@example.com
+    Password (typing will be hidden):
 
 ## Development
 
 If you're working on the CLI and you can smoke-test your changes:
 
-    $ bundle exec turbot
+    bundle exec turbot
 
 If you need to do this from a different folder, try:
 
-    alias tb="RBENV_GEMSETS=.gems TURBOT_HOST=http://localhost:3000 RBENV_VERSION=[version] BUNDLE_GEMFILE=/path/to/turbot-client/Gemfile bundle exec turbot"
+    alias tb="ReleasingBENV_GEMSETS=.gems TURBOT_HOST=http://localhost:3000 RBENV_VERSION=[version] BUNDLE_GEMFILE=/path/to/turbot-client/Gemfile bundle exec turbot"
+
+## Releasing a new version
+
+Bump the version in `lib/turbot/version.rb` according to the [Semantic Versioning](http://semver.org/) convention, then:
+
+    git commit lib/turbot/version.rb -m 'Release new version'
+    rake release # requires Rubygems credentials
+
+Based on the [Heroku CLI](https://github.com/heroku/heroku).
 
 Copyright (c) 2015 Chrinon Ltd, released under the MIT license
