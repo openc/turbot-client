@@ -175,12 +175,6 @@ module Turbot
       unless Turbot::Auth.host == Turbot::Auth.default_host
         formatted_error << "    Host:        #{Turbot::Auth.host}"
       end
-      if http_proxy = ENV['http_proxy'] || ENV['HTTP_PROXY']
-        formatted_error << "    HTTP Proxy:  #{http_proxy}"
-      end
-      if https_proxy = ENV['https_proxy'] || ENV['HTTPS_PROXY']
-        formatted_error << "    HTTPS Proxy: #{https_proxy}"
-      end
       formatted_error << "    Version:     #{Turbot.user_agent}"
       formatted_error << "\n"
       formatted_error.join("\n")

@@ -10,5 +10,4 @@ $:.unshift File.expand_path("../../lib", bin_file)
 
 # start up the CLI
 require "turbot/cli"
-Turbot.user_agent = "turbot-gem/#{Turbot::VERSION} (#{RUBY_PLATFORM}) ruby/#{RUBY_VERSION}"
 Turbot::CLI.start(*ARGV)
