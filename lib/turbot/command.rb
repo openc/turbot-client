@@ -1,7 +1,9 @@
+require 'optparse'
+
+require 'excon'
+
 require 'turbot/helpers'
 require 'turbot/version'
-require "optparse"
-require 'excon'
 
 module Turbot
   module Command

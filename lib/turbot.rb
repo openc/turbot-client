@@ -1,6 +1,7 @@
-require "turbot/version"
-require "turbot_api"
-require "turbot/errors"
+require 'turbot_api'
+
+require 'turbot/errors'
+require 'turbot/version'
 
 module Turbot
   USER_AGENT = "turbot-gem/#{Turbot::VERSION} (#{RUBY_PLATFORM}) ruby/#{RUBY_VERSION}"

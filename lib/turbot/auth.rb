@@ -1,8 +1,9 @@
-require "cgi"
-require "turbot"
-require "turbot/helpers"
+require 'cgi'
 
-require "netrc"
+require 'netrc'
+
+require 'turbot'
+require 'turbot/helpers'
 
 class Turbot::Auth
   class << self

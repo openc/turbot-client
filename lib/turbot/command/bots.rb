@@ -1,11 +1,13 @@
-require "turbot/command/base"
-require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/hash/slice'
-require 'zip'
-require 'open3'
 require 'base64'
+require 'open3'
 require 'shellwords'
+
+require 'active_support/core_ext/hash/slice'
+require 'active_support/core_ext/object/blank'
 require 'turbot_runner'
+require 'zip'
+
+require 'turbot/command/base'
 
 # manage bots (generate skeleton, validate data, submit code)
 #
