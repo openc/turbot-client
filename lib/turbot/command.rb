@@ -110,15 +110,7 @@ module Turbot
     global_option :bot, "-b", "--bot APP" do |bot|
       raise OptionParser::InvalidOption.new(bot) if bot == "pp"
     end
-
-    global_option :org, "-o", "--org ORG" do |org|
-      raise OptionParser::InvalidOption.new(org) if org == "rg"
-    end
-    global_option :personal, "-p", "--personal"
-
-    global_option :confirm, "--confirm APP"
     global_option :help,    "-h", "--help"
-    global_option :remote,  "-r", "--remote REMOTE"
 
     def self.prepare_run(cmd, args=[])
       command = parse(cmd)
@@ -255,7 +247,7 @@ module Turbot
     end
 
     def self.parse_error_json(body)
-      json = json_decode(body.to_s) rescue false
+      json = JSON.load(body.to_s) rescue false
       case json
       when Array
         json.first.join(' ') # message like [['base', 'message']]

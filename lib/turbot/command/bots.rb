@@ -131,10 +131,10 @@ class Turbot::Command::Bots < Turbot::Command::Base
     # Same for all languages
     FileUtils.cp(license_template, "#{bot}/LICENSE.txt")
     open("#{bot}/manifest.json", "w") do |f|
-      f.write(JSON.pretty_generate(JSON.parse(manifest)))
+      f.write(JSON.pretty_generate(JSON.load(manifest)))
     end
 
-    response = api.create_bot(bot, JSON.parse(manifest))
+    response = api.create_bot(bot, JSON.load(manifest))
     if response.is_a? Turbot::API::SuccessResponse
       puts "Created new bot template at #{bot}!"
     else
@@ -318,14 +318,10 @@ class Turbot::Command::Bots < Turbot::Command::Base
   end
 
   private
-  def spinner(p)
-    parts = "\|/-" * 2
-    print parts[p % parts.length] + "\r"
-  end
 
   def parsed_manifest(dir)
     begin
-      JSON.parse(open(manifest_path).read)
+      JSON.load(open(manifest_path).read)
     rescue Errno::ENOENT
       raise "This command must be run from a directory including `manifest.json`"
     end

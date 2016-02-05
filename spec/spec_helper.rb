@@ -42,7 +42,6 @@ def prepare_command(klass)
   allow(command).to receive(:ask).and_return("")
   allow(command).to receive(:display)
   allow(command).to receive(:hputs)
-  allow(command).to receive(:hprint)
   allow(command).to receive(:turbot).and_return(double('turbot client', :host => 'turbot.com'))
   command
 end
@@ -139,21 +138,10 @@ ensure
   Dir.chdir(old_dir)
 end
 
-require "turbot/helpers"
-module Turbot::Helpers
-  @home_directory = Dir.mktmpdir
-  undef_method :home_directory
-  def home_directory
-    @home_directory
-  end
-end
-
-require "support/display_message_matcher"
 require "support/dummy_api"
 
 RSpec.configure do |config|
   config.color = true
-  config.include DisplayMessageMatcher
   config.order = 'rand'
   config.before { Turbot::Helpers.error_with_failure = false }
   config.after { RR.reset }

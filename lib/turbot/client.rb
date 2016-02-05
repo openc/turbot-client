@@ -111,12 +111,6 @@ class Turbot::Client
     escaped.gsub('.', '%2E') # not covered by the previous URI.escape
   end
 
-  module JSON
-    def self.parse(json)
-      json_decode(json)
-    end
-  end
-
   private
 
   def realize_full_uri(given)

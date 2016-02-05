@@ -32,11 +32,6 @@ class Turbot::Command::Help < Turbot::Command::Base
   #
   #  create a new bot
   #
-  #      --addons ADDONS        # a comma-delimited list of addons to install
-  #  -b, --buildpack BUILDPACK  # a buildpack url to use for this bot
-  #  -r, --remote REMOTE        # the git remote to create, default "turbot"
-  #  -s, --stack STACK          # the stack on which to create the bot
-  #
   def index
     if command = args.shift
       help_for_command(command)
