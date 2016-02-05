@@ -1,5 +1,4 @@
-require "spec_helper"
-require "turbot/command/base"
+require 'spec_helper'
 
 module Turbot::Command
   describe Base do

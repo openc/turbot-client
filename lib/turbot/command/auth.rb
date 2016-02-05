@@ -1,5 +1,3 @@
-require "turbot/command/base"
-
 # authentication (login, logout)
 #
 class Turbot::Command::Auth < Turbot::Command::Base
@@ -64,7 +62,7 @@ class Turbot::Command::Auth < Turbot::Command::Base
   def token
     validate_arguments!
 
-    api_key = Turbot::Auth.api_key(false)
+    api_key = Turbot::Auth.api_key
     if api_key
       display api_key
     else
@@ -91,5 +89,4 @@ class Turbot::Command::Auth < Turbot::Command::Base
       error "not logged in"
     end
   end
-
 end

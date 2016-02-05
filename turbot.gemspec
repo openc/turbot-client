@@ -17,18 +17,13 @@ Gem::Specification.new do |gem|
 
   gem.required_ruby_version = '>=1.9.2'
 
-  gem.add_runtime_dependency("turbotlib", "~> 0.0.9")
   gem.add_runtime_dependency("netrc", "~> 0.7.7")
-  gem.add_runtime_dependency("rest-client", "~> 1.6.1")
   gem.add_runtime_dependency("rubyzip", ">= 1.0.0")
-  gem.add_runtime_dependency("activesupport", "4.1.4")
   gem.add_runtime_dependency("turbot-api", "0.0.14")
   gem.add_runtime_dependency("turbot-runner", "~> 0.2.7")
-  gem.add_runtime_dependency("excon")
-
+  
   gem.add_development_dependency("coveralls")
   gem.add_development_dependency("fakefs")
-  gem.add_development_dependency("json")
   gem.add_development_dependency("rake", ">= 0.8.7")
   gem.add_development_dependency("rr", "~> 1.0.2")
   gem.add_development_dependency("rspec", "~> 3.4.0")

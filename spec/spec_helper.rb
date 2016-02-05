@@ -9,26 +9,20 @@ SimpleCov.start do
   add_filter "spec"
 end
 
-require "excon"
-Excon.defaults[:mock] = true
-
-# ensure these are around for errors
-# as their require is generally deferred
-#require "turbot-api"
-require "rest_client"
-
-require "turbot/cli"
-require "rspec"
-require "rr"
-require "fakefs/safe"
 require 'tmpdir'
-require "webmock/rspec"
+
+require 'fakefs/safe'
+require 'rr'
+require 'rspec'
+require 'webmock/rspec'
+
+require 'turbot'
 
 include WebMock::API
 
-WebMock::HttpLibAdapters::ExconAdapter.disable!
-
 def api
+  require 'turbot_api'
+
   Turbot::API.new(:api_key => "pass", :mock => true)
 end
 

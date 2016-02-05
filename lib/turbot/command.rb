@@ -1,8 +1,3 @@
-require 'turbot/helpers'
-require 'turbot/version'
-require "optparse"
-require 'excon'
-
 module Turbot
   module Command
     class CommandFailed  < RuntimeError; end
@@ -195,7 +190,7 @@ module Turbot
         require 'rest_client'
         raise(error)
       end
-    rescue Turbot::API::Errors::Unauthorized, RestClient::Unauthorized
+    rescue RestClient::Unauthorized
       puts "Authentication failure"
       if ENV['TURBOT_API_KEY']
         exit 1
@@ -203,10 +198,6 @@ module Turbot
         run "login"
         retry
       end
-    rescue Turbot::API::Errors::NotFound => e
-      error extract_error(e.response.body) {
-        e.response.body =~ /^([\w\s]+ not found).?$/ ? $1 : "Resource not found"
-      }
     rescue RestClient::ResourceNotFound => e
       error extract_error(e.http_body) {
         e.http_body =~ /^([\w\s]+ not found).?$/ ? $1 : "Resource not found"
@@ -214,17 +205,15 @@ module Turbot
     rescue RestClient::PaymentRequired => e
       # We've repurposed a 402 as a general error
       error extract_error(e.http_body)
-    rescue Turbot::API::Errors::Timeout, RestClient::RequestTimeout
+    rescue RestClient::RequestTimeout
       error "API request timed out. Please try again, or contact support@turbot.com if this issue persists."
-    rescue Turbot::API::Errors::ErrorWithResponse => e
-      error extract_error(e.response.body)
     rescue RestClient::RequestFailed => e
       error extract_error(e.http_body)
     rescue CommandFailed => e
       error e.message
     rescue OptionParser::ParseError
       commands[cmd] ? run("help", [cmd]) : run("help")
-    rescue Excon::Errors::SocketError, SocketError => e
+    rescue SocketError => e
       error("Unable to connect to Turbot API, please check internet connectivity and try again.")
     ensure
       display_warnings

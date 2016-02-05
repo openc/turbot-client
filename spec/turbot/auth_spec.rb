@@ -1,6 +1,4 @@
-require "spec_helper"
-require "turbot/auth"
-require "turbot/helpers"
+require 'spec_helper'
 
 module Turbot
   describe Auth do
@@ -71,17 +69,6 @@ module Turbot
         it "returns environment variable credentials" do
           expect(@cli.read_credentials).to eq(['', ENV['TURBOT_API_KEY']])
         end
-      end
-
-    end
-
-    describe "#base_host" do
-      it "returns the host without the first part" do
-        expect(@cli.base_host("http://foo.bar.com")).to eq("bar.com")
-      end
-
-      it "works with localhost" do
-        expect(@cli.base_host("http://localhost:3000")).to eq("localhost")
       end
     end
 

@@ -1,9 +1,3 @@
-require "cgi"
-require "turbot"
-require "turbot/helpers"
-
-require "netrc"
-
 class Turbot::Auth
   class << self
     include Turbot::Helpers
@@ -11,9 +5,7 @@ class Turbot::Auth
     attr_accessor :credentials
 
     def api
-      @api ||= begin
-        Turbot::API.new(default_params.merge(:api_key => password))
-      end
+      @api ||= turbot_api.new(default_params.merge(:api_key => password))
     end
 
     def login
@@ -38,41 +30,27 @@ class Turbot::Auth
       ENV['TURBOT_HOST'] || default_host
     end
 
-    def reauthorize
-      self.credentials = ask_for_and_save_credentials
+    # Returns the users's name.
+    #
+    # @param [Boolean] force_login whether to login if not logged in
+    # @return [String] the user's name
+    def user(force_login = true)
+      get_credentials(force_login)[0]
     end
 
-    def user(ask_for_credentials = true)    # :nodoc:
-      get_credentials(ask_for_credentials)[0]
+    # Returns the user's password.
+    #
+    # @param [Boolean] force_login whether to login if not logged in
+    # @return [String] the user's password
+    def password(force_login = true)
+      get_credentials(force_login)[1]
     end
 
-    def password(ask_for_credentials = true)    # :nodoc:
-      get_credentials(ask_for_credentials)[1]
-    end
-
-    def api_key(ask_for_credentials = true)
-      api.get_api_key(ask_for_credentials)
-    end
-
-    def api_key_for_credentials(user = get_credentials[0], password = get_credentials[1])
-      user, password = get_credentials(ask_for_credentials)
-      unless user.empty? && password.empty?
-        api = Turbot::API.new(default_params)
-        api.get_api_key_for_credentials(user, password)["api_key"]
-      end
-    end
-
-    def get_credentials(ask_for_credentials = true)    # :nodoc:
-      self.credentials ||= begin
-        value = read_credentials
-        if value
-          value
-        elsif ask_for_credentials
-          ask_for_and_save_credentials
-        else
-          []
-        end
-      end
+    # Returns the user's API key.
+    #
+    # @return [String] the user's API key
+    def api_key
+      api.get_api_key
     end
 
     def delete_credentials
@@ -95,7 +73,7 @@ class Turbot::Auth
       end
     end
 
-    def netrc   # :nodoc:
+    def netrc
       @netrc ||= begin
         File.exists?(netrc_path) && Netrc.read(netrc_path)
       rescue => error
@@ -117,7 +95,7 @@ class Turbot::Auth
         # #write_credentials rewrites both api.* and code.*
         value = netrc["api.#{host}"]
         if value && value[1].length > 40
-          self.credentials = [ value[0], value[1][0,40] ]
+          self.credentials = [value[0], value[1][0, 40]]
           write_credentials
         end
         netrc["api.#{host}"]
@@ -135,16 +113,44 @@ class Turbot::Auth
       netrc.save
     end
 
-    def echo_off
-      with_tty do
-        system "stty -echo"
+    # Gets the user's name and password.
+    #
+    # Tries to read the user's credentials from `.netrc`, then asks for
+    # and saves the user's credentials if that's an option.
+    #
+    # @param [Boolean] force_login whether to login if not logged in
+    # @return [Array<String>] the user's name and password, or an empty array
+    def get_credentials(force_login = true)
+      self.credentials ||= begin
+        value = read_credentials
+        if value
+          value
+        elsif force_login
+          ask_for_and_save_credentials
+        else
+          []
+        end
       end
     end
 
-    def echo_on
-      with_tty do
-        system "stty echo"
+    def ask_for_and_save_credentials
+      begin
+        # ask for username and password, look up API key against API given these
+        # In looking up the API key it also attempts to log the user in
+        self.credentials = ask_for_credentials
+        # write these to a hidden file
+        write_credentials
+        check
+      rescue RestClient::Unauthorized => e
+        delete_credentials
+        display "Authentication failed."
+        retry if retry_login?
+        exit 1
+      rescue Exception => e
+        delete_credentials
+        raise e
       end
+      credentials
     end
 
     def ask_for_credentials
@@ -156,7 +162,8 @@ class Turbot::Auth
       print "Password (typing will be hidden): "
       password = running_on_windows? ? ask_for_password_on_windows : ask_for_password
 
-      [user, api_key_for_credentials(user, password)]
+      api = turbot_api.new(default_params)
+      [user, api.get_api_key_for_credentials(user, password)['api_key']]
     end
 
     def ask_for_password_on_windows
@@ -178,31 +185,19 @@ class Turbot::Auth
     end
 
     def ask_for_password
-      echo_off
-      password = ask
-      puts
-      echo_on
-      return password
-    end
-
-    def ask_for_and_save_credentials
-      begin
-        # ask for username and password, look up API key against API given these
-        # In looking up the API key it also attempts to log the user in
-        self.credentials = ask_for_credentials
-        # write these to a hidden file
-        write_credentials
-        check
-      rescue RestClient::Unauthorized, Turbot::API::Errors::NotFound, Turbot::API::Errors::Unauthorized => e
-        delete_credentials
-        display "Authentication failed."
-        retry if retry_login?
-        exit 1
-      rescue Exception => e
-        delete_credentials
-        raise e
+      with_tty do
+        system 'stty -echo'
       end
-      credentials
+
+      password = ask
+
+      puts
+
+      with_tty do
+        system 'stty echo'
+      end
+
+      password
     end
 
     def retry_login?
@@ -211,27 +206,29 @@ class Turbot::Auth
       @login_attempts < 3
     end
 
-    def base_host(host)
-      parts = URI.parse(full_host(host)).host.split(".")
-      return parts.first if parts.size == 1
-      parts[-2..-1].join(".")
+    # Used in tests only.
+    def reauthorize # :nodoc:
+      self.credentials = ask_for_and_save_credentials
     end
 
-    def full_host(host)
-      (host =~ /^http/) ? host : "https://api.#{host}"
-    end
+    private
 
-    protected
+    def turbot_api
+      @turbot_api ||= begin
+        require 'turbot_api'
+        Turbot::API
+      end
+    end
 
     def default_params
-      uri = URI.parse(full_host(host))
+      uri = URI.parse(host =~ /^http/ ? host : "https://api.#{host}")
       {
-        :headers          => {
-          'User-Agent'    => Turbot.user_agent
+        :headers => {
+          'User-Agent' => Turbot.user_agent
         },
-        :host             => uri.host,
-        :port             => uri.port,
-        :scheme           => uri.scheme,
+        :host => uri.host,
+        :port => uri.port,
+        :scheme => uri.scheme,
       }
     end
   end

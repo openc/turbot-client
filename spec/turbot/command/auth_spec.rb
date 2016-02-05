@@ -1,5 +1,5 @@
-require "spec_helper"
-require "turbot/command/auth"
+require 'spec_helper'
+require 'turbot/command/auth'
 
 describe Turbot::Command::Auth do
   describe "auth" do

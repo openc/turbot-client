@@ -1,5 +1,5 @@
-require "spec_helper"
-require "turbot/command/bots"
+require 'spec_helper'
+require 'turbot/command/bots'
 
 describe Turbot::Command::Bots do
   include Turbot::Helpers
@@ -36,6 +36,7 @@ describe Turbot::Command::Bots do
       # Change the path to TurbotRunner's schemas.
       begin
         old_verbose, $VERBOSE = $VERBOSE, nil
+        require 'turbot_runner'
         TurbotRunner::SCHEMAS_PATH = File.expand_path('../../../schemas', __FILE__)
       ensure
         $VERBOSE = old_verbose

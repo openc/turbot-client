@@ -1,5 +1,3 @@
-require "json"
-
 module Turbot
   module Helpers
 

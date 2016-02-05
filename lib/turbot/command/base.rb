@@ -1,7 +1,3 @@
-require "fileutils"
-require "turbot/auth"
-require "turbot/command"
-
 class Turbot::Command::Base
   include Turbot::Helpers
 
@@ -164,11 +160,5 @@ protected
       config && config["bot_id"]
     rescue Errno::ENOENT
     end
-  end
-end
-
-module Turbot::Command
-  unless const_defined?(:BaseWithApp)
-    BaseWithApp = Base
   end
 end

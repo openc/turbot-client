@@ -1,9 +1,3 @@
-load('turbot/helpers.rb') # reload helpers after possible inject_loadpath
-
-require "turbot"
-require "turbot/command"
-require "turbot/helpers"
-
 class Turbot::CLI
   extend Turbot::Helpers
 
