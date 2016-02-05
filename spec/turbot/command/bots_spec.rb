@@ -1,5 +1,5 @@
-require "spec_helper"
-require "turbot/command/bots"
+require 'spec_helper'
+require 'turbot/command/bots'
 
 describe Turbot::Command::Bots do
   include Turbot::Helpers

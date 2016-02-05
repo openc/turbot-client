@@ -1,5 +1,5 @@
-require "spec_helper"
-require "turbot/command/version"
+require 'spec_helper'
+require 'turbot/command/version'
 
 module Turbot::Command
   describe Version do

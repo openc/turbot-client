@@ -1,5 +1,20 @@
-require 'turbot_api'
+require 'base64'
+require 'cgi'
+require 'fileutils'
+require 'open3'
+require 'optparse'
+require 'shellwords'
 
+require 'netrc'
+require 'turbot_api'
+require 'turbot_runner'
+require 'zip'
+
+require 'turbot/helpers'
+require 'turbot/auth'
+require 'turbot/cli'
+require 'turbot/command'
+require 'turbot/command/base'
 require 'turbot/version'
 
 module Turbot

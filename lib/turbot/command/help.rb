@@ -1,5 +1,3 @@
-require "turbot/command/base"
-
 # list commands and display help
 #
 class Turbot::Command::Help < Turbot::Command::Base

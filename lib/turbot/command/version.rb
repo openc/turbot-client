@@ -1,6 +1,3 @@
-require "turbot/command/base"
-require "turbot/version"
-
 # display version
 #
 class Turbot::Command::Version < Turbot::Command::Base

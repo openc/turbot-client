@@ -1,5 +1,3 @@
-require "turbot/command/base"
-
 # authentication (login, logout)
 #
 class Turbot::Command::Auth < Turbot::Command::Base

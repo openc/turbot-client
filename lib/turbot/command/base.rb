@@ -1,8 +1,3 @@
-require "fileutils"
-
-require "turbot/auth"
-require "turbot/command"
-
 class Turbot::Command::Base
   include Turbot::Helpers
 

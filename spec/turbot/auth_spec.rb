@@ -1,6 +1,4 @@
-require "spec_helper"
-require "turbot/auth"
-require "turbot/helpers"
+require 'spec_helper'
 
 module Turbot
   describe Auth do

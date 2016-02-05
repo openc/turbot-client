@@ -1,10 +1,3 @@
-require 'optparse'
-
-require 'excon'
-
-require 'turbot/helpers'
-require 'turbot/version'
-
 module Turbot
   module Command
     class CommandFailed  < RuntimeError; end
@@ -226,7 +219,7 @@ module Turbot
       error e.message
     rescue OptionParser::ParseError
       commands[cmd] ? run("help", [cmd]) : run("help")
-    rescue Excon::Errors::SocketError, SocketError => e
+    rescue SocketError => e
       error("Unable to connect to Turbot API, please check internet connectivity and try again.")
     ensure
       display_warnings

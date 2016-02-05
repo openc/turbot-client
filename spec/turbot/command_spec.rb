@@ -1,6 +1,4 @@
-require "spec_helper"
-require "turbot/command"
-require 'json' #FOR WEBMOCK
+require 'spec_helper'
 
 class FakeResponse
 

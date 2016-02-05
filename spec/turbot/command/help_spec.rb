@@ -1,6 +1,5 @@
-require "spec_helper"
-require "turbot/command/bots"
-require "turbot/command/help"
+require 'spec_helper'
+require 'turbot/command/help'
 
 describe Turbot::Command::Help do
 
