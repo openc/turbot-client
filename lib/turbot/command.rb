@@ -1,5 +1,4 @@
 require 'turbot/helpers'
-require 'turbot/plugin'
 require 'turbot/version'
 require "optparse"
 require 'excon'
@@ -14,7 +13,6 @@ module Turbot
       Dir[File.join(File.dirname(__FILE__), "command", "*.rb")].each do |file|
         require file
       end
-      Turbot::Plugin.load!
       unregister_commands_made_private_after_the_fact
     end
 
@@ -178,23 +176,6 @@ module Turbot
       @current_options = opts
       @invalid_arguments = invalid_options
 
-      @anonymous_command = [ARGV.first, *@anonymized_args].join(' ')
-      begin
-        usage_directory = "#{home_directory}/.turbot/usage"
-        FileUtils.mkdir_p(usage_directory)
-        usage_file = usage_directory << "/#{Turbot::VERSION}"
-        usage = if File.exists?(usage_file)
-          json_decode(File.read(usage_file))
-        else
-          {}
-        end
-        usage[@anonymous_command] ||= 0
-        usage[@anonymous_command] += 1
-        File.write(usage_file, json_encode(usage) + "\n")
-      rescue
-        # usage writing is not important, allow failures
-      end
-
       if command
         command_instance = command[:klass].new(args.dup, opts.dup)
 
@@ -238,18 +219,6 @@ module Turbot
       error extract_error(e.http_body) {
         e.http_body =~ /^([\w\s]+ not found).?$/ ? $1 : "Resource not found"
       }
-    rescue Turbot::API::Errors::Locked => e
-      bot = e.response.headers[:x_confirmation_required]
-      if confirm_command(bot, extract_error(e.response.body))
-        arguments << '--confirm' << bot
-        retry
-      end
-    rescue RestClient::Locked => e
-      bot = e.response.headers[:x_confirmation_required]
-      if confirm_command(bot, extract_error(e.http_body))
-        arguments << '--confirm' << bot
-        retry
-      end
     rescue RestClient::PaymentRequired => e
       # We've repurposed a 402 as a general error
       error extract_error(e.http_body)

@@ -1,6 +1,5 @@
 require "fileutils"
 require "turbot/auth"
-require "turbot/client/rendezvous"
 require "turbot/command"
 
 class Turbot::Command::Base
@@ -80,11 +79,6 @@ protected
   def self.alias_command(new, old)
     raise "no such command: #{old}" unless Turbot::Command.commands[old]
     Turbot::Command.command_aliases[new] = old
-  end
-
-  def extract_bot
-    output_with_bang "Command::Base#extract_bot has been deprecated. Please use Command::Base#bot instead.  #{caller.first}"
-    bot
   end
 
   #

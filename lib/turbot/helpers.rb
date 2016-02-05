@@ -30,34 +30,9 @@ module Turbot
       display("\r\e[0K#{line}", line_break)
     end
 
-    def deprecate(message)
-      display "WARNING: #{message}"
-    end
-
     def confirm(message="Are you sure you wish to continue? (y/n)")
       display("#{message} ", false)
       ['y', 'yes'].include?(ask.downcase)
-    end
-
-    def confirm_command(bot_to_confirm = bot, message=nil)
-      if confirmed_bot = Turbot::Command.current_options[:confirm]
-        unless confirmed_bot == bot_to_confirm
-          raise(Turbot::Command::CommandFailed, "Confirmed bot #{confirmed_bot} did not match the selected bot #{bot_to_confirm}.")
-        end
-        return true
-      else
-        display
-        message ||= "WARNING: Destructive Action\nThis command will affect the bot: #{bot_to_confirm}"
-        message << "\nTo proceed, type \"#{bot_to_confirm}\" or re-run this command with --confirm #{bot_to_confirm}"
-        output_with_bang(message)
-        display
-        display "> ", false
-        if ask.downcase != bot_to_confirm
-          error("Confirmation did not match #{bot_to_confirm}. Aborted.")
-        else
-          true
-        end
-      end
     end
 
     def format_date(date)
@@ -392,17 +367,6 @@ module Turbot
       end
       if https_proxy = ENV['https_proxy'] || ENV['HTTPS_PROXY']
         formatted_error << "    HTTPS Proxy: #{https_proxy}"
-      end
-      plugins = Turbot::Plugin.list.sort
-      unless plugins.empty?
-        formatted_error << "    Plugins:     #{plugins.first}"
-        plugins[1..-1].each do |plugin|
-          formatted_error << "                 #{plugin}"
-        end
-        if plugins.length > 1
-          formatted_error << ''
-          $stderr.puts
-        end
       end
       formatted_error << "    Version:     #{Turbot.user_agent}"
       formatted_error << "\n"

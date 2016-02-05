@@ -32,10 +32,6 @@ def api
   Turbot::API.new(:api_key => "pass", :mock => true)
 end
 
-def org_api
-  Turbot::Client::Organizations.api(:mock => true)
-end
-
 def stub_api_request(method, path)
   stub_request(method, "http://turbot.opencorporates.com#{path}")
 end
@@ -128,46 +124,6 @@ def fail_command(message)
   raise_error(Turbot::Command::CommandFailed, message)
 end
 
-def stub_pg
-  @stubbed_pg ||= begin
-    stubbed_pg = nil
-    any_instance_of(Turbot::Client::TurbotPostgresql) do |pg|
-      stubbed_pg = double(pg)
-    end
-    stubbed_pg
-  end
-end
-
-def stub_pgbackups
-  @stubbed_pgbackups ||= begin
-    stubbed_pgbackups = nil
-    any_instance_of(Turbot::Client::Pgbackups) do |pgbackups|
-      stubbed_pgbackups = double(pgbackups)
-    end
-    stubbed_pgbackups
-  end
-end
-
-def stub_rendezvous
-  @stubbed_rendezvous ||= begin
-    stubbed_rendezvous = nil
-    any_instance_of(Turbot::Client::Rendezvous) do |rendezvous|
-      stubbed_rendezvous = double(rendezvous)
-    end
-    stubbed_rendezvous
-  end
-end
-
-def stub_cisaurus
-  @stub_cisaurus ||= begin
-    stub_cisaurus = nil
-    any_instance_of(Turbot::Client::Cisaurus) do |cisaurus|
-      stub_cisaurus = double(cisaurus)
-    end
-    stub_cisaurus
-  end
-end
-
 def with_blank_git_repository(&block)
   sandbox = File.join(Dir.tmpdir, "turbot", Process.pid.to_s)
   FileUtils.mkdir_p(sandbox)
@@ -183,12 +139,6 @@ ensure
   Dir.chdir(old_dir)
 end
 
-module SandboxHelper
-  def bash(cmd)
-    `#{cmd}`
-  end
-end
-
 require "turbot/helpers"
 module Turbot::Helpers
   @home_directory = Dir.mktmpdir
@@ -199,7 +149,6 @@ module Turbot::Helpers
 end
 
 require "support/display_message_matcher"
-require "support/organizations_mock_helper"
 require "support/dummy_api"
 
 RSpec.configure do |config|
