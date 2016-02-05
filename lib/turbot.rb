@@ -1,6 +1,5 @@
 require 'turbot_api'
 
-require 'turbot/errors'
 require 'turbot/version'
 
 module Turbot
