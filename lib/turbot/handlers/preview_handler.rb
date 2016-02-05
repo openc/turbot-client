@@ -6,11 +6,11 @@ module Turbot
       def initialize(bot_name, api)
         @bot_name = bot_name
         @api = api
-        @batch = []
         @count = 0
-        super()
+        @batch = []
       end
 
+      # Implements `TurbotRunner::BaseHandler#handle_valid_record`.
       def handle_valid_record(record, data_type)
         @count += 1
         STDOUT.write('.')
