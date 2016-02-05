@@ -72,28 +72,14 @@ module Turbot
 
     def self.validate_arguments!
       unless invalid_arguments.empty?
-        arguments = invalid_arguments.map {|arg| "\"#{arg}\""}
+        arguments = invalid_arguments.map(&:inspect)
         if arguments.length == 1
           message = "Invalid argument: #{arguments.first}"
-        elsif arguments.length > 1
-          message = "Invalid arguments: "
-          message << arguments[0...-1].join(", ")
-          message << " and "
-          message << arguments[-1]
+        else
+          message = "Invalid arguments: #{arguments[0...-1].join(', ')} and #{arguments[-1]}"
         end
-        $stderr.puts(format_with_bang(message))
-        run(current_command, ["--help"])
-        exit(1)
-      end
-    end
-
-    def self.warnings
-      @warnings ||= []
-    end
-
-    def self.display_warnings
-      unless warnings.empty?
-        $stderr.puts(warnings.map {|warning| " !    #{warning}"}.join("\n"))
+        run(current_command, ['--help'])
+        error(message)
       end
     end
 
@@ -215,8 +201,6 @@ module Turbot
       commands[cmd] ? run("help", [cmd]) : run("help")
     rescue SocketError => e
       error("Unable to connect to Turbot API, please check internet connectivity and try again.")
-    ensure
-      display_warnings
     end
 
     def self.parse(cmd)
