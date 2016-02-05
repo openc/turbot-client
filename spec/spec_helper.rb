@@ -12,7 +12,6 @@ end
 require 'tmpdir'
 
 require 'fakefs/safe'
-require 'rr'
 require 'rspec'
 require 'webmock/rspec'
 
@@ -41,17 +40,13 @@ def prepare_command(klass)
 end
 
 def execute(command_line)
-  extend RR::Adapters::RRMethods
-
   args = command_line.split(" ")
   command = args.shift
 
   Turbot::Command.load
   object, method = Turbot::Command.prepare_run(command, args)
 
-  any_instance_of(Turbot::Command::Base) do |base|
-    stub(base).bot.returns("example")
-  end
+  allow_any_instance_of(Turbot::Command::Base).to receive(:bot).and_return('example')
 
   original_stdin, original_stderr, original_stdout = $stdin, $stderr, $stdout
 
@@ -73,11 +68,6 @@ def execute(command_line)
   end
 
   [captured_stderr.string, captured_stdout.string]
-end
-
-def any_instance_of(klass, &block)
-  extend RR::Adapters::RRMethods
-  any_instance_of(klass, &block)
 end
 
 def run(command_line)
@@ -132,11 +122,4 @@ ensure
   Dir.chdir(old_dir)
 end
 
-require "support/dummy_api"
-
-RSpec.configure do |config|
-  config.color = true
-  config.order = 'rand'
-  config.before { Turbot::Helpers.error_with_failure = false }
-  config.after { RR.reset }
-end
+require 'support/dummy_api'
