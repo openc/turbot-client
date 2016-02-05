@@ -77,20 +77,8 @@ module Turbot
     end
 
     def error(message)
-      if Turbot::Helpers.error_with_failure
-        display("failed")
-        Turbot::Helpers.error_with_failure = false
-      end
       $stderr.puts(format_with_bang(message))
       exit(1)
-    end
-
-    def self.error_with_failure
-      @@error_with_failure ||= false
-    end
-
-    def self.error_with_failure=(new_error_with_failure)
-      @@error_with_failure = new_error_with_failure
     end
 
     def self.included_into
@@ -179,10 +167,6 @@ module Turbot
     end
 
     def styled_error(error, message='Turbot client internal error.')
-      if Turbot::Helpers.error_with_failure
-        display("failed")
-        Turbot::Helpers.error_with_failure = false
-      end
       $stderr.puts(format_error(error, message))
     end
 
