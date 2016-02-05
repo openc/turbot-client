@@ -1,3 +1,5 @@
+require 'turbot_runner'
+
 # manage bots (generate skeleton, validate data, submit code)
 #
 class Turbot::Command::Bots < Turbot::Command::Base

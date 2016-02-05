@@ -6,8 +6,6 @@ require 'optparse'
 require 'shellwords'
 
 require 'netrc'
-require 'turbot_api'
-require 'turbot_runner'
 require 'zip'
 
 require 'turbot/helpers'

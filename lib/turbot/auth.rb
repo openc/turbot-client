@@ -1,3 +1,5 @@
+require 'turbot_api'
+
 class Turbot::Auth
   class << self
     include Turbot::Helpers
@@ -36,27 +38,42 @@ class Turbot::Auth
       self.credentials = ask_for_and_save_credentials
     end
 
-    def user(ask_for_credentials = true)    # :nodoc:
+    # Returns the users's name.
+    #
+    # @param [Boolean] ask_for_credentials whether to login if not logged in
+    # @return [String] the user's name
+    def user(ask_for_credentials = true)
       get_credentials(ask_for_credentials)[0]
     end
 
-    def password(ask_for_credentials = true)    # :nodoc:
+    # Returns the user's password.
+    #
+    # @param [Boolean] ask_for_credentials whether to login if not logged in
+    # @return [String] the user's password
+    def password(ask_for_credentials = true)
       get_credentials(ask_for_credentials)[1]
     end
 
-    def api_key(ask_for_credentials = true)
-      api.get_api_key(ask_for_credentials)
+    # Returns the user's API key.
+    #
+    # @return [String] the user's API key
+    def api_key
+      api.get_api_key
     end
 
     def api_key_for_credentials(user = get_credentials[0], password = get_credentials[1])
-      user, password = get_credentials(ask_for_credentials)
-      unless user.empty? && password.empty?
-        api = Turbot::API.new(default_params)
-        api.get_api_key_for_credentials(user, password)["api_key"]
-      end
+      api = Turbot::API.new(default_params)
+      api.get_api_key_for_credentials(user, password)["api_key"]
     end
 
-    def get_credentials(ask_for_credentials = true)    # :nodoc:
+    # Gets the user's name and password.
+    #
+    # Tries to read the user's credentials from `.netrc`, then asks for
+    # and saves the user's credentials if that's an option.
+    #
+    # @param [Boolean] ask_for_credentials whether to login if not logged in
+    # @return [Array<String>] the user's name and password, or an empty array
+    def get_credentials(ask_for_credentials = true)
       self.credentials ||= begin
         value = read_credentials
         if value
@@ -111,7 +128,7 @@ class Turbot::Auth
         # #write_credentials rewrites both api.* and code.*
         value = netrc["api.#{host}"]
         if value && value[1].length > 40
-          self.credentials = [ value[0], value[1][0,40] ]
+          self.credentials = [value[0], value[1][0, 40]]
           write_credentials
         end
         netrc["api.#{host}"]
@@ -187,7 +204,7 @@ class Turbot::Auth
         # write these to a hidden file
         write_credentials
         check
-      rescue RestClient::Unauthorized, Turbot::API::Errors::NotFound, Turbot::API::Errors::Unauthorized => e
+      rescue RestClient::Unauthorized => e
         delete_credentials
         display "Authentication failed."
         retry if retry_login?
