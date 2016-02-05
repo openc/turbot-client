@@ -1,13 +1,9 @@
-require "vendor/turbot/okjson"
+require "json"
 
 module Turbot
   module Helpers
 
     extend self
-
-    def home_directory
-      running_on_windows? ? ENV['USERPROFILE'].gsub("\\","/") : ENV['HOME']
-    end
 
     def running_on_windows?
       RUBY_PLATFORM =~ /mswin32|mingw32/
@@ -26,40 +22,6 @@ module Turbot
       $stdout.flush
     end
 
-    def redisplay(line, line_break = false)
-      display("\r\e[0K#{line}", line_break)
-    end
-
-    def deprecate(message)
-      display "WARNING: #{message}"
-    end
-
-    def confirm(message="Are you sure you wish to continue? (y/n)")
-      display("#{message} ", false)
-      ['y', 'yes'].include?(ask.downcase)
-    end
-
-    def confirm_command(bot_to_confirm = bot, message=nil)
-      if confirmed_bot = Turbot::Command.current_options[:confirm]
-        unless confirmed_bot == bot_to_confirm
-          raise(Turbot::Command::CommandFailed, "Confirmed bot #{confirmed_bot} did not match the selected bot #{bot_to_confirm}.")
-        end
-        return true
-      else
-        display
-        message ||= "WARNING: Destructive Action\nThis command will affect the bot: #{bot_to_confirm}"
-        message << "\nTo proceed, type \"#{bot_to_confirm}\" or re-run this command with --confirm #{bot_to_confirm}"
-        output_with_bang(message)
-        display
-        display "> ", false
-        if ask.downcase != bot_to_confirm
-          error("Confirmation did not match #{bot_to_confirm}. Aborted.")
-        else
-          true
-        end
-      end
-    end
-
     def format_date(date)
       date = Time.parse(date).utc if date.is_a?(String)
       date.strftime("%Y-%m-%d %H:%M %Z").gsub('GMT', 'UTC')
@@ -67,26 +29,6 @@ module Turbot
 
     def ask
       $stdin.gets.to_s.strip
-    end
-
-    def shell(cmd)
-      FileUtils.cd(Dir.pwd) {|d| return `#{cmd}`}
-    end
-
-    def run_command(command, args=[])
-      Turbot::Command.run(command, args)
-    end
-
-    def retry_on_exception(*exceptions)
-      retry_count = 0
-      begin
-        yield
-      rescue *exceptions => ex
-        raise ex if retry_count >= 3
-        sleep 3
-        retry_count += 1
-        retry
-      end
     end
 
     def has_git?
@@ -98,32 +40,6 @@ module Turbot
       return "" unless has_git?
       flattened_args = [args].flatten.compact.join(" ")
       %x{ git #{flattened_args} 2>&1 }.strip
-    end
-
-    def time_ago(since)
-      if since.is_a?(String)
-        since = Time.parse(since)
-      end
-
-      elapsed = Time.now - since
-
-      message = since.strftime("%Y/%m/%d %H:%M:%S")
-      if elapsed <= 60
-        message << " (~ #{elapsed.floor}s ago)"
-      elsif elapsed <= (60 * 60)
-        message << " (~ #{(elapsed / 60).floor}m ago)"
-      elsif elapsed <= (60 * 60 * 25)
-        message << " (~ #{(elapsed / 60 / 60).floor}h ago)"
-      end
-      message
-    end
-
-    def truncate(text, length)
-      if text.size > length
-        text[0, length - 2] + '..'
-      else
-        text
-      end
     end
 
     @@kb = 1024
@@ -138,65 +54,8 @@ module Turbot
       return "#{(amount / @@gb).round}G"
     end
 
-    def quantify(string, num)
-      "%d %s" % [ num, num.to_i == 1 ? string : "#{string}s" ]
-    end
-
-    def create_git_remote(remote, url)
-      return if git('remote').split("\n").include?(remote)
-      return unless File.exists?(".git")
-      git "remote add #{remote} #{url}"
-      display "Git remote #{remote} added"
-    end
-
     def longest(items)
       items.map { |i| i.to_s.length }.sort.last
-    end
-
-    def display_table(objects, columns, headers)
-      lengths = []
-      columns.each_with_index do |column, index|
-        header = headers[index]
-        lengths << longest([header].concat(objects.map { |o| o[column].to_s }))
-      end
-      lines = lengths.map {|length| "-" * length}
-      lengths[-1] = 0 # remove padding from last column
-      display_row headers, lengths
-      display_row lines, lengths
-      objects.each do |row|
-        display_row columns.map { |column| row[column] }, lengths
-      end
-    end
-
-    def display_row(row, lengths)
-      row_data = []
-      row.zip(lengths).each do |column, length|
-        format = column.is_a?(Fixnum) ? "%#{length}s" : "%-#{length}s"
-        row_data << format % column
-      end
-      display(row_data.join("  "))
-    end
-
-    def json_encode(object)
-      Turbot::OkJson.encode(object)
-    rescue Turbot::OkJson::Error
-      nil
-    end
-
-    def json_decode(json)
-      Turbot::OkJson.decode(json)
-    rescue Turbot::OkJson::Error
-      nil
-    end
-
-    def set_buffer(enable)
-      with_tty do
-        if enable
-          `stty icanon echo`
-        else
-          `stty -icanon -echo`
-        end
-      end
     end
 
     def with_tty(&block)
@@ -208,45 +67,15 @@ module Turbot
       end
     end
 
-    def get_terminal_environment
-      { "TERM" => ENV["TERM"], "COLUMNS" => `tput cols`.strip, "LINES" => `tput lines`.strip }
-    rescue
-      { "TERM" => ENV["TERM"] }
-    end
-
     def fail(message)
       raise Turbot::Command::CommandFailed, message
     end
 
     ## DISPLAY HELPERS
 
-    def action(message, options={})
-      message = "#{message} in organzation #{org}" if options[:org]
-      display("#{message}... ", false)
-      Turbot::Helpers.error_with_failure = true
-      ret = yield
-      Turbot::Helpers.error_with_failure = false
-      display((options[:success] || "done"), false)
-      if @status
-        display(", #{@status}", false)
-        @status = nil
-      end
-      display
-      ret
-    end
-
-    def status(message)
-      @status = message
-    end
-
     def format_with_bang(message)
       return '' if message.to_s.strip == ""
       " !    " + message.split("\n").join("\n !    ")
-    end
-
-    def output_with_bang(message="", new_line=true)
-      return if message.to_s.strip == ""
-      display(format_with_bang(message), new_line)
     end
 
     def error(message)
@@ -287,49 +116,8 @@ module Turbot
       display("=== " + message.to_s.split("\n").join("\n=== "), new_line)
     end
 
-    def display_object(object)
-      case object
-      when Array
-        # list of objects
-        object.each do |item|
-          display_object(item)
-        end
-      when Hash
-        # if all values are arrays, it is a list with headers
-        # otherwise it is a single header with pairs of data
-        if object.values.all? {|value| value.is_a?(Array)}
-          object.keys.sort_by {|key| key.to_s}.each do |key|
-            display_header(key)
-            display_object(object[key])
-            hputs
-          end
-        end
-      else
-        hputs(object.to_s)
-      end
-    end
-
     def hputs(string='')
       Kernel.puts(string)
-    end
-
-    def hprint(string='')
-      Kernel.print(string)
-      $stdout.flush
-    end
-
-    def spinner(ticks)
-      %w(/ - \\ |)[ticks % 4]
-    end
-
-    def launchy(message, url)
-      action(message) do
-        require("launchy")
-        launchy = Launchy.open(url)
-        if launchy.respond_to?(:join)
-          launchy.join
-        end
-      end
     end
 
     # produces a printf formatter line for an array of items
@@ -392,17 +180,6 @@ module Turbot
       end
       if https_proxy = ENV['https_proxy'] || ENV['HTTPS_PROXY']
         formatted_error << "    HTTPS Proxy: #{https_proxy}"
-      end
-      plugins = Turbot::Plugin.list.sort
-      unless plugins.empty?
-        formatted_error << "    Plugins:     #{plugins.first}"
-        plugins[1..-1].each do |plugin|
-          formatted_error << "                 #{plugin}"
-        end
-        if plugins.length > 1
-          formatted_error << ''
-          $stderr.puts
-        end
       end
       formatted_error << "    Version:     #{Turbot.user_agent}"
       formatted_error << "\n"
@@ -500,22 +277,5 @@ module Turbot
         nil
       end
     end
-
-    def org_host
-      ENV["TURBOT_ORG_HOST"] || default_org_host
-    end
-
-    def default_org_host
-      "turbotmanager.com"
-    end
-
-    def org? email
-      email =~ /^.*@#{org_host}$/
-    end
-
-    def bot_owner email
-      org?(email) ? email.gsub(/^(.*)@#{org_host}$/,'\1') : email
-    end
-
   end
 end

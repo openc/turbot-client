@@ -1,5 +1,4 @@
 load('turbot/helpers.rb') # reload helpers after possible inject_loadpath
-load('turbot/updater.rb') # reload updater after possible inject_loadpath
 
 require "turbot"
 require "turbot/command"

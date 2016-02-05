@@ -63,7 +63,7 @@ puts JSON.dump(#{hash})
         allow(Turbot::Auth).to receive(:api_key).and_return('apikey01')
 
         stub_api_request(:get, "/api/bots/example?api_key=apikey01").to_return({
-          :body => json_encode({
+          :body => JSON.dump({
             "data" => {
               "bot_id" => "dummy_bot",
               "created_at" => "2010-01-01T00:00:00.000Z",

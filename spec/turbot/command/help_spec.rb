@@ -63,28 +63,5 @@ STDERR
       expect(stderr).to eq("")
       expect(stdout).to include "Usage: turbot COMMAND"
     end
-
-    describe "with legacy help" do
-      require "helper/legacy_help"
-
-      it "displays the legacy group in the namespace list" do
-        stderr, stdout = execute("help")
-        expect(stderr).to eq("")
-        expect(stdout).to include "Foo Group"
-      end
-
-      it "displays group help" do
-        stderr, stdout = execute("help foo")
-        expect(stderr).to eq("")
-        expect(stdout).to include "do a bar to foo"
-        expect(stdout).to include "do a baz to foo"
-      end
-
-      it "displays legacy command-specific help" do
-        stderr, stdout = execute("help foo:bar")
-        expect(stderr).to eq("")
-        expect(stdout).to include "do a bar to foo"
-      end
-    end
   end
 end

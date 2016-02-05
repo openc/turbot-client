@@ -1,13 +1,10 @@
 require "turbot/command/base"
-require "turbot/deprecated/help"
 
 # list commands and display help
 #
 class Turbot::Command::Help < Turbot::Command::Base
 
   PRIMARY_NAMESPACES = %w( auth bots ps run addons config releases domains logs sharing )
-
-  include Turbot::Deprecated::Help
 
   # help [COMMAND]
   #
@@ -34,11 +31,6 @@ class Turbot::Command::Help < Turbot::Command::Base
   # Usage: turbot bots:create [NAME]
   #
   #  create a new bot
-  #
-  #      --addons ADDONS        # a comma-delimited list of addons to install
-  #  -b, --buildpack BUILDPACK  # a buildpack url to use for this bot
-  #  -r, --remote REMOTE        # the git remote to create, default "turbot"
-  #  -s, --stack STACK          # the stack on which to create the bot
   #
   def index
     if command = args.shift
@@ -69,24 +61,6 @@ private
     Turbot::Command.commands
   end
 
-  def legacy_help_for_namespace(namespace)
-    instance = Turbot::Command::Help.groups.map do |group|
-      [ group.title, group.select { |c| c.first =~ /^#{namespace}/ }.length ]
-    end.sort_by { |l| l.last }.last
-    return nil unless instance
-    return nil if instance.last.zero?
-    instance.first
-  end
-
-  def legacy_help_for_command(command)
-    Turbot::Command::Help.groups.each do |group|
-      group.each do |cmd, description|
-        return description if cmd.split(" ").first == command
-      end
-    end
-    nil
-  end
-
   def skip_namespace?(ns)
     return true if ns[:description] =~ /DEPRECATED:/
     return true if ns[:description] =~ /HIDDEN:/
@@ -112,7 +86,6 @@ private
     namespaces.sort_by {|namespace| namespace[:name]}.each do |namespace|
       next if skip_namespace?(namespace)
       name = namespace[:name]
-      namespace[:description] ||= legacy_help_for_namespace(name)
       puts "  %-#{size}s  # %s" % [ name, namespace[:description] ]
     end
   end
@@ -137,7 +110,6 @@ private
       size = longest(namespace_commands.map { |c| c[:banner] })
       namespace_commands.sort_by { |c| c[:banner].to_s }.each do |command|
         next if skip_command?(command)
-        command[:summary] ||= legacy_help_for_command(command[:command])
         puts "  %-#{size}s  # %s" % [ command[:banner], command[:summary] ]
       end
     end
@@ -151,15 +123,10 @@ private
     if command = commands[name]
       puts "Usage: turbot #{command[:banner]}"
 
-      if command[:help].strip.length > 0
-        help = command[:help].split("\n").reject do |line|
-          line =~ /HIDDEN/
-        end
-        puts help[1..-1].join("\n")
-      else
-        puts
-        puts " " + legacy_help_for_command(name).to_s
+      help = command[:help].split("\n").reject do |line|
+        line =~ /HIDDEN/
       end
+      puts help[1..-1].join("\n")
       puts
     end
 

@@ -1,5 +1,4 @@
 require "turbot/client"
-require "turbot/updater"
 require "turbot/version"
 require "turbot_api"
 require "turbot/errors"

@@ -108,7 +108,7 @@ module Turbot
     end
 
     def read_db(name, default={})
-      JSON.parse(open("/tmp/#{name}", "r").read) rescue {}
+      JSON.load(open("/tmp/#{name}", "r").read) rescue {}
     end
 
     def append_db(name, data)
