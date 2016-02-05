@@ -21,6 +21,8 @@ require 'turbot'
 include WebMock::API
 
 def api
+  require 'turbot_api'
+
   Turbot::API.new(:api_key => "pass", :mock => true)
 end
 

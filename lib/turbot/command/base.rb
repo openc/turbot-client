@@ -162,9 +162,3 @@ protected
     end
   end
 end
-
-module Turbot::Command
-  unless const_defined?(:BaseWithApp)
-    BaseWithApp = Base
-  end
-end

@@ -1,8 +1,15 @@
-require 'turbot_runner'
-
 # manage bots (generate skeleton, validate data, submit code)
 #
 class Turbot::Command::Bots < Turbot::Command::Base
+  def initialize(*args)
+    super
+
+    require 'turbot_runner'
+    require 'turbot/handlers/base_handler'
+    require 'turbot/handlers/dump_handler'
+    require 'turbot/handlers/preview_handler'
+    require 'turbot/handlers/validation_handler'
+  end
 
   # bots
   #
@@ -205,7 +212,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
 
     type = config["data_type"]
 
-    handler = ValidationHandler.new
+    handler = Turbot::Handlers::ValidationHandler.new
     runner = TurbotRunner::Runner.new(working_directory, :record_handler => handler)
     rc = runner.run
 
@@ -228,7 +235,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
   def dump
     validate_arguments!
 
-    handler = DumpHandler.new
+    handler = Turbot::Handlers::DumpHandler.new
     runner = TurbotRunner::Runner.new(working_directory, :record_handler => handler)
     rc = runner.run
 
@@ -286,7 +293,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
 
     puts "Sending to turbot... "
 
-    handler = PreviewHandler.new(bot, api)
+    handler = Turbot::Handlers::PreviewHandler.new(bot, api)
     runner = TurbotRunner::Runner.new(working_directory, :record_handler => handler)
     rc = runner.run
 
@@ -348,83 +355,5 @@ class Turbot::Command::Bots < Turbot::Command::Base
         end
       end
     end
-  end
-end
-
-class TurbotClientHandler < TurbotRunner::BaseHandler
-  def handle_invalid_record(record, data_type, error_message)
-    puts
-    puts "The following record is invalid:"
-    puts record.to_json
-    puts " * #{error_message}"
-    puts
-  end
-
-  def handle_non_json_output(line)
-    puts
-    puts "The following line was not valid JSON:"
-    puts line
-  end
-end
-
-
-class DumpHandler < TurbotClientHandler
-  def handle_valid_record(record, data_type)
-    puts record.to_json
-  end
-end
-
-
-class ValidationHandler < TurbotClientHandler
-  attr_reader :count
-
-  def initialize(*)
-    @count = 0
-    super
-  end
-
-  def handle_valid_record(record, data_type)
-    @count += 1
-    STDOUT.write('.')
-  end
-
-  def handle_invalid_record(record, data_type, error_message)
-    puts
-    puts "The following record is invalid:"
-    puts record.to_json
-    puts " * #{error_message}"
-    puts
-  end
-
-  def handle_invalid_json(line)
-    puts
-    puts "The following line was not valid JSON:"
-    puts line
-  end
-end
-
-
-class PreviewHandler < TurbotClientHandler
-  attr_reader :count
-
-  def initialize(bot_name, api)
-    @bot_name = bot_name
-    @api = api
-    @batch = []
-    @count = 0
-    super()
-  end
-
-  def handle_valid_record(record, data_type)
-    @count += 1
-    STDOUT.write('.')
-    @batch << record.merge(:data_type => data_type)
-    submit_batch if @count % 20 == 0
-  end
-
-  def submit_batch
-    result = @api.create_draft_data(@bot_name, @batch.to_json)
-    @batch = []
-    result
   end
 end
