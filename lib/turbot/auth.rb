@@ -1,6 +1,5 @@
 require "cgi"
 require "turbot"
-require "turbot/client"
 require "turbot/helpers"
 
 require "netrc"
@@ -14,14 +13,6 @@ class Turbot::Auth
     def api
       @api ||= begin
         Turbot::API.new(default_params.merge(:api_key => password))
-      end
-    end
-
-    def client
-      @client ||= begin
-        client = Turbot::Client.new(user, password, host)
-        client.on_warning { |msg| self.display("\n#{msg}\n\n") }
-        client
       end
     end
 
@@ -41,10 +32,6 @@ class Turbot::Auth
 
     def default_host
       "http://turbot.opencorporates.com"
-    end
-
-    def git_host
-      ENV['TURBOT_GIT_HOST'] || host
     end
 
     def host
@@ -95,7 +82,6 @@ class Turbot::Auth
         netrc.save
       end
       @api = nil
-      @client = nil
       self.credentials = nil
     end
 
@@ -225,10 +211,6 @@ class Turbot::Auth
       @login_attempts < 3
     end
 
-    def verified_hosts
-      %w( turbot.com turbot-shadow.com )
-    end
-
     def base_host(host)
       parts = URI.parse(full_host(host)).host.split(".")
       return parts.first if parts.size == 1
@@ -237,13 +219,6 @@ class Turbot::Auth
 
     def full_host(host)
       (host =~ /^http/) ? host : "https://api.#{host}"
-    end
-
-    def verify_host?(host)
-      hostname = base_host(host)
-      verified = verified_hosts.include?(hostname)
-      verified = false if ENV["TURBOT_SSL_VERIFY"] == "disable"
-      verified
     end
 
     protected
@@ -257,7 +232,6 @@ class Turbot::Auth
         :host             => uri.host,
         :port             => uri.port,
         :scheme           => uri.scheme,
-        :ssl_verify_peer  => verify_host?(host)
       }
     end
   end

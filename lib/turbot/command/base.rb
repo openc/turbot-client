@@ -34,10 +34,6 @@ class Turbot::Command::Base
     Turbot::Auth.api
   end
 
-  def turbot
-    Turbot::Auth.client
-  end
-
 protected
 
   def self.inherited(klass)
@@ -150,10 +146,6 @@ protected
     Turbot::Command.current_command
   end
 
-  def extract_option(key)
-    options[key.dup.gsub('-','_').to_sym]
-  end
-
   def invalid_arguments
     Turbot::Command.invalid_arguments
   end
@@ -172,10 +164,6 @@ protected
       config && config["bot_id"]
     rescue Errno::ENOENT
     end
-  end
-
-  def escape(value)
-    turbot.escape(value)
   end
 end
 

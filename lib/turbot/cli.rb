@@ -4,14 +4,7 @@ require "turbot"
 require "turbot/command"
 require "turbot/helpers"
 
-# workaround for rescue/reraise to define errors in command.rb failing in 1.8.6
-if RUBY_VERSION =~ /^1.8.6/
-  require('turbot-api')
-  require('rest_client')
-end
-
 class Turbot::CLI
-
   extend Turbot::Helpers
 
   def self.start(*args)
@@ -37,5 +30,4 @@ class Turbot::CLI
       exit(1)
     end
   end
-
 end
