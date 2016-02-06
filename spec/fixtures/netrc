@@ -1,0 +1,6 @@
+machine api.http://turbot.opencorporates.com
+  login email@example.com
+  password apikey01
+machine api.http://turbot.example.com
+  login example@email.com
+  password apikey02

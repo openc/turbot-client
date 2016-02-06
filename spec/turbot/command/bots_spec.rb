@@ -58,12 +58,13 @@ puts JSON.dump(#{hash})
     end
 
     describe "#info" do
-      it "should succeed" do
-        Turbot::Auth.delete_credentials
-        allow(Turbot::Auth).to receive(:read_credentials).and_return(['email@example.com', 'apikey01'])
-        allow(Turbot::Auth).to receive(:api_key).and_return('apikey01')
+      before do
+        allow(Netrc).to receive(:default_path).and_return(fixture('netrc'))
+      end
 
-        stub_api_request(:get, "/api/bots/example?api_key=apikey01").to_return({
+      it "should succeed" do
+        stub_request(:get, "http://turbot.opencorporates.com/api/bots/example?api_key=apikey01").to_return({
+          :status => 200,
           :body => JSON.dump({
             "data" => {
               "bot_id" => "dummy_bot",

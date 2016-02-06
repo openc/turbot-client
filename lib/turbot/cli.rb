@@ -9,16 +9,16 @@ class Turbot::CLI
       if $stdout.isatty
         $stdout.sync = true
       end
-      command = args.shift.strip rescue "help"
+      command = args.shift.strip rescue 'help'
       Turbot::Command.load
-      trap "SIGINT" do
+      trap 'SIGINT' do
         # Script terminated by Control-C.
         exit 130
       end
       Turbot::Command.run(command, args)
     rescue Interrupt
       `stty icanon echo`
-      error("Command cancelled.")
+      error('Command cancelled.')
     rescue => error
       styled_error(error)
       exit(1)
