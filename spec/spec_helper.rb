@@ -15,8 +15,12 @@ require 'support/dummy_api'
 
 include WebMock::API
 
-def fixture(path)
-  File.expand_path(File.join('..', 'fixtures', path), __FILE__)
+def fixture(path, chmod = 0600)
+  filename = File.expand_path(File.join('..', 'fixtures', path), __FILE__)
+  if File.exist?(filename)
+    FileUtils.chmod(chmod, filename)
+  end
+  filename
 end
 
 def open_netrc

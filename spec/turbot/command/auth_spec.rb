@@ -184,7 +184,7 @@ STDERR
 
   context 'with a bad .netrc file' do
     before do
-      allow(Netrc).to receive(:default_path).and_return(fixture('bad_permissions'))
+      allow(Netrc).to receive(:default_path).and_return(fixture('bad_permissions', 0644))
     end
 
     describe 'auth:whoami' do
