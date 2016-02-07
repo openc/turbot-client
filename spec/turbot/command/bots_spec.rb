@@ -405,6 +405,26 @@ STDOUT
 STDERR
       end
 
+      it 'errors if transformer files not in files list' do
+        bot_directory = create_bot_directory
+        create_scraper_file(bot_directory)
+        create_manifest_file(bot_directory, JSON.dump(valid_manifest.merge({
+          'transformers' => [{
+            'data_type' => 'dummy',
+            'file' => 'transformer.rb',
+            'identifying_fields' => ['name'],
+          }]
+        })))
+
+        stderr, stdout = execute_in_directory('bots:validate', bot_directory)
+
+        expect(stdout).to eq('')
+        expect(stderr).to eq <<-STDERR
+ !    `manifest.json` is invalid. Please correct the errors:
+ !    * Some transformer files are not listed in the top-level files: transformer.rb
+STDERR
+      end
+
       it 'errors if data_type is invalid' do
         bot_directory = create_bot_directory
         create_scraper_file(bot_directory)

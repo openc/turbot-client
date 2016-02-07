@@ -235,6 +235,15 @@ class Turbot::Command::Bots < Turbot::Command::Base
       error messages.join("\n")
     end
 
+    if manifest['transformers']
+      remainder = manifest['transformers'].map { |transformer| transformer['file'] } - manifest['files']
+      if remainder.any?
+        messages = ['`manifest.json` is invalid. Please correct the errors:']
+        messages << "* Some transformer files are not listed in the top-level files: #{remainder.join(', ')}"
+        error messages.join("\n")
+      end
+    end
+
     handler = Turbot::Handlers::ValidationHandler.new
     runner = TurbotRunner::Runner.new(working_directory, :record_handler => handler)
     begin
