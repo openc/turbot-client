@@ -59,7 +59,7 @@ module Turbot
     # `.netrc` file.
     def save_netrc_entry(email_address, api_key)
       netrc = open_netrc
-      netrc["api.#{host}"] = email_address, api_key
+      netrc["api.#{host}"] = [email_address, api_key]
       netrc.save
     end
   end

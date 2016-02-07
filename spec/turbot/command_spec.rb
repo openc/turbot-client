@@ -57,36 +57,22 @@ describe Turbot::Command do
 
   context "when no commands match" do
     it "suggests similar commands if there are any" do
-      original_stderr, original_stdout = $stderr, $stdout
-      $stderr = captured_stderr = StringIO.new
-      $stdout = captured_stdout = StringIO.new
-      begin
-        execute("bot")
-      rescue SystemExit
-      end
-      expect(captured_stderr.string).to eq <<-STDERR
+      stderr, stdout = execute("bot")
+      expect(stderr).to eq <<-STDERR
  !    `bot` is not a turbot command.
  !    Perhaps you meant `bots`.
  !    See `turbot help` for a list of available commands.
 STDERR
-      expect(captured_stdout.string).to eq("")
-      $stderr, $stdout = original_stderr, original_stdout
+      expect(stdout).to eq("")
     end
 
     it "does not suggest similar commands if there are none" do
-      original_stderr, original_stdout = $stderr, $stdout
-      $stderr = captured_stderr = StringIO.new
-      $stdout = captured_stdout = StringIO.new
-      begin
-        execute("sandwich")
-      rescue SystemExit
-      end
-      expect(captured_stderr.string).to eq <<-STDERR
+      stderr, stdout = execute("sandwich")
+      expect(stderr).to eq <<-STDERR
  !    `sandwich` is not a turbot command.
  !    See `turbot help` for a list of available commands.
 STDERR
-      expect(captured_stdout.string).to eq("")
-      $stderr, $stdout = original_stderr, original_stdout
+      expect(stdout).to eq("")
     end
 
   end

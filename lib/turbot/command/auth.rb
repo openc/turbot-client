@@ -95,7 +95,7 @@ private
   #
   # @return [Array<String>] the user's email address and API key
   def ask_for_email_address_and_password
-    puts 'Enter your Turbot email and password.'
+    display 'Enter your Turbot email and password.'
 
     print 'Email: '
     email_address = ask

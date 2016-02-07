@@ -1,0 +1,130 @@
+{
+  "type": "object",
+  "properties": {
+    "bot_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._-]+$"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "language": {
+      "type": "string",
+      "enum": [
+        "python",
+        "ruby"
+      ]
+    },
+    "data_type": {
+      "type": "string"
+    },
+    "identifying_fields": {
+      "$ref": "#/definitions/string_array"
+    },
+    "files": {
+      "$ref": "#/definitions/string_array",
+      "minItems": 1
+    },
+    "frequency": {
+      "type": "string",
+      "enum": [
+        "oneoff",
+        "daily",
+        "weekly",
+        "monthly",
+        "yearly",
+        "never"
+      ]
+    },
+    "publisher": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "terms": {
+          "type": "string"
+        },
+        "terms_url": {
+          "type": "string",
+          "format": "uri"
+        }
+      },
+      "additionalProperties": false
+    },
+    "tags": {
+      "$ref": "#/definitions/string_array"
+    },
+    "incremental": {
+      "$ref": "#/definitions/string_boolean"
+    },
+    "manually_end_run": {
+      "$ref": "#/definitions/string_boolean"
+    },
+    "transformers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string"
+          },
+          "data_type": {
+            "type": "string"
+          },
+          "identifying_fields": {
+            "$ref": "#/definitions/string_array"
+          }
+        },
+        "required": [
+          "file",
+          "data_type",
+          "identifying_fields"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "public_repo_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "allow_duplicates": {},
+    "author": {},
+    "company_fields": {},
+    "dataset_id": {},
+    "domain": {},
+    "duplicates_allowed": {},
+    "public_repository": {},
+    "source_date": {},
+    "source_url": {},
+    "stateful": {}
+  },
+  "required": [
+    "bot_id",
+    "data_type",
+    "identifying_fields",
+    "files",
+    "language",
+    "publisher"
+  ],
+  "additionalProperties": false,
+  "definitions": {
+    "string_boolean": {
+      "type": ["boolean", "string"],
+      "enum": [true, false, "true", "false"]
+    },
+    "string_array": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}
