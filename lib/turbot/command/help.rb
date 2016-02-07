@@ -45,6 +45,13 @@ class Turbot::Command::Help < Turbot::Command::Base
 
 private
 
+  def help_for(items, name_key, description_key)
+    size = items.map { |namespace| namespace[name_key].size }.max
+    items.sort_by { |namespace| namespace[name_key] }.each do |namespace|
+      puts "  %-#{size}s  # %s" % [ namespace[name_key], namespace[description_key] ]
+    end
+  end
+
   ### Root
 
   def namespaces
@@ -60,10 +67,7 @@ private
   end
 
   def summary_for_namespaces(namespaces)
-    size = namespaces.map { |namespace| namespace[:name].size }.max
-    namespaces.sort_by { |namespace| namespace[:name] }.each do |namespace|
-      puts "  %-#{size}s  # %s" % [ namespace[:name], namespace[:description] ]
-    end
+    help_for(namespaces, :name, :description)
   end
 
   def help_for_root
@@ -92,10 +96,7 @@ private
   end
 
   def help_for_namespace(namespace_commands)
-    size = namespace_commands.map { |c| c[:banner].size }.max
-    namespace_commands.sort_by { |c| c[:banner] }.each do |command|
-      puts "  %-#{size}s  # %s" % [ command[:banner], command[:summary] ]
-    end
+    help_for(namespace_commands, :banner, :summary)
   end
 
   def help_for_command(name)
