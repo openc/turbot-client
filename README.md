@@ -23,7 +23,7 @@ You now have access to the `turbot` command.  Log in using your Turbot account's
 
 * `TURBOT_API_KEY`: Overrides the API key in the `.netrc` file. Allows you to skip authentication.
 
-* `TURBOT_BOT`: Overrides the bot in the current directory or set with the `--bot` option.
+* `TURBOT_BOT`: Overrides the bot in the current directory, but not the bot set with the `--bot` option.
 
 * `TURBOT_HOST`: Overrides the base URL of the Turbot server, which is `http://turbot.opencorporates.com` by default.
 

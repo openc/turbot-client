@@ -20,10 +20,21 @@ describe Turbot::Command::Auth do
 
     describe 'auth:login' do
       it 'logs the user in' do
-        stub_request(:get, 'http://turbot.opencorporates.com/api/user/api_key?api_key=&email=&password=').to_return(:status => 200, :body => '{"api_key":"apikey01"}')
-        stub_request(:get, 'http://turbot.opencorporates.com/api/user?api_key=apikey01').to_return(:status => 200, :body => '{"api_key":"apikey01"}')
+        stub_request(:get, 'http://turbot.opencorporates.com/api/user/api_key?api_key=&email=email@example.com&password=password').to_return({
+          :status => 200,
+          :body => JSON.dump('api_key' => 'apikey01'),
+        })
+        stub_request(:get, 'http://turbot.opencorporates.com/api/user?api_key=apikey01').to_return({
+          :status => 200,
+          :body => JSON.dump('api_key' => 'apikey01'),
+        })
+        allow($stdin).to receive(:gets).and_return('email@example.com', 'password')
+
+        spec_delete_netrc_entry
 
         stderr, stdout = execute('auth:login')
+
+        expect(spec_read_netrc.to_a).to eq(['email@example.com', 'apikey01'])
 
         expect(stderr).to eq('')
         expect(stdout).to eq <<-STDOUT
@@ -33,10 +44,15 @@ Authentication successful.
 STDOUT
       end
 
-      it 'displays an error message after three attempts' do
+      it 'displays an error message' do
         stub_request(:get, 'http://turbot.opencorporates.com/api/user/api_key?api_key=&email=&password=').to_return(:status => 200, :body => '{"api_key":""}')
+        allow($stdin).to receive(:gets).and_return('', '')
+
+        spec_delete_netrc_entry
 
         stderr, stdout = execute('auth:login')
+
+        expect(spec_read_netrc).to eq(nil)
 
         expect(stdout).to eq <<-STDOUT
 Enter your Turbot email and password.
@@ -50,11 +66,11 @@ STDERR
 
     describe 'auth:logout' do
       it 'logs the user out' do
-        write_netrc(['user', 'pass'])
+        spec_save_netrc_entry(['user', 'pass'])
 
         stderr, stdout = execute('auth:logout')
 
-        expect(read_netrc).to eq(nil)
+        expect(spec_read_netrc).to eq(nil)
 
         expect(stderr).to eq('')
         expect(stdout).to eq <<-STDOUT

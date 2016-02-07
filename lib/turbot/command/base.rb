@@ -16,13 +16,10 @@ class Turbot::Command::Base
   def bot
     @bot ||= if options[:bot].is_a?(String)
       options[:bot]
-    elsif ENV.has_key?('TURBOT_BOT')
+    elsif ENV['TURBOT_BOT']
       ENV['TURBOT_BOT']
-    elsif bot_from_manifest = extract_bot_from_manifest(Dir.pwd)
-      bot_from_manifest
-    else
-      # raise instead of using error command to enable rescuing when bot is optional
-      raise Turbot::Command::CommandFailed.new("No bot specified.\nRun this command from a bot folder containing a `manifest.json`,  or specify which bot to use with --bot BOT_ID.")
+    elsif manifest = parse_manifest
+      manifest['bot_id']
     end
   end
 
@@ -95,7 +92,7 @@ protected
     buffer = []
     lines = Turbot::Command.files[file]
 
-    (line_number.to_i-2).downto(0) do |i|
+    (line_number.to_i - 2).downto(0) do |i|
       line = lines[i]
       case line[0..0]
         when ""
@@ -138,23 +135,22 @@ protected
     Turbot::Command.current_command
   end
 
-  def invalid_arguments
-    Turbot::Command.invalid_arguments
-  end
-
-  def shift_argument
-    Turbot::Command.shift_argument
-  end
-
   def validate_arguments!
     Turbot::Command.validate_arguments!
   end
 
-  def extract_bot_from_manifest(dir)
-    begin
-      config = JSON.load(open("#{dir}/manifest.json").read)
-      config && config["bot_id"]
-    rescue Errno::ENOENT
+  def parse_manifest
+    path = File.join(working_directory, 'manifest.json')
+    if File.exists?(path)
+      begin
+        JSON.load(File.read(path))
+      rescue JSON::ParserError => e
+        error "`manifest.json` is invalid JSON. Consider validating it at http://pro.jsonlint.com/"
+      end
     end
+  end
+
+  def working_directory
+    Dir.pwd
   end
 end

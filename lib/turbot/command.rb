@@ -9,6 +9,12 @@ module Turbot
       unregister_commands_made_private_after_the_fact
     end
 
+    def self.unregister_commands_made_private_after_the_fact
+      commands.values.
+        select { |c| c[:klass].private_method_defined? c[:method] }.
+        each { |c| commands.delete(c[:command]) }
+    end
+
     def self.commands
       @@commands ||= {}
     end
@@ -29,34 +35,12 @@ module Turbot
       commands[command[:command]] = command
     end
 
-    def self.unregister_commands_made_private_after_the_fact
-      commands.values.
-        select { |c| c[:klass].private_method_defined? c[:method] }.
-        each { |c| commands.delete(c[:command]) }
-    end
-
     def self.register_namespace(namespace)
       namespaces[namespace[:name]] = namespace
     end
 
     def self.current_command
       @current_command
-    end
-
-    def self.current_command=(new_current_command)
-      @current_command = new_current_command
-    end
-
-    def self.current_args
-      @current_args
-    end
-
-    def self.current_options
-      @current_options ||= {}
-    end
-
-    def self.global_options
-      @global_options ||= []
     end
 
     def self.invalid_arguments
@@ -77,25 +61,14 @@ module Turbot
           message = "Invalid arguments: #{arguments[0...-1].join(', ')} and #{arguments[-1]}"
         end
         run(current_command, ['--help'])
-        error(message)
+        error message
       end
     end
-
-    def self.global_option(name, *args, &blk)
-      # args.sort.reverse gives -l, --long order
-      global_options << { :name => name.to_s, :args => args.sort.reverse, :proc => blk }
-    end
-
-    global_option :bot, '-b', '--bot APP' do |bot|
-      raise OptionParser::InvalidOption.new(bot)
-    end
-    global_option :help, '-h', '--help'
 
     def self.prepare_run(cmd, args=[])
       command = parse(cmd)
 
       @current_command = cmd
-      @anonymized_args, @normalized_args = [], []
 
       opts = {}
       invalid_options = []
@@ -104,15 +77,10 @@ module Turbot
         # remove OptionParsers Officious['version'] to avoid conflicts
         # see: https://github.com/ruby/ruby/blob/trunk/lib/optparse.rb#L814
         parser.base.long.delete('version')
-        (global_options + (command && command[:options] || [])).each do |option|
+        (command && command[:options] || []).each do |option|
           parser.on(*option[:args]) do |value|
-            if option[:proc]
-              option[:proc].call(value)
-            end
             opts[option[:name].gsub('-', '_').to_sym] = value
             ARGV.join(' ') =~ /(#{option[:args].map {|arg| arg.split(' ', 2).first}.join('|')})/
-            @anonymized_args << "#{$1} _"
-            @normalized_args << "#{option[:args].last.split(' ', 2).first} _"
           end
         end
       end
@@ -120,30 +88,18 @@ module Turbot
       begin
         parser.order!(args) do |nonopt|
           invalid_options << nonopt
-          @anonymized_args << '!'
-          @normalized_args << '!'
         end
       rescue OptionParser::InvalidOption => ex
         invalid_options << ex.args.first
-        @anonymized_args << '!'
-        @normalized_args << '!'
         retry
       end
 
       args.concat(invalid_options)
 
-      @current_args = args
-      @current_options = opts
       @invalid_arguments = invalid_options
 
       if command
         command_instance = command[:klass].new(args.dup, opts.dup)
-
-        if !@normalized_args.include?('--bot _') && (implied_bot = command_instance.bot rescue nil)
-          @normalized_args << '--bot _'
-        end
-        @normalized_command = [ARGV.first, @normalized_args.sort_by {|arg| arg.gsub('-', '')}].join(' ')
-
         [ command_instance, command[:method] ]
       else
         error([
@@ -164,9 +120,9 @@ module Turbot
         raise(error)
       end
     rescue RestClient::Unauthorized
-      puts 'Authentication failure'
+      display 'Authentication failure'
       if ENV['TURBOT_API_KEY']
-        exit 1
+        exit(1)
       else
         run 'login'
         retry

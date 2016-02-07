@@ -1,6 +1,8 @@
-# Manage bots (generate skeleton, validate data, submit code)
+#Manage bots (generate template, validate data, submit code)
 #
 class Turbot::Command::Bots < Turbot::Command::Base
+  BOT_ID_RE = /\A[A-Za-z0-9_-]+\z/.freeze
+
   def initialize(*args)
     super
 
@@ -13,329 +15,342 @@ class Turbot::Command::Bots < Turbot::Command::Base
 
   # bots
   #
-  # list your bots
+  #List your bots.
   #
   #Example:
   #
-  # $ turbot bots
-  # === My Bots
-  # example
-  # example2
+  #  $ turbot bots
+  #  example1
+  #  example2
   #
   def index
     validate_arguments!
-    bots = api.list_bots.data
-    unless bots.empty?
-      styled_header("Bots")
-      styled_array(bots.map{|bot| bot[:bot_id]})
+
+    response = api.list_bots
+    if response.is_a?(Turbot::API::SuccessResponse)
+      if response.data.empty?
+        display 'You have no bots.'
+      else
+        response.data.each do |bot|
+          display bot[:bot_id]
+        end
+      end
     else
-      display("You have no bots.")
+      error response.message
     end
   end
+  alias_command 'list', 'bots'
 
-  alias_command "list", "bots"
-
-  # bots:info
+  # bots:info [--bot BOT]
   #
-  # show detailed bot information
+  #Show a bot's details.
   #
-  # -s, --shell  # output more shell friendly key/value pairs
+  #  -b, --bot BOT # a bot ID
   #
-  #Examples:
+  #Example:
   #
-  # $ turbot bots:info
-  # === example
-  # Last run status: OK
-  # Last run ended: 2001/01/01
-  # ...
-  #
-  # $ turbot bots:info --shell
-  # last_run_status: OK
-  # last_run_ended: 2001/01/01
-  # ...
+  #  $ turbot bots:info --bot example
+  #  bot_id: example
+  #  created_at: 2010-01-01T00:00:00.000Z
+  #  updated_at: 2010-01-02T00:00:00.000Z
+  #  state: scheduled
   #
   def info
     validate_arguments!
+    error_if_no_local_bot_found
+
     response = api.show_bot(bot)
-    if response.is_a? Turbot::API::FailureResponse
-      error(response.message)
+    if response.is_a?(Turbot::API::SuccessResponse)
+      response.data.each do |key,value|
+        display "#{key}: #{value}"
+      end
+    else
+      error response.message
     end
-
-    bot_data = response.data
-    styled_header(bot_data["name"])
-
-    data = {}
-    styled_hash(data)
   end
+  alias_command 'info', 'bots:info'
 
-  alias_command "info", "bots:info"
-
-
-  # bots:generate --bot name_of_bot
+  # bots:generate --bot BOT
   #
-  # Generate stub code for a bot in specified language
+  #Generate a bot template in the specified language.
   #
-  #   -l, --language LANGUAGE # language to generate (currently `ruby` (default) or `python`)
-
-  # $ turbot bots:generate --language=ruby --bot my_amazing_bot
-  # Created new bot template at my_amazing_bot!
-
+  #  -b, --bot BOT # a bot ID
+  #  -l, --language LANGUAGE # ruby (default) or python
+  #
+  #Example:
+  #
+  #  $ turbot bots:generate --bot my_amazing_bot --language ruby
+  #  Created new bot template for my_amazing_bot!
+  #
   def generate
     validate_arguments!
-    response = api.show_bot(bot)
-    if response.is_a? Turbot::API::SuccessResponse
-      error("There's already a bot called #{bot} registered with Turbot. Bot names must be unique.")
+    error_if_bot_exists_in_turbot
+
+    # Check the bot name.
+    unless bot[BOT_ID_RE]
+      error "The bot name #{bot} is invalid. Bot names must contain only lowercase letters (a-z), numbers (0-9), underscore (_) or hyphen (-)."
     end
 
-    language = options[:language] || "ruby"
-    scraper_template = File.expand_path("../../../../templates/#{language}", __FILE__)
-    error("unsupported language #{language}") if !File.exists?(scraper_template)
+    # Check collision with existing directory.
+    bot_directory = File.join(working_directory, bot)
+    if File.exists?(bot_directory)
+      error "There's already a directory named #{bot}. Move it, delete it, change directory, or try another name."
+    end
 
-    manifest_template = File.expand_path("../../../../templates/manifest.json", __FILE__)
-    license_template = File.expand_path("../../../../templates/LICENSE.txt", __FILE__)
-    manifest = open(manifest_template).read.sub("{{bot_id}}", bot)
+    language = (options[:language] || 'ruby').downcase
+    scraper_template = File.expand_path("../../../../data/templates/#{language}", __FILE__)
+
+    # Check language.
+    unless File.exists?(scraper_template)
+      error "The language #{language} is unsupported."
+    end
+
     scraper_name = case language
-      when "ruby"
-        "scraper.rb"
-      when "python"
-        "scraper.py"
-      end
-
-    manifest = manifest.sub("{{scraper_name}}", scraper_name)
-    manifest = manifest.sub("{{language}}", language)
-
-    # Language-specific stuff
-    # Language-specific stuff:
-    if File.exists? bot
-      error("There's already a folder called #{bot}; move it out the way or try a different name")
+    when 'ruby'
+      'scraper.rb'
+    when 'python'
+      'scraper.py'
     end
-    FileUtils.mkdir(bot)
-    FileUtils.cp_r(Dir["#{scraper_template}/*"], bot)
 
-    # Same for all languages
-    FileUtils.cp(license_template, "#{bot}/LICENSE.txt")
-    open("#{bot}/manifest.json", "w") do |f|
+    # Create the scraper.
+    FileUtils.mkdir(bot_directory)
+    FileUtils.cp(File.join(scraper_template, scraper_name), File.join(bot_directory, scraper_name))
+
+    # Create the license.
+    license_template = File.expand_path('../../../../data/templates/LICENSE.txt', __FILE__)
+    FileUtils.cp(license_template, File.join(bot_directory, 'LICENSE.txt'))
+
+    # Create the manifest.
+    manifest_template = File.expand_path('../../../../data/templates/manifest.json', __FILE__)
+    manifest = File.read(manifest_template).
+      sub('{{bot_id}}', bot).
+      sub('{{scraper_name}}', scraper_name).
+      sub('{{language}}', language)
+    File.open(File.join(bot_directory, 'manifest.json'), 'w') do |f|
       f.write(JSON.pretty_generate(JSON.load(manifest)))
     end
 
-    response = api.create_bot(bot, JSON.load(manifest))
-    if response.is_a? Turbot::API::SuccessResponse
-      puts "Created new bot template at #{bot}!"
-    else
-      error(response.message)
-    end
+    display "Created new bot template for #{bot}!"
   end
-
 
   # bots:register
   #
-  # Register a bot with turbot. Must be run from a folder containing scraper and manifest.json
-
-  # $ turbot bots:register
-  # Registered my_amazing_bot!
-
+  #Register a bot with Turbot. Must be run from a bot directory containing a `manifest.json` file.
+  #
+  #Example:
+  #
+  #  $ turbot bots:register
+  #  Registered my_amazing_bot!
+  #
   def register
-    response = api.show_bot(bot)
-    if response.is_a? Turbot::API::SuccessResponse
-      error("There's already a bot called #{bot} registered with Turbot. Bot names must be unique.")
-    end
+    validate_arguments!
+    error_if_no_local_bot_found
+    error_if_bot_exists_in_turbot
 
-    manifest = parsed_manifest(working_directory)
-    response = api.create_bot(bot, manifest)
-    if response.is_a? Turbot::API::FailureResponse
-      error(response.message)
+    response = api.create_bot(bot, parse_manifest)
+    if response.is_a?(Turbot::API::SuccessResponse)
+      display "Registered #{bot}!"
     else
-      puts "Registered #{bot}!"
+      error response.message
     end
   end
 
   # bots:push
   #
-  # Push bot code to the turbot server. Must be run from a local bot checkout.
+  #Push the bot's code to Turbot. Must be run from a bot directory containing a `manifest.json` file.
   #
-  # $ turbot bots:push
-  # Your bot has been pushed to Turbot and will be reviewed for inclusion as soon as we can. THANKYOU!
-
+  #Example:
+  #
+  #  $ turbot bots:push
+  #  This will submit your bot and its data for review.
+  #  Are you happy your bot produces valid data (e.g. with `turbot bots:validate`)? [Y/n]
+  #  Your bot has been pushed to Turbot and will be reviewed for inclusion as soon as we can. THANK YOU!
+  #
   def push
     validate_arguments!
-    puts "This will submit your bot and its data for review."
-    puts "Are you happy your bot produces valid data (e.g. with `turbot bots:validate`)? [Y/n]"
-    confirmed = ask
-    error("Aborting push") if !confirmed.downcase.empty? && confirmed.downcase != "y"
-    manifest = parsed_manifest(working_directory)
-    archive = Tempfile.new(bot)
-    archive_path = "#{archive.path}.zip"
-    create_zip_archive(archive_path, working_directory, manifest['files'] + ['manifest.json'])
+    error_if_no_local_bot_found
 
-    response = File.open(archive_path) {|file| api.update_code(bot, file)}
-    case response
-    when Turbot::API::SuccessResponse
-      puts "Your bot has been pushed to Turbot and will be reviewed for inclusion as soon as we can. THANK YOU!"
-    when Turbot::API::FailureResponse
-      error(response.message)
+    display 'This will submit your bot and its data for review.'
+    display 'Are you happy your bot produces valid data (e.g. with `turbot bots:validate`)? [Y/n]'
+    answer = ask
+    unless ['', 'y'].include?(answer.downcase.strip)
+      error 'Aborted.'
+    end
+
+    # TODO Validate the manifest.json file.
+
+    manifest = parse_manifest
+    archive_path = "#{Tempfile.new(bot).path}.zip"
+    create_zip_archive(archive_path, manifest['files'] + ['manifest.json'])
+
+    response = File.open(archive_path) do |f|
+      api.update_code(bot, f)
+    end
+    if response.is_a?(Turbot::API::SuccessResponse)
+      display 'Your bot has been pushed to Turbot and will be reviewed for inclusion as soon as we can. THANK YOU!'
+    else
+      error response.message
     end
   end
+  alias_command 'push', 'bots:push'
 
-  alias_command "push", "bots:push"
 
   # bots:validate
   #
-  # Validate bot output against its schema
+  #Validate the `manifest.json` file and validate the bot's output against its schema.
   #
-  # $ turbot bots:validate
-  # Validating example... done
-
+  #Example:
+  #
+  #  $ turbot bots:validate
+  #  Validated 2 records!
+  #
   def validate
-    scraper_path    = shift_argument || scraper_file(working_directory)
     validate_arguments!
-    config = parsed_manifest(working_directory)
+    error_if_no_local_bot_found
 
-    %w(bot_id data_type identifying_fields files language publisher).each do |key|
-      error("Manifest is missing #{key}") unless config.has_key?(key)
+    manifest = parse_manifest
+
+    { 'author' => 'publisher',
+      'public_repository' => 'public_repo_url',
+    }.each do |deprecated,field|
+      if manifest[deprecated]
+        display %(WARNING: "#{deprecated}" is deprecated. Use "#{field}" instead.)
+      end
     end
 
-    type = config["data_type"]
+    schema = JSON.load(File.read(File.expand_path('../../../../data/schema.json', __FILE__)))
+    validator = JSON::Validator.new(schema, manifest, {
+      clear_cache: false,
+      parse_data: false,
+      record_errors: true,
+      errors_as_objects: true,
+    })
+
+    errors = validator.validate
+    if errors.any?
+      messages = ['`manifest.json` is invalid. Please correct the errors:']
+      errors.each do |error|
+        messages << "* #{error.fetch(:message).sub(/ in schema \S+\z/, '')}"
+      end
+      error messages.join("\n")
+    end
 
     handler = Turbot::Handlers::ValidationHandler.new
     runner = TurbotRunner::Runner.new(working_directory, :record_handler => handler)
-    rc = runner.run
+    begin
+      rc = runner.run
+    rescue TurbotRunner::InvalidDataType
+      messages = ['`manifest.json` is invalid. Please correct the errors:']
+      messages << %(* The property '#/data_type' value "#{manifest['data_type']}" is not a supported data type.)
+      error messages.join("\n")
+    end
 
-    puts
     if rc == TurbotRunner::Runner::RC_OK
-      puts "Validated #{handler.count} records!"
+      display "Validated #{handler.count} records!"
     else
-      puts "Validated #{handler.count} records before bot failed!"
+      display "Validated #{handler.count} records before bot failed!"
     end
   end
 
   # bots:dump
   #
-  # Execute bot locally (writes to STDOUT)
+  #Execute the bot locally and write the bot's output to STDOUT.
   #
-  # $ turbot bots:dump
-  # {'foo': 'bar'}
-  # {'foo2': 'bar2'}
-
+  #Example:
+  #
+  #  $ turbot bots:dump
+  #  {'foo': 'bar'}
+  #  {'foo2': 'bar2'}
+  #
   def dump
     validate_arguments!
+    error_if_no_local_bot_found
 
     handler = Turbot::Handlers::DumpHandler.new
     runner = TurbotRunner::Runner.new(working_directory, :record_handler => handler)
     rc = runner.run
 
-    puts
     if rc == TurbotRunner::Runner::RC_OK
-      puts "Bot ran successfully!"
+      display 'Bot ran successfully!'
     else
-      puts "Bot failed!"
+      display 'Bot failed!'
     end
   end
 
-#  # bots:single
-#  #
-#  # Execute bot in same way as OpenCorporates single-record update
-#  #
-#  # $ turbot bots:single
-#  # Enter argument (as JSON object):
-#  # {"id": "frob123"}
-#  # {"id": "frob123", "stuff": "updated-data-for-this-record"}
-#
-#  def single
-#    # This will need to be language-aware, eventually
-#    scraper_path    = shift_argument || scraper_file(working_directory)
-#    validate_arguments!
-#    print 'Arguments (as JSON object, e.g. {"id":"ABC123"}: '
-#    arg = ask
-#    count = 0
-#    run_scraper_each_line("#{scraper_path} #{bot} #{Shellwords.shellescape(arg)}") do |line|
-#      raise "Your scraper returned more than one value!" if count > 1
-#      puts line
-#      count += 1
-#    end
-#  end
-
-
   # bots:preview
   #
-  # Send bot data to Turbot for remote previewing / sharing
+  #Send bot data to Turbot for remote previewing or sharing.
   #
-  # Sending example to turbot... done
+  #Example:
+  #
+  #  $ turbot bots:preview
+  #  Sending to Turbot...
+  #  Submitted 2 records to Turbot.
+  #  View your records at http://turbot.opencorporates.com/..
+  #
   def preview
     validate_arguments!
 
-    config = parsed_manifest(working_directory)
-
-    response = api.update_bot(bot, parsed_manifest(working_directory))
-    if !response.is_a? Turbot::API::SuccessResponse
-      error(response.message)
+    response = api.update_bot(bot, parse_manifest)
+    if response.is_a?(Turbot::API::FailureResponse)
+      error response.message
     end
 
     response = api.destroy_draft_data(bot)
-    if !response.is_a? Turbot::API::SuccessResponse
-      error(response.message)
+    if response.is_a?(Turbot::API::FailureResponse)
+      error response.message
     end
 
-    puts "Sending to turbot... "
+    display 'Sending to Turbot... '
 
     handler = Turbot::Handlers::PreviewHandler.new(bot, api)
     runner = TurbotRunner::Runner.new(working_directory, :record_handler => handler)
     rc = runner.run
 
-    puts
-
     if rc == TurbotRunner::Runner::RC_OK
       response = handler.submit_batch
-      if response.is_a? Turbot::API::SuccessResponse
+      if response.is_a?(Turbot::API::SuccessResponse)
         if handler.count > 0
-          puts "Submitted #{handler.count} records to turbot"
-          puts "View your records at #{response.data[:url]}"
+          display "Submitted #{handler.count} records to Turbot.\nView your records at #{response.data[:url]}"
         else
-          puts "No records sent"
+          display 'No records sent.'
         end
       else
-        error(response.message)
+        error response.message
       end
     else
-      puts
-      puts "Bot failed!"
+      display 'Bot failed!'
     end
   end
 
-  private
+private
 
-  def parsed_manifest(dir)
-    begin
-      JSON.load(open(manifest_path).read)
-    rescue Errno::ENOENT
-      raise "This command must be run from a directory including `manifest.json`"
+  def error_if_no_local_bot_found
+    unless bot
+      error "No bot specified.\nRun this command from a bot directory containing a `manifest.json` file, or specify the bot with --bot BOT."
     end
   end
 
-  def scraper_file(dir)
-    Dir.glob("scraper*").reject{|n| !n.match(/(rb|py)$/)}.first
+  def error_if_bot_exists_in_turbot
+    if api.show_bot(bot).is_a?(Turbot::API::SuccessResponse)
+      error "There's already a bot named #{bot} in Turbot. Try another name."
+    end
   end
 
-  def working_directory
-    Dir.pwd
-  end
-
-  def manifest_path
-    File.join(working_directory, 'manifest.json')
-  end
-
-  def create_zip_archive(archive_path, basepath, subpaths)
+  def create_zip_archive(archive_path, basenames)
     Zip.continue_on_exists_proc = true
-    Zip::File.open(archive_path, Zip::File::CREATE) do |zipfile|
-      subpaths.each do |subpath|
-        path = File.join(basepath, subpath)
 
-        if File.directory?(path)
-          Dir["#{path}/**/*"].each do |path1|
-            subpath1 = Pathname.new(path1).relative_path_from(Pathname.new(basepath))
-            zipfile.add(subpath1, path1)
+    Zip::File.open(archive_path, Zip::File::CREATE) do |zipfile|
+      basenames.each do |basename|
+        filename = File.join(working_directory, basename)
+
+        if File.directory?(filename)
+          Dir["#{filename}/**/*"].each do |filename1|
+            basename1 = Pathname.new(filename1).relative_path_from(Pathname.new(working_directory))
+            zipfile.add(basename1, filename1)
           end
         else
-          zipfile.add(subpath, path)
+          zipfile.add(basename, filename)
         end
       end
     end

@@ -18,6 +18,7 @@ Gem::Specification.new do |gem|
   gem.required_ruby_version = '>=1.9.2'
 
   gem.add_runtime_dependency("netrc", "~> 0.11")
+  gem.add_runtime_dependency("json-schema", "~> 2.6.0")
   gem.add_runtime_dependency("rubyzip", ">= 1.0.0")
   gem.add_runtime_dependency("text", "~> 1.3.1")
   gem.add_runtime_dependency("turbot-api", "0.0.14")
