@@ -251,7 +251,6 @@ class Turbot::Command::Bots < Turbot::Command::Base
       display "Validated #{handler.count} records before bot failed!"
     end
   end
-  alias_command 'validate', 'bots:validate'
 
   # bots:dump
   #
@@ -277,7 +276,6 @@ class Turbot::Command::Bots < Turbot::Command::Base
       display 'Bot failed!'
     end
   end
-  alias_command 'dump', 'bots:dump'
 
   # bots:preview
   #
