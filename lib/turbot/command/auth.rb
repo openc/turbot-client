@@ -1,92 +1,121 @@
-# authentication (login, logout)
+#Login or logout from Turbot
 #
 class Turbot::Command::Auth < Turbot::Command::Base
-
   # auth
   #
-  # Authenticate, display token and current user
+  #Login or logout. Display your Turbot API token or email address.
   def index
     validate_arguments!
-
     Turbot::Command::Help.new.send(:help_for_command, current_command)
   end
 
   # auth:login
   #
-  # log in with your turbot credentials
+  #Login to Turbot and save your Turbot credentials.
   #
   #Example:
   #
-  # $ turbot auth:login
-  # Enter your Turbot credentials:
-  # Email: email@example.com
-  # Password (typing will be hidden):
-  # Authentication successful.
+  #  $ turbot auth:login
+  #  Enter your Turbot email and password:
+  #  Email: email@example.com
+  #  Password (typing will be hidden):
+  #  Logged in. Saved Turbot API key.
   #
   def login
     validate_arguments!
-
-    Turbot::Auth.login
-    display "Authentication successful."
+    email_address, api_key = ask_for_email_address_and_password
+    if api_key.empty?
+      error 'Authentication failed.'
+    end
+    save_netrc_entry(email_address, api_key)
+    display 'Authentication successful.'
   end
-
-  alias_command "login", "auth:login"
+  alias_command 'login', 'auth:login'
 
   # auth:logout
   #
-  # clear local authentication credentials
+  #Delete your Turbot credentials.
   #
   #Example:
   #
-  # $ turbot auth:logout
-  # Local credentials cleared.
+  #  $ turbot auth:logout
+  #  Deleted Turbot credentials.
   #
   def logout
     validate_arguments!
-
-    Turbot::Auth.logout
-    display "Local credentials cleared."
+    delete_netrc_entry
+    display 'Deleted Turbot credentials.'
   end
-
-  alias_command "logout", "auth:logout"
+  alias_command 'logout', 'auth:logout'
 
   # auth:token
   #
-  # display your api token
+  #Display your Turbot API token.
   #
   #Example:
   #
-  # $ turbot auth:token
-  # ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCD
+  #  $ turbot auth:token
+  #  93a5c45595ed37dc9d040116
   #
   def token
     validate_arguments!
-
-    api_key = Turbot::Auth.api_key
-    if api_key
-      display api_key
+    result = email_address_and_api_key[1]
+    if result
+      display result
     else
-      error "not logged in"
+      error 'not logged in'
     end
   end
 
   # auth:whoami
   #
-  # display your turbot email address
+  #Display your Turbot email address.
   #
   #Example:
   #
-  # $ turbot auth:whoami
-  # email@example.com
+  #  $ turbot auth:whoami
+  #  email@example.com
   #
   def whoami
     validate_arguments!
-
-    user = Turbot::Auth.user(false)
-    if user
-      display user
+    result = email_address_and_api_key[0]
+    if result
+      display result
     else
-      error "not logged in"
+      error 'not logged in'
     end
+  end
+
+private
+
+  ### Shell-related
+
+  # Prompts the user for an email address and password, and returns the email
+  # address and the user's API key.
+  #
+  # @return [Array<String>] the user's email address and API key
+  def ask_for_email_address_and_password
+    puts 'Enter your Turbot email and password.'
+
+    print 'Email: '
+    email_address = ask
+
+    print 'Password (typing will be hidden): '
+    password = running_on_windows? ? ask_for_password_on_windows : ask_for_password
+
+    [email_address, get_api_key(email_address, password)]
+  end
+
+  def running_on_windows?
+    RUBY_PLATFORM =~ /mswin32|mingw32/
+  end
+
+  ### API-related
+
+  # Gets the user's API key.
+  #
+  # @return [String] the API key, or the empty string if authentication fails
+  def get_api_key(email_address, password)
+    api.get_api_key_for_credentials(email_address, password)['api_key']
   end
 end

@@ -2,63 +2,198 @@ require 'spec_helper'
 require 'turbot/command/auth'
 
 describe Turbot::Command::Auth do
-  describe "auth" do
-    it "displays turbot help auth" do
-      stderr, stdout = execute("auth")
+  describe 'auth' do
+    it 'displays help for auth commands' do
+      stderr, stdout = execute('auth')
 
-      expect(stderr).to eq("")
-      expect(stdout).to include "Additional commands"
-      expect(stdout).to include "auth:login"
-      expect(stdout).to include "auth:logout"
+      expect(stderr).to eq('')
+      expect(stdout).to include('turbot auth')
+      expect(stdout).to include('Additional commands')
+      expect(stdout).to include('auth:whoami')
     end
   end
 
-  describe "auth:token" do
+  context 'when editing the .netrc file' do
+    before do
+      allow(Netrc).to receive(:default_path).and_return(fixture('writable'))
+    end
 
-    it "displays the user's api key" do
-      allow(Turbot::Auth).to receive(:api_key).and_return('apikey01')
+    describe 'auth:login' do
+      it 'logs the user in' do
+        stub_request(:get, 'http://turbot.opencorporates.com/api/user/api_key?api_key=&email=&password=').to_return(:status => 200, :body => '{"api_key":"apikey01"}')
+        stub_request(:get, 'http://turbot.opencorporates.com/api/user?api_key=apikey01').to_return(:status => 200, :body => '{"api_key":"apikey01"}')
 
-      stderr, stdout = execute("auth:token")
-      expect(stderr).to eq("")
-      expect(stdout).to eq <<-STDOUT
+        stderr, stdout = execute('auth:login')
+
+        expect(stderr).to eq('')
+        expect(stdout).to eq <<-STDOUT
+Enter your Turbot email and password.
+Email: Password (typing will be hidden): 
+Authentication successful.
+STDOUT
+      end
+
+      it 'displays an error message after three attempts' do
+        stub_request(:get, 'http://turbot.opencorporates.com/api/user/api_key?api_key=&email=&password=').to_return(:status => 200, :body => '{"api_key":""}')
+
+        stderr, stdout = execute('auth:login')
+
+        expect(stdout).to eq <<-STDOUT
+Enter your Turbot email and password.
+Email: Password (typing will be hidden): 
+STDOUT
+        expect(stderr).to eq <<-STDERR
+ !    Authentication failed.
+STDERR
+      end
+    end
+
+    describe 'auth:logout' do
+      it 'logs the user out' do
+        write_netrc(['user', 'pass'])
+
+        stderr, stdout = execute('auth:logout')
+
+        expect(read_netrc).to eq(nil)
+
+        expect(stderr).to eq('')
+        expect(stdout).to eq <<-STDOUT
+Deleted Turbot credentials.
+STDOUT
+      end
+    end
+  end
+
+  context 'when logged in' do
+    before do
+      allow(Netrc).to receive(:default_path).and_return(fixture('netrc'))
+    end
+
+    describe 'auth:token' do
+      it "displays the user's api key" do
+        stderr, stdout = execute('auth:token')
+
+        expect(stderr).to eq('')
+        expect(stdout).to eq <<-STDOUT
 apikey01
 STDOUT
+      end
     end
 
-    it "displays a message if not logged in" do
-      allow(Turbot::Auth).to receive(:api_key).and_return(nil)
+    describe 'auth:whoami' do
+      it "displays the user's email address" do
+        stderr, stdout = execute('auth:whoami')
 
-      stderr, stdout = execute("auth:token")
-      expect(stdout).to eq("")
-      expect(stderr).to eq <<-STDERR
- !    not logged in
-STDERR
-    end
-  end
-
-  describe "auth:whoami" do
-    it "displays the user's email address" do
-      Turbot::Auth.delete_credentials
-      allow(Turbot::Auth).to receive(:read_credentials).and_return(['email@example.com', 'apikey01'])
-
-      stderr, stdout = execute("auth:whoami")
-      expect(stderr).to eq("")
-      expect(stdout).to eq <<-STDOUT
+        expect(stderr).to eq('')
+        expect(stdout).to eq <<-STDOUT
 email@example.com
 STDOUT
+      end
     end
 
-    it "displays a message if not logged in" do
-      Turbot::Auth.delete_credentials
-      allow(Turbot::Auth).to receive(:read_credentials).and_return(nil)
+    context 'with TURBOT_HOST set' do
+      around(:each) do |example|
+        ENV['TURBOT_HOST'] = 'http://turbot.example.com'
+        example.run
+        ENV['TURBOT_HOST'] = nil
+      end
 
-      stderr, stdout = execute("auth:whoami")
-      expect(stdout).to eq("")
-      expect(stderr).to eq <<-STDERR
- !    not logged in
-STDERR
+      describe 'auth:token' do
+        it "displays the user's api key" do
+          stderr, stdout = execute('auth:token')
+
+          expect(stderr).to eq('')
+          expect(stdout).to eq <<-STDOUT
+apikey02
+STDOUT
+        end
+      end
+
+      describe 'auth:whoami' do
+        it "displays the user's email address" do
+          stderr, stdout = execute('auth:whoami')
+
+          expect(stderr).to eq('')
+          expect(stdout).to eq <<-STDOUT
+example@email.com
+STDOUT
+        end
+      end
     end
 
+    context 'with TURBOT_API_KEY set' do
+      around(:each) do |example|
+        ENV['TURBOT_API_KEY'] = 'apikey99'
+        example.run
+        ENV['TURBOT_API_KEY'] = nil
+      end
+
+      describe 'auth:token' do
+        it "displays the user's api key" do
+          stderr, stdout = execute('auth:token')
+
+          expect(stderr).to eq('')
+          expect(stdout).to eq <<-STDOUT
+apikey99
+STDOUT
+        end
+      end
+
+      describe 'auth:whoami' do
+        it "displays nothing" do
+          stderr, stdout = execute('auth:whoami')
+
+          expect(stderr).to eq('')
+          expect(stdout).to eq <<-STDOUT
+
+STDOUT
+        end
+      end
+    end
   end
 
+  context 'when logged out' do
+    ['empty', 'nonexistent'].each do |path|
+      before do
+        allow(Netrc).to receive(:default_path).and_return(fixture(path))
+      end
+
+      describe 'auth:token' do
+        it 'displays an error message' do
+          stderr, stdout = execute('auth:token')
+
+          expect(stdout).to eq('')
+          expect(stderr).to eq <<-STDERR
+ !    not logged in
+STDERR
+        end
+      end
+
+      describe 'auth:whoami' do
+        it 'displays an error message' do
+          stderr, stdout = execute('auth:whoami')
+
+          expect(stdout).to eq('')
+          expect(stderr).to eq <<-STDERR
+ !    not logged in
+STDERR
+        end
+      end
+    end
+  end
+
+  context 'with a bad .netrc file' do
+    before do
+      allow(Netrc).to receive(:default_path).and_return(fixture('bad_permissions', 0644))
+    end
+
+    describe 'auth:whoami' do
+      it 'displays an error message' do
+        stderr, stdout = execute('auth:whoami')
+
+        expect(stdout).to eq('')
+        expect(stderr).to match(%r{\A !    Permission bits for '.+/spec/fixtures/bad_permissions' should be 0600, but are 644\n\z})
+      end
+    end
+  end
 end

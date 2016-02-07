@@ -1,57 +1,50 @@
-$stdin = File.new("/dev/null")
+require 'rubygems'
 
-require "rubygems"
-
-require "simplecov"
-require "coveralls"
-SimpleCov.formatter = Coveralls::SimpleCov::Formatter
+require 'simplecov'
 SimpleCov.start do
-  add_filter "spec"
+  add_filter 'spec'
 end
 
 require 'tmpdir'
 
-require 'fakefs/safe'
-require 'rr'
 require 'rspec'
 require 'webmock/rspec'
 
 require 'turbot'
+require 'support/dummy_api'
 
 include WebMock::API
 
-def api
-  require 'turbot_api'
-
-  Turbot::API.new(:api_key => "pass", :mock => true)
+def fixture(path, chmod = 0600)
+  filename = File.expand_path(File.join('..', 'fixtures', path), __FILE__)
+  if File.exist?(filename)
+    FileUtils.chmod(chmod, filename)
+  end
+  filename
 end
 
-def stub_api_request(method, path)
-  stub_request(method, "http://turbot.opencorporates.com#{path}")
+def open_netrc
+  Netrc.read(Netrc.default_path)
 end
 
-def prepare_command(klass)
-  command = klass.new
-  allow(command).to receive(:bot).and_return("example")
-  allow(command).to receive(:ask).and_return("")
-  allow(command).to receive(:display)
-  allow(command).to receive(:hputs)
-  allow(command).to receive(:turbot).and_return(double('turbot client', :host => 'turbot.com'))
-  command
+def write_netrc(data)
+  netrc = open_netrc
+  netrc['api.http://turbot.opencorporates.com'] = data
+  netrc.save
+end
+
+def read_netrc
+  open_netrc['api.http://turbot.opencorporates.com']
 end
 
 def execute(command_line)
-  extend RR::Adapters::RRMethods
-
-  args = command_line.split(" ")
+  args = command_line.split(' ')
   command = args.shift
 
   Turbot::Command.load
   object, method = Turbot::Command.prepare_run(command, args)
 
-  any_instance_of(Turbot::Command::Base) do |base|
-    stub(base).bot.returns("example")
-  end
+  allow_any_instance_of(Turbot::Command::Base).to receive(:bot).and_return('example')
 
   original_stdin, original_stderr, original_stdout = $stdin, $stderr, $stdout
 
@@ -73,70 +66,4 @@ def execute(command_line)
   end
 
   [captured_stderr.string, captured_stdout.string]
-end
-
-def any_instance_of(klass, &block)
-  extend RR::Adapters::RRMethods
-  any_instance_of(klass, &block)
-end
-
-def run(command_line)
-  capture_stdout do
-    begin
-      Turbot::CLI.start(*command_line.split(" "))
-    rescue SystemExit
-    end
-  end
-end
-
-alias turbot run
-
-def capture_stderr(&block)
-  original_stderr = $stderr
-  $stderr = captured_stderr = StringIO.new
-  begin
-    yield
-  ensure
-    $stderr = original_stderr
-  end
-  captured_stderr.string
-end
-
-def capture_stdout(&block)
-  original_stdout = $stdout
-  $stdout = captured_stdout = StringIO.new
-  begin
-    yield
-  ensure
-    $stdout = original_stdout
-  end
-  captured_stdout.string
-end
-
-def fail_command(message)
-  raise_error(Turbot::Command::CommandFailed, message)
-end
-
-def with_blank_git_repository(&block)
-  sandbox = File.join(Dir.tmpdir, "turbot", Process.pid.to_s)
-  FileUtils.mkdir_p(sandbox)
-
-  old_dir = Dir.pwd
-  Dir.chdir(sandbox)
-
-  `git init`
-  block.call
-
-  FileUtils.rm_rf(sandbox)
-ensure
-  Dir.chdir(old_dir)
-end
-
-require "support/dummy_api"
-
-RSpec.configure do |config|
-  config.color = true
-  config.order = 'rand'
-  config.before { Turbot::Helpers.error_with_failure = false }
-  config.after { RR.reset }
 end

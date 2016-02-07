@@ -17,15 +17,14 @@ Gem::Specification.new do |gem|
 
   gem.required_ruby_version = '>=1.9.2'
 
-  gem.add_runtime_dependency("netrc", "~> 0.7.7")
+  gem.add_runtime_dependency("netrc", "~> 0.11")
   gem.add_runtime_dependency("rubyzip", ">= 1.0.0")
+  gem.add_runtime_dependency("text", "~> 1.3.1")
   gem.add_runtime_dependency("turbot-api", "0.0.14")
   gem.add_runtime_dependency("turbot-runner", "~> 0.2.7")
   
   gem.add_development_dependency("coveralls")
-  gem.add_development_dependency("fakefs")
   gem.add_development_dependency("rake", ">= 0.8.7")
-  gem.add_development_dependency("rr", "~> 1.0.2")
   gem.add_development_dependency("rspec", "~> 3.4.0")
   gem.add_development_dependency("sqlite3")
   # coveralls dependency. 1.7.0 requires Ruby version >= 2.0.

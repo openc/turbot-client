@@ -2,13 +2,13 @@ class Turbot::Command::Base
   include Turbot::Helpers
 
   def self.namespace
-    self.to_s.split("::").last.downcase
+    self.to_s.split('::').last.downcase
   end
 
   attr_reader :args
   attr_reader :options
 
-  def initialize(args=[], options={})
+  def initialize(args = [], options = {})
     @args = args
     @options = options
   end
@@ -22,12 +22,8 @@ class Turbot::Command::Base
       bot_from_manifest
     else
       # raise instead of using error command to enable rescuing when bot is optional
-      raise Turbot::Command::CommandFailed.new("No bot specified.\nRun this command from a bot folder containing a `manifest.json`,  or specify which bot to use with --bot BOT_ID.") unless options[:ignore_no_bot]
+      raise Turbot::Command::CommandFailed.new("No bot specified.\nRun this command from a bot folder containing a `manifest.json`,  or specify which bot to use with --bot BOT_ID.")
     end
-  end
-
-  def api
-    Turbot::Auth.api
   end
 
 protected

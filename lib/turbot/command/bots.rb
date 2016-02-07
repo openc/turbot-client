@@ -1,4 +1,4 @@
-# manage bots (generate skeleton, validate data, submit code)
+# Manage bots (generate skeleton, validate data, submit code)
 #
 class Turbot::Command::Bots < Turbot::Command::Base
   def initialize(*args)
@@ -62,26 +62,10 @@ class Turbot::Command::Bots < Turbot::Command::Base
     end
 
     bot_data = response.data
-    unless options[:shell]
-      styled_header(bot_data["name"])
-    end
+    styled_header(bot_data["name"])
 
-    if options[:shell]
-      bot_data.keys.sort_by { |a| a.to_s }.each do |key|
-        hputs("#{key}=#{bot_data[key]}")
-      end
-    else
-      data = {}
-      if bot_data["last_run_status"]
-        data["Last run status"] = bot_data["last_run_status"]
-      end
-      if bot_data["last_run_ended"]
-        data["Last run ended"] = format_date(bot_data["last_run_ended"]) if bot_data["last_run_ended"]
-      end
-      data["Git URL"] = bot_data["git_url"]
-      data["Repo Size"] = format_bytes(bot_data["repo_size"]) if bot_data["repo_size"]
-      styled_hash(data)
-    end
+    data = {}
+    styled_hash(data)
   end
 
   alias_command "info", "bots:info"

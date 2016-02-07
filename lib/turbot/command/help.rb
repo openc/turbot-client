@@ -1,141 +1,122 @@
-# list commands and display help
+#List commands and display help
 #
 class Turbot::Command::Help < Turbot::Command::Base
-
-  PRIMARY_NAMESPACES = %w( auth bots ps run addons config releases domains logs sharing )
+  PRIMARY_NAMESPACES = Set.new(%w(auth bots))
 
   # help [COMMAND]
   #
-  # list available commands or display help for a specific command
+  #List available commands or display help for a specific command.
   #
   #Examples:
   #
-  # $ turbot help
-  # Usage: turbot COMMAND [--bot APP] [command-specific-options]
+  #  $ turbot help
+  #  Usage: turbot COMMAND [--bot APP] [command-specific-options]
   #
-  # Primary help topics, type "turbot help TOPIC" for more details:
+  #  Primary help topics, type "turbot help TOPIC" for more details:
   #
-  #   addons    #  manage addon resources
-  #   bots      #  manage bots (create, destroy)
-  #   ...
+  #    auth  #  Login or logout from Turbot
+  #    bots  #  Manage bots (generate skeleton, validate data, submit code)
   #
-  # Additional topics:
+  #  Additional topics:
   #
-  #   account      #  manage turbot account options
-  #   accounts     #  manage multiple turbot accounts
-  #   ...
+  #    help     #  List commands and display help
+  #    version  #  Display version
   #
-  # $ turbot help bots:create
-  # Usage: turbot bots:create [NAME]
+  #  $ turbot help auth:whoam
+  #  Usage: turbot auth:whoami
   #
-  #  create a new bot
+  #  Display your Turbot email address.
+  #
+  #  Example:
+  #
+  #   $ turbot auth:whoami
+  #   email@example.com
   #
   def index
-    if command = args.shift
+    command = args.shift
+    if command
       help_for_command(command)
     else
       help_for_root
     end
   end
-
-  alias_command "-h", "help"
-  alias_command "--help", "help"
+  alias_command '-h', 'help'
+  alias_command '--help', 'help'
 
 private
 
-  def commands_for_namespace(name)
-    Turbot::Command.commands.values.select do |command|
-      command[:namespace] == name && command[:command] != name
-    end
-  end
+  ### Root
 
   def namespaces
-    namespaces = Turbot::Command.namespaces
-    namespaces.delete("bot")
-    namespaces
-  end
-
-  def commands
-    Turbot::Command.commands
-  end
-
-  def skip_namespace?(ns)
-    return true if ns[:description] =~ /DEPRECATED:/
-    return true if ns[:description] =~ /HIDDEN:/
-    false
-  end
-
-  def skip_command?(command)
-    return true if command[:help] =~ /DEPRECATED:/
-    return true if command[:help] =~ /^ HIDDEN:/
-    false
+    Turbot::Command.namespaces
   end
 
   def primary_namespaces
-    PRIMARY_NAMESPACES.map { |name| namespaces[name] }.compact
+    namespaces.select { |name,_| PRIMARY_NAMESPACES.include?(name) }.values
   end
 
   def additional_namespaces
-    (namespaces.values - primary_namespaces)
+    namespaces.reject { |name,_| PRIMARY_NAMESPACES.include?(name) }.values
   end
 
   def summary_for_namespaces(namespaces)
-    size = longest(namespaces.map { |n| n[:name] })
-    namespaces.sort_by {|namespace| namespace[:name]}.each do |namespace|
-      next if skip_namespace?(namespace)
-      name = namespace[:name]
-      puts "  %-#{size}s  # %s" % [ name, namespace[:description] ]
+    size = namespaces.map { |namespace| namespace[:name].size }.max
+    namespaces.sort_by { |namespace| namespace[:name] }.each do |namespace|
+      puts "  %-#{size}s  # %s" % [ namespace[:name], namespace[:description] ]
     end
   end
 
   def help_for_root
-    puts "Usage: turbot COMMAND [--bot APP] [command-specific-options]"
+    puts 'Usage: turbot COMMAND [--bot APP] [command-specific-options]'
     puts
-    puts "Primary help topics, type \"turbot help TOPIC\" for more details:"
+    puts 'Primary help topics, type "turbot help TOPIC" for more details:'
     puts
     summary_for_namespaces(primary_namespaces)
     puts
-    puts "Additional topics:"
+    puts 'Additional topics:'
     puts
     summary_for_namespaces(additional_namespaces)
     puts
   end
 
-  def help_for_namespace(name)
-    namespace_commands = commands_for_namespace(name)
+  ### Command
 
-    unless namespace_commands.empty?
-      size = longest(namespace_commands.map { |c| c[:banner] })
-      namespace_commands.sort_by { |c| c[:banner].to_s }.each do |command|
-        next if skip_command?(command)
-        puts "  %-#{size}s  # %s" % [ command[:banner], command[:summary] ]
-      end
+  def commands
+    Turbot::Command.commands
+  end
+
+  def commands_for_namespace(name)
+    commands.values.select do |command|
+      command[:namespace] == name && command[:command] != name
+    end
+  end
+
+  def help_for_namespace(namespace_commands)
+    size = namespace_commands.map { |c| c[:banner].size }.max
+    namespace_commands.sort_by { |c| c[:banner] }.each do |command|
+      puts "  %-#{size}s  # %s" % [ command[:banner], command[:summary] ]
     end
   end
 
   def help_for_command(name)
-    if command_alias = Turbot::Command.command_aliases[name]
-      display("Alias: #{name} redirects to #{command_alias}")
+    command_alias = Turbot::Command.command_aliases[name]
+    if command_alias
+      display "Alias: #{name} redirects to #{command_alias}"
       name = command_alias
     end
-    if command = commands[name]
+
+    command = commands[name]
+    if command
       puts "Usage: turbot #{command[:banner]}"
-
-      help = command[:help].split("\n").reject do |line|
-        line =~ /HIDDEN/
-      end
-      puts help[1..-1].join("\n")
+      puts command[:help].split("\n").drop(1).join("\n")
       puts
     end
 
-    namespace_commands = commands_for_namespace(name).reject do |command|
-      command[:help] =~ /DEPRECATED/
-    end
-
+    namespace_commands = commands_for_namespace(name)
     if !namespace_commands.empty?
-      puts "Additional commands, type \"turbot help COMMAND\" for more details:"
+      puts 'Additional commands, type "turbot help COMMAND" for more details:'
       puts
-      help_for_namespace(name)
+      help_for_namespace(namespace_commands)
       puts
     elsif command.nil?
       error "#{name} is not a turbot command. See `turbot help`."

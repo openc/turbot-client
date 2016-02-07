@@ -1,20 +1,19 @@
-# display version
+#Display version
 #
 class Turbot::Command::Version < Turbot::Command::Base
 
   # version
   #
-  # show turbot client version
+  #Show the Turbot client's version.
   #
   #Example:
   #
-  # $ turbot version
-  # turbot-toolbelt/1.2.3 (x86_64-darwin11.2.0) ruby/1.9.3
+  #  $ turbot version
+  #  turbot-gem/0.1.36 (x86_64-darwin14) ruby/2.2.0
   #
   def index
     validate_arguments!
-
-    display(Turbot.user_agent)
+    display Turbot.user_agent
   end
-
+  alias_command '--version', 'version'
 end

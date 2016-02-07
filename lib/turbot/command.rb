@@ -1,11 +1,9 @@
 module Turbot
   module Command
-    class CommandFailed  < RuntimeError; end
-
     extend Turbot::Helpers
 
     def self.load
-      Dir[File.join(File.dirname(__FILE__), "command", "*.rb")].each do |file|
+      Dir[File.join(File.dirname(__FILE__), 'command', '*.rb')].each do |file|
         require file
       end
       unregister_commands_made_private_after_the_fact
@@ -32,9 +30,9 @@ module Turbot
     end
 
     def self.unregister_commands_made_private_after_the_fact
-      commands.values \
-        .select { |c| c[:klass].private_method_defined? c[:method] } \
-        .each   { |c| commands.delete c[:command] }
+      commands.values.
+        select { |c| c[:klass].private_method_defined? c[:method] }.
+        each { |c| commands.delete(c[:command]) }
     end
 
     def self.register_namespace(namespace)
@@ -72,28 +70,14 @@ module Turbot
 
     def self.validate_arguments!
       unless invalid_arguments.empty?
-        arguments = invalid_arguments.map {|arg| "\"#{arg}\""}
+        arguments = invalid_arguments.map(&:inspect)
         if arguments.length == 1
           message = "Invalid argument: #{arguments.first}"
-        elsif arguments.length > 1
-          message = "Invalid arguments: "
-          message << arguments[0...-1].join(", ")
-          message << " and "
-          message << arguments[-1]
+        else
+          message = "Invalid arguments: #{arguments[0...-1].join(', ')} and #{arguments[-1]}"
         end
-        $stderr.puts(format_with_bang(message))
-        run(current_command, ["--help"])
-        exit(1)
-      end
-    end
-
-    def self.warnings
-      @warnings ||= []
-    end
-
-    def self.display_warnings
-      unless warnings.empty?
-        $stderr.puts(warnings.map {|warning| " !    #{warning}"}.join("\n"))
+        run(current_command, ['--help'])
+        error(message)
       end
     end
 
@@ -102,24 +86,13 @@ module Turbot
       global_options << { :name => name.to_s, :args => args.sort.reverse, :proc => blk }
     end
 
-    global_option :bot, "-b", "--bot APP" do |bot|
-      raise OptionParser::InvalidOption.new(bot) if bot == "pp"
+    global_option :bot, '-b', '--bot APP' do |bot|
+      raise OptionParser::InvalidOption.new(bot)
     end
-    global_option :help,    "-h", "--help"
+    global_option :help, '-h', '--help'
 
     def self.prepare_run(cmd, args=[])
       command = parse(cmd)
-
-      if args.include?('-h') || args.include?('--help')
-        args.unshift(cmd) unless cmd =~ /^-.*/
-        cmd = 'help'
-        command = parse(cmd)
-      end
-
-      if cmd == '--version'
-        cmd = 'version'
-        command = parse(cmd)
-      end
 
       @current_command = cmd
       @anonymized_args, @normalized_args = [], []
@@ -176,14 +149,14 @@ module Turbot
         error([
           "`#{cmd}` is not a turbot command.",
           suggestion(cmd, commands.keys + command_aliases.keys),
-          "See `turbot help` for a list of available commands."
+          'See `turbot help` for a list of available commands.'
         ].compact.join("\n"))
       end
     end
 
-    def self.run(cmd, arguments=[])
+    def self.run(command, arguments=[])
       begin
-        object, method = prepare_run(cmd, arguments.dup)
+        object, method = prepare_run(command, arguments.dup)
         object.send(method)
       rescue Interrupt, StandardError, SystemExit => error
         # load likely error classes, as they may not be loaded yet due to defered loads
@@ -191,65 +164,66 @@ module Turbot
         raise(error)
       end
     rescue RestClient::Unauthorized
-      puts "Authentication failure"
+      puts 'Authentication failure'
       if ENV['TURBOT_API_KEY']
         exit 1
       else
-        run "login"
+        run 'login'
         retry
       end
     rescue RestClient::ResourceNotFound => e
-      error extract_error(e.http_body) {
-        e.http_body =~ /^([\w\s]+ not found).?$/ ? $1 : "Resource not found"
-      }
-    rescue RestClient::PaymentRequired => e
-      # We've repurposed a 402 as a general error
+      error extract_error(e.http_body) { e.http_body =~ /^([\w\s]+ not found).?$/ ? $1 : 'Resource not found' }
+    rescue RestClient::PaymentRequired, RestClient::RequestFailed => e # 402, 502
       error extract_error(e.http_body)
     rescue RestClient::RequestTimeout
-      error "API request timed out. Please try again, or contact support@turbot.com if this issue persists."
-    rescue RestClient::RequestFailed => e
-      error extract_error(e.http_body)
-    rescue CommandFailed => e
-      error e.message
-    rescue OptionParser::ParseError
-      commands[cmd] ? run("help", [cmd]) : run("help")
+      error 'API request timed out. Please try again, or contact bots@opencorporates.com if this issue persists.'
     rescue SocketError => e
-      error("Unable to connect to Turbot API, please check internet connectivity and try again.")
-    ensure
-      display_warnings
+      error 'Unable to connect to Turbot API, please check internet connectivity and try again.'
+    rescue OptionParser::ParseError
+      if commands[command]
+        run('help', [command])
+      else
+        run('help')
+      end
     end
 
-    def self.parse(cmd)
-      commands[cmd] || commands[command_aliases[cmd]]
+    def self.parse(command)
+      commands[command] || commands[command_aliases[command]]
     end
 
-    def self.extract_error(body, options={})
-      default_error = block_given? ? yield : "Internal server error.\nRun `turbot status` to check for known platform issues."
-      parse_error_xml(body) || parse_error_json(body) || parse_error_plain(body) || default_error
-    end
-
-    def self.parse_error_xml(body)
-      xml_errors = REXML::Document.new(body).elements.to_a("//errors/error")
-      msg = xml_errors.map { |a| a.text }.join(" / ")
-      return msg unless msg.empty?
-    rescue Exception
+    def self.extract_error(body, options = {})
+      if block_given?
+        default_error = yield
+      else
+        default_error = 'Internal server error'
+      end
+      parse_error_json(body) || default_error
     end
 
     def self.parse_error_json(body)
-      json = JSON.load(body.to_s) rescue false
-      case json
-      when Array
-        json.first.join(' ') # message like [['base', 'message']]
-      when Hash
-        json['error'] || json['error_message'] || json['message'] # message like {'error' => 'message'}
-      else
+      begin
+        JSON.load(body.to_s)['message']
+      rescue JSON::ParserError
         nil
       end
     end
 
-    def self.parse_error_plain(body)
-      return unless body.respond_to?(:headers) && body.headers[:content_type].to_s.include?("text/plain")
-      body.to_s
+  private
+
+    def self.suggestion(actual, possibilities)
+      distances = Hash.new { |hash,key| hash[key] = [] }
+      possibilities.each do |possibility|
+        distances[Text::Levenshtein.distance(actual, possibility, 4)] << possibility
+      end
+      minimum_distance = distances.keys.min
+      if minimum_distance < 4
+        suggestions = distances[minimum_distance].sort
+        if suggestions.length == 1
+          "Perhaps you meant `#{suggestions.first}`."
+        else
+          "Perhaps you meant #{suggestions[0...-1].map { |suggestion| "`#{suggestion}`" }.join(', ')} or `#{suggestions.last}`."
+        end
+      end
     end
   end
 end
