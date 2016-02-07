@@ -19,6 +19,31 @@ You now have access to the `turbot` command.  Log in using your Turbot account's
     Email: email@example.com
     Password (typing will be hidden):
 
+You can then generate a bot:
+
+    turbot bots:generate --bot my_amazing_bot
+    cd my_amazing_bot
+
+Register the bot with Turbot:
+
+    turbot bots:register
+
+Run your bot locally:
+
+    turbot bots:dump
+
+Ensure your bot is valid:
+
+    turbot bots:validate
+
+And push your code to Turbot when ready:
+
+    turbot bots:push
+
+To read about Turbot's other commands:
+
+    turbot help
+
 ## Environment variables
 
 * `TURBOT_API_KEY`: Overrides the API key in the `.netrc` file. Allows you to skip authentication.
