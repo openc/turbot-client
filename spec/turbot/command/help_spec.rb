@@ -2,7 +2,6 @@ require 'spec_helper'
 require 'turbot/command/help'
 
 describe Turbot::Command::Help do
-
   describe 'help' do
     it 'shows root help' do
       %w(help -h --help).each do |command|

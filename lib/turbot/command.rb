@@ -43,18 +43,6 @@ module Turbot
       @current_command
     end
 
-    def self.current_command=(new_current_command)
-      @current_command = new_current_command
-    end
-
-    def self.current_args
-      @current_args
-    end
-
-    def self.current_options
-      @current_options ||= {}
-    end
-
     def self.invalid_arguments
       @invalid_arguments
     end
@@ -91,9 +79,6 @@ module Turbot
         parser.base.long.delete('version')
         (command && command[:options] || []).each do |option|
           parser.on(*option[:args]) do |value|
-            if option[:proc]
-              option[:proc].call(value)
-            end
             opts[option[:name].gsub('-', '_').to_sym] = value
             ARGV.join(' ') =~ /(#{option[:args].map {|arg| arg.split(' ', 2).first}.join('|')})/
           end
@@ -111,8 +96,6 @@ module Turbot
 
       args.concat(invalid_options)
 
-      @current_args = args
-      @current_options = opts
       @invalid_arguments = invalid_options
 
       if command

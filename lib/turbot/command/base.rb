@@ -135,14 +135,6 @@ protected
     Turbot::Command.current_command
   end
 
-  def invalid_arguments
-    Turbot::Command.invalid_arguments
-  end
-
-  def shift_argument
-    Turbot::Command.shift_argument
-  end
-
   def validate_arguments!
     Turbot::Command.validate_arguments!
   end

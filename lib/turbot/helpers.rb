@@ -15,12 +15,8 @@ module Turbot
       $stdin.gets.to_s.strip
     end
 
-    def display(message = '', new_line = true)
-      if new_line
-        puts message
-      else
-        print message
-      end
+    def display(message = '')
+      puts message
       $stdout.flush
     end
 

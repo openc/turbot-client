@@ -3,8 +3,6 @@ require 'turbot/command/bots'
 require 'turbot_runner'
 
 describe Turbot::Command::Bots do
-  include Turbot::Helpers
-
   context 'when unauthenticated' do
     before do
       allow(Netrc).to receive(:default_path).and_return(fixture('empty'))
