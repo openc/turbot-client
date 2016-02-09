@@ -119,20 +119,6 @@ module Turbot
         require 'rest_client'
         raise(error)
       end
-    rescue RestClient::Unauthorized
-      display 'Authentication failure'
-      if ENV['TURBOT_API_KEY']
-        exit(1)
-      else
-        run 'login'
-        retry
-      end
-    rescue RestClient::ResourceNotFound => e
-      error extract_error(e.http_body) { e.http_body =~ /^([\w\s]+ not found).?$/ ? $1 : 'Resource not found' }
-    rescue RestClient::PaymentRequired, RestClient::RequestFailed => e # 402, 502
-      error extract_error(e.http_body)
-    rescue RestClient::RequestTimeout
-      error 'API request timed out. Please try again, or contact bots@opencorporates.com if this issue persists.'
     rescue SocketError => e
       error 'Unable to connect to Turbot API, please check internet connectivity and try again.'
     rescue OptionParser::ParseError
