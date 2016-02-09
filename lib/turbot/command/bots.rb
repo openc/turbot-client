@@ -159,6 +159,8 @@ class Turbot::Command::Bots < Turbot::Command::Base
   #
   #Push the bot's code to Turbot. Must be run from a bot directory containing a `manifest.json` file.
   #
+  #  -y, --yes # skip confirmation
+  #
   #Example:
   #
   #  $ turbot bots:push
@@ -170,11 +172,13 @@ class Turbot::Command::Bots < Turbot::Command::Base
     validate_arguments!
     error_if_no_local_bot_found
 
-    display 'This will submit your bot and its data for review.'
-    display 'Are you happy your bot produces valid data (e.g. with `turbot bots:validate`)? [Y/n]'
-    answer = ask
-    unless ['', 'y'].include?(answer.downcase.strip)
-      error 'Aborted.'
+    unless options[:yes]
+      display 'This will submit your bot and its data for review.'
+      display 'Are you happy your bot produces valid data (e.g. with `turbot bots:validate`)? [Y/n]'
+      answer = ask
+      unless ['', 'y'].include?(answer.downcase.strip)
+        error 'Aborted.'
+      end
     end
 
     # TODO Validate the manifest.json file.

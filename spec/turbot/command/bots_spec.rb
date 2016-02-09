@@ -265,6 +265,22 @@ Your bot has been pushed to Turbot and will be reviewed for inclusion as soon as
 STDOUT
       end
 
+      it 'skips confirmation' do
+        allow($stdin).to receive(:gets).and_return('y')
+        stub_request(:put, 'http://turbot.opencorporates.com/api/bots/example/code').to_return(:status => 200, :body => '{}')
+
+        bot_directory = create_bot_directory
+        create_manifest_file(bot_directory)
+        create_scraper_file(bot_directory)
+
+        stderr, stdout = execute_in_directory('bots:push --yes', bot_directory)
+
+        expect(stderr).to eq('')
+        expect(stdout).to eq <<-STDOUT
+Your bot has been pushed to Turbot and will be reviewed for inclusion as soon as we can. THANK YOU!
+STDOUT
+      end
+
       it 'errors if no local bot is found' do
         stderr, stdout = execute('bots:push')
 
