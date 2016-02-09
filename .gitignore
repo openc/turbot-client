@@ -1,7 +1,7 @@
-/coverage
 *.gem
 .bundle
 .yardoc
+coverage
 Gemfile.lock
 doc/*
 pkg/*
