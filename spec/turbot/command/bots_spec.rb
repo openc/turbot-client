@@ -373,7 +373,9 @@ STDERR
         bot_directory = create_bot_directory
         create_scraper_file(bot_directory)
         create_manifest_file(bot_directory, JSON.dump(valid_manifest.merge({
+          'allow_duplicates' => true,
           'author' => 'John Q. Public',
+          'incremental' => true,
           'public_repository' => 'http://example.com/',
         })))
 
@@ -381,7 +383,9 @@ STDERR
 
         expect(stderr).to eq('')
         expect(stdout).to eq <<-STDOUT
+WARNING: "allow_duplicates" is deprecated. Use "duplicates_allowed" instead.
 WARNING: "author" is deprecated. Use "publisher" instead.
+WARNING: "incremental" is deprecated. Use "manually_end_run" instead.
 WARNING: "public_repository" is deprecated. Use "public_repo_url" instead.
 Validated 1 records!
 STDOUT

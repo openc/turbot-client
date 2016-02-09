@@ -210,7 +210,9 @@ class Turbot::Command::Bots < Turbot::Command::Base
 
     manifest = parse_manifest
 
-    { 'author' => 'publisher',
+    { 'allow_duplicates' => 'duplicates_allowed',
+      'author' => 'publisher',
+      'incremental' => 'manually_end_run',
       'public_repository' => 'public_repo_url',
     }.each do |deprecated,field|
       if manifest[deprecated]
