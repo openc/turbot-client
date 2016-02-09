@@ -36,6 +36,19 @@ module BotHelper
     })
   end
 
+  def stub_preview
+    stub_request(:put, 'http://turbot.opencorporates.com/api/bots/example').to_return(:status => 200, :body => '{}')
+    stub_request(:delete, 'http://turbot.opencorporates.com/api/bots/example/draft_data?api_key=apikey01').to_return(:status => 200, :body => '{}')
+    stub_request(:post, 'http://turbot.opencorporates.com/api/bots/example/draft_data').to_return({
+      :status => 200,
+      :body => JSON.dump({
+        'data' => {
+          'url' => 'http://example.com/',
+        },
+      }),
+    })
+  end
+
   # Filesystem
 
   def create_bot_directory(working_directory = nil)
@@ -59,7 +72,7 @@ module BotHelper
     end
   end
 
-  def create_bad_scraper_file(bot_directory)
+  def create_broken_scraper_file(bot_directory)
     File.open(File.join(bot_directory, 'scraper.rb'), 'w') do |f|
       f.write("class ThisErrorIsExpected < StandardError; end\n")
       f.write("raise ThisErrorIsExpected\n")

@@ -305,6 +305,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
   #
   def preview
     validate_arguments!
+    error_if_no_local_bot_found
 
     response = api.update_bot(bot, parse_manifest)
     if response.is_a?(Turbot::API::FailureResponse)
@@ -316,7 +317,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
       error response.message
     end
 
-    display 'Sending to Turbot... '
+    display 'Sending to Turbot...'
 
     handler = Turbot::Handlers::PreviewHandler.new(bot, api)
     runner = TurbotRunner::Runner.new(working_directory, :record_handler => handler)

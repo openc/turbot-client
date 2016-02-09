@@ -37,9 +37,9 @@ protected
   end
 
   def self.method_added(method)
-    return if self == Turbot::Command::Base
-    return if private_method_defined?(method)
-    return if protected_method_defined?(method)
+    if self == Turbot::Command::Base || private_method_defined?(method) || protected_method_defined?(method)
+      return
+    end
 
     help = extract_help_from_caller(caller.first)
     resolved_method = (method.to_s == "index") ? nil : method.to_s
@@ -57,13 +57,10 @@ protected
       :description => extract_description(help),
       :options     => extract_options(help)
     )
-
-    alias_command command.gsub(/_/, '-'), command if command =~ /_/
   end
 
-  def self.alias_command(new, old)
-    raise "no such command: #{old}" unless Turbot::Command.commands[old]
-    Turbot::Command.command_aliases[new] = old
+  def self.alias_command(command_alias, command)
+    Turbot::Command.command_aliases[command_alias] = command
   end
 
   #

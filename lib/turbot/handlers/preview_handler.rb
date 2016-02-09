@@ -15,7 +15,9 @@ module Turbot
         @count += 1
         STDOUT.write('.')
         @batch << record.merge(:data_type => data_type)
-        submit_batch if @count % 20 == 0
+        if @count % 20 == 0
+          submit_batch
+        end
       end
 
       def submit_batch

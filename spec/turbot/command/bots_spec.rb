@@ -345,6 +345,22 @@ Validated 0 records before bot failed!
 STDOUT
        end
 
+      it 'reports invalid JSON' do
+        bot_directory = create_bot_directory
+        create_manifest_file(bot_directory)
+        create_scraper_file(bot_directory, '{')
+
+        stderr, stdout = execute_in_directory('bots:validate', bot_directory)
+
+        expect(stderr).to eq('')
+        expect(stdout).to eq <<-STDOUT
+
+The following line was not valid JSON:
+"{"
+Validated 0 records before bot failed!
+STDOUT
+       end
+
       it 'reports records without identifying fields' do
         bot_directory = create_bot_directory
         create_manifest_file(bot_directory)
@@ -462,6 +478,59 @@ STDERR
       end
     end
 
+    describe 'bots:preview' do
+      it 'submits records' do
+        stub_preview
+
+        set_turbot_runner_schemas
+
+        bot_directory = create_bot_directory
+        create_manifest_file(bot_directory)
+        create_scraper_file(bot_directory)
+
+        allow_any_instance_of(Turbot::Command::Base).to receive(:working_directory).and_return(bot_directory)
+        stderr, stdout = execute('bots:preview')
+        restore_working_directory_method
+
+        expect(stderr).to eq('')
+        expect(stdout).to eq <<-STDOUT
+Sending to Turbot...
+Submitted 1 records to Turbot.
+View your records at http://example.com/
+STDOUT
+      end
+
+      it 'errors if no local bot is found' do
+        stderr, stdout = execute('bots:preview')
+
+        expect(stdout).to eq('')
+        expect(stderr).to eq <<-STDERR
+ !    No bot specified.
+ !    Run this command from a bot directory containing a `manifest.json` file, or specify the bot with --bot BOT.
+STDERR
+      end
+
+      it 'errors if the scraper is broken' do
+        stub_preview
+
+        set_turbot_runner_schemas
+
+        bot_directory = create_bot_directory
+        create_manifest_file(bot_directory)
+        create_broken_scraper_file(bot_directory)
+
+        allow_any_instance_of(Turbot::Command::Base).to receive(:working_directory).and_return(bot_directory)
+        stderr, stdout = execute('bots:preview')
+        restore_working_directory_method
+
+        expect(stderr).to eq('')
+        expect(stdout).to eq <<-STDOUT
+Sending to Turbot...
+Bot failed!
+STDOUT
+      end
+    end
+
     describe 'bots:dump' do
       it 'dumps records' do
         set_turbot_runner_schemas
@@ -496,7 +565,7 @@ STDERR
 
         bot_directory = create_bot_directory
         create_manifest_file(bot_directory)
-        create_bad_scraper_file(bot_directory)
+        create_broken_scraper_file(bot_directory)
 
         allow_any_instance_of(Turbot::Command::Base).to receive(:working_directory).and_return(bot_directory)
         stderr, stdout = execute('bots:dump')

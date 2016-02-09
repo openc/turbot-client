@@ -9,7 +9,9 @@ module Turbot
       password = ''
 
       while char = Win32API.new('crtdll', '_getch', [], 'L').Call do
-        break if char == 10 || char == 13 # received carriage return or newline
+        if char == 10 || char == 13 # received carriage return or newline
+          break
+        end
         if char == 127 || char == 8 # backspace and delete
           password.slice!(-1, 1)
         else
@@ -38,11 +40,8 @@ module Turbot
     end
 
     def with_tty(&block)
-      return unless $stdin.isatty
-      begin
+      if $stdin.isatty
         yield
-      rescue
-        # Fails on Windows.
       end
     end
   end

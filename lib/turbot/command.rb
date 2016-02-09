@@ -43,24 +43,15 @@ module Turbot
       @current_command
     end
 
-    def self.invalid_arguments
-      @invalid_arguments
-    end
-
-    def self.shift_argument
-      # dup argument to get a non-frozen string
-      @invalid_arguments.shift.dup rescue nil
-    end
-
     def self.validate_arguments!
-      unless invalid_arguments.empty?
-        arguments = invalid_arguments.map(&:inspect)
+      unless @invalid_arguments.empty?
+        arguments = @invalid_arguments.map(&:inspect)
         if arguments.length == 1
           message = "Invalid argument: #{arguments.first}"
         else
           message = "Invalid arguments: #{arguments[0...-1].join(', ')} and #{arguments[-1]}"
         end
-        run(current_command, ['--help'])
+        run('help', [current_command])
         error message
       end
     end
@@ -89,8 +80,8 @@ module Turbot
         parser.order!(args) do |nonopt|
           invalid_options << nonopt
         end
-      rescue OptionParser::InvalidOption => ex
-        invalid_options << ex.args.first
+      rescue OptionParser::InvalidOption => e
+        invalid_options << e.args.first
         retry
       end
 
