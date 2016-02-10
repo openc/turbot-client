@@ -19,7 +19,7 @@ describe Turbot::Command::Bots do
 
         expect(stdout).to eq('')
         expect(stderr).to eq <<-STDERR
- !    No API key provided
+ !    No API key provided (HTTP 401)
 STDERR
       end
     end
@@ -117,7 +117,7 @@ STDERR
         expect(stdout).to eq('')
         expect(stderr).to eq <<-STDERR
  !    No bot registered for bot_id example
- !    If you have renamed your bot, ...
+ !    If you have renamed your bot, ... (HTTP 402: bot-not-found)
 STDERR
       end
     end
