@@ -248,7 +248,7 @@ STDERR
 
     describe 'bots:push' do
       it 'pushes to Turbot' do
-        allow($stdin).to receive(:gets).and_return('y')
+        allow(STDIN).to receive(:gets).and_return('y')
         stub_request(:put, 'http://turbot.opencorporates.com/api/bots/example/code').to_return(:status => 200, :body => '{}')
 
         bot_directory = create_bot_directory
@@ -266,7 +266,7 @@ STDOUT
       end
 
       it 'skips confirmation' do
-        allow($stdin).to receive(:gets).and_return('y')
+        allow(STDIN).to receive(:gets).and_return('y')
         stub_request(:put, 'http://turbot.opencorporates.com/api/bots/example/code').to_return(:status => 200, :body => '{}')
 
         bot_directory = create_bot_directory
@@ -292,7 +292,7 @@ STDERR
       end
 
       it 'aborts if push not confirmed' do
-        allow($stdin).to receive(:gets).and_return('n')
+        allow(STDIN).to receive(:gets).and_return('n')
 
         bot_directory = create_bot_directory
         create_manifest_file(bot_directory)

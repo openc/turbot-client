@@ -1,9 +1,9 @@
 module CommandHelper
   def execute(command_line)
-    original_stderr, original_stdout = $stderr, $stdout
+    original_stderr, original_stdout = STDERR, STDOUT
 
-    $stderr = captured_stderr = StringIO.new
-    $stdout = captured_stdout = StringIO.new
+    STDERR = captured_stderr = StringIO.new
+    STDOUT = captured_stdout = StringIO.new
 
     begin
       Turbot::CLI.start(*command_line.split(' '))
@@ -12,7 +12,7 @@ module CommandHelper
         p e
       end
     ensure
-      $stderr, $stdout = original_stderr, original_stdout
+      STDERR, STDOUT = original_stderr, original_stdout
     end
 
     [captured_stderr.string, captured_stdout.string]

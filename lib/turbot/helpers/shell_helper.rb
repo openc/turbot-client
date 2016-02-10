@@ -3,7 +3,7 @@ module Turbot
     extend self
 
     def ask
-      $stdin.gets.to_s.strip
+      STDIN.gets.to_s.strip
     end
 
     def ask_for_password_on_windows
