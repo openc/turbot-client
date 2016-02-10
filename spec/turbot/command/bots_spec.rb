@@ -586,7 +586,9 @@ STDOUT
         dirs.each { |dir| Dir.mkdir(File.join(working_directory, dir)) }
         paths.each { |path| FileUtils.touch(File.join(working_directory, path)) }
 
-        archive_path = Tempfile.new('test').path
+        tempfile = Tempfile.new('test')
+        tempfile.close
+        archive_path = "#{tempfile.path}.zip"
 
         allow_any_instance_of(Turbot::Command::Base).to receive(:working_directory).and_return(working_directory)
         Turbot::Command::Bots.new.send(:create_zip_archive, archive_path, ['a', 'b/p/x', 'b/y', 'z'])

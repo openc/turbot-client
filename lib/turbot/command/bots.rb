@@ -184,7 +184,9 @@ class Turbot::Command::Bots < Turbot::Command::Base
     # TODO Validate the manifest.json file.
 
     manifest = parse_manifest
-    archive_path = "#{Tempfile.new(bot).path}.zip"
+    tempfile = Tempfile.new(bot)
+    tempfile.close # Windows will raise Errno::EACCES on Zip::File.open below
+    archive_path = "#{tempfile.path}.zip"
     create_zip_archive(archive_path, manifest['files'] + ['manifest.json'])
 
     response = File.open(archive_path) do |f|
