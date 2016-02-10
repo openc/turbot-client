@@ -9,7 +9,7 @@ install:
   - gem install bundler --no-ri --no-rdoc
   - bundler --version
 build_script:
-  - bundle install --jobs=3 --retry=3 --deployment
+  - bundle install --jobs=3 --retry=3
 test_script:
   - bundle exec rake < Nul
 artifacts:
