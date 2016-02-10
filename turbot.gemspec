@@ -21,14 +21,11 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency("json-schema", "~> 2.6.0")
   gem.add_runtime_dependency("rubyzip", ">= 1.0.0")
   gem.add_runtime_dependency("text", "~> 1.3.1")
-  gem.add_runtime_dependency("turbot-api", "0.0.14")
+  gem.add_runtime_dependency("turbot-api", "~> 0.0.17")
   gem.add_runtime_dependency("turbot-runner", "~> 0.2.7")
   
   gem.add_development_dependency("coveralls")
-  gem.add_development_dependency("rake", ">= 0.8.7")
-  gem.add_development_dependency("rspec", "~> 3.4.0")
-  gem.add_development_dependency("sqlite3")
-  # coveralls dependency. 1.7.0 requires Ruby version >= 2.0.
-  gem.add_development_dependency("tins", "~> 1.6.0")
+  gem.add_development_dependency("rake")
+  gem.add_development_dependency("rspec", "~> 3.4")
   gem.add_development_dependency("webmock")
 end
