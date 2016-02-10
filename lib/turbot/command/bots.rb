@@ -242,10 +242,10 @@ class Turbot::Command::Bots < Turbot::Command::Base
     end
 
     if manifest['transformers']
-      remainder = manifest['transformers'].map { |transformer| transformer['file'] } - manifest['files']
-      if remainder.any?
+      difference = manifest['transformers'].map { |transformer| transformer['file'] } - manifest['files']
+      if difference.any?
         messages = ['`manifest.json` is invalid. Please correct the errors:']
-        messages << "* Some transformer files are not listed in the top-level files: #{remainder.join(', ')}"
+        messages << "* Some transformer files are not listed in the top-level files: #{difference.join(', ')}"
         error messages.join("\n")
       end
     end
