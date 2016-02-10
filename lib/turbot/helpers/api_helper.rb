@@ -21,7 +21,6 @@ module Turbot
       uri = URI.parse(host)
 
       {
-        :headers => {'User-Agent' => Turbot.user_agent},
         :host => uri.host,
         :port => uri.port,
         :scheme => uri.scheme,

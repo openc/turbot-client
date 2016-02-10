@@ -54,7 +54,7 @@ module Turbot
       unless host == DEFAULT_HOST
         formatted_error << "    Host:        #{host}"
       end
-      formatted_error << "    Version:     #{Turbot.user_agent}"
+      formatted_error << "    Version:     #{Turbot::DEBUG_VERSION}"
       formatted_error << "\n"
       formatted_error.join("\n")
     end

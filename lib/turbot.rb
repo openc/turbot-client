@@ -17,9 +17,5 @@ require 'turbot/command/base'
 require 'turbot/version'
 
 module Turbot
-  USER_AGENT = "turbot-gem/#{Turbot::VERSION} (#{RUBY_PLATFORM}) ruby/#{RUBY_VERSION}"
-
-  def self.user_agent
-    @@user_agent ||= USER_AGENT
-  end
+  DEBUG_VERSION = "#{Turbot::VERSION} (#{RUBY_PLATFORM}) ruby/#{RUBY_VERSION}"
 end

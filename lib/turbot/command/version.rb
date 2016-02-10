@@ -13,7 +13,7 @@ class Turbot::Command::Version < Turbot::Command::Base
   #
   def index
     validate_arguments!
-    display Turbot.user_agent
+    display "#{Turbot::DEBUG_VERSION}"
   end
   alias_command '--version', 'version'
 end

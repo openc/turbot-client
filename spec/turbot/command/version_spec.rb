@@ -9,7 +9,7 @@ describe Turbot::Command::Version do
 
         expect(stderr).to eq('')
         expect(stdout).to eq <<-STDOUT
-#{Turbot.user_agent}
+#{Turbot::DEBUG_VERSION}
 STDOUT
       end
     end
