@@ -353,7 +353,7 @@ STDOUT
         stderr, stdout = execute_in_directory('bots:validate', bot_directory)
 
         expect(stderr).to eq('')
-        expect(stdout).to eq <<-STDOUT
+        expect(stdout).to equal_lines <<-STDOUT
 
 The following line was not valid JSON:
 "{"

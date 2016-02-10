@@ -1,10 +1,12 @@
 require 'rubygems'
 
-require 'simplecov'
-require 'coveralls'
-SimpleCov.formatter = Coveralls::SimpleCov::Formatter
-SimpleCov.start do
-  add_filter 'spec'
+unless RUBY_PLATFORM =~ /mswin32|mingw32/
+  require 'simplecov'
+  require 'coveralls'
+  SimpleCov.formatter = Coveralls::SimpleCov::Formatter
+  SimpleCov.start do
+    add_filter 'spec'
+  end
 end
 
 require 'rspec'

@@ -103,6 +103,8 @@ private
     print 'Password (typing will be hidden): '
     password = running_on_windows? ? ask_for_password_on_windows : ask_for_password
 
+    puts
+
     [email_address, get_api_key(email_address, password)]
   end
 

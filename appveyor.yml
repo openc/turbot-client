@@ -3,9 +3,7 @@
 version: '{build}'
 skip_tags: true
 install:
-  - systeminfo
   - SET PATH=C:\Ruby%ruby_version%\bin;%PATH%
-  - echo %PATH%
   - ruby --version
   - gem --version
   - gem install bundler --no-ri --no-rdoc

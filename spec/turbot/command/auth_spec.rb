@@ -48,7 +48,7 @@ STDOUT
       it 'displays an error message' do
         stub_request(:get, 'http://turbot.opencorporates.com/api/user/api_key?api_key=&email=&password=').to_return(:status => 200, :body => '{"api_key":""}')
         allow($stdin).to receive(:gets).and_return('', '')
-        allow_any_instance_of(Turbot::Command::Auth).to receive(:ask_for_password_on_windows).and_return('password')
+        allow_any_instance_of(Turbot::Command::Auth).to receive(:ask_for_password_on_windows).and_return('')
 
         spec_delete_netrc_entry
 

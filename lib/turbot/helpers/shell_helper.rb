@@ -9,7 +9,6 @@ module Turbot
     def ask_for_password_on_windows
       require 'Win32API'
 
-      char = nil
       password = ''
 
       while char = Win32API.new('crtdll', '_getch', [], 'L').Call do
@@ -24,7 +23,6 @@ module Turbot
         end
       end
 
-      puts
       password
     end
 
@@ -39,7 +37,6 @@ module Turbot
         system 'stty echo'
       end
 
-      puts
       password
     end
 
