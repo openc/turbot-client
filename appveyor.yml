@@ -11,7 +11,7 @@ install:
 build_script:
   - bundle install --jobs=3 --retry=3
 test_script:
-  - bundle exec rake < Nul
+  - bundle exec rspec -b < Nul
 artifacts:
   - path: pkg\*.gem
 environment:
