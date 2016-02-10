@@ -2,6 +2,10 @@ module Turbot
   module Helpers
     extend self
 
+    def ask
+      $stdin.gets.to_s.strip
+    end
+
     def ask_for_password_on_windows
       require 'Win32API'
 

@@ -11,10 +11,6 @@ module Turbot
       ENV['TURBOT_HOST'] || DEFAULT_HOST
     end
 
-    def ask
-      $stdin.gets.to_s.strip
-    end
-
     def display(message = '')
       puts message
       $stdout.flush
