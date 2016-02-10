@@ -2,6 +2,7 @@
 
 [![Gem Version](https://badge.fury.io/rb/turbot.svg)](https://badge.fury.io/rb/turbot)
 [![Build Status](https://secure.travis-ci.org/openc/turbot-client.png)](https://travis-ci.org/openc/turbot-client)
+[![Build Status](https://ci.appveyor.com/api/projects/status/sdq0ifdye4rgx8i1?svg=true)](https://ci.appveyor.com/project/jpmckinney/turbot-client)
 [![Dependency Status](https://gemnasium.com/openc/turbot-client.png)](https://gemnasium.com/openc/turbot-client)
 [![Coverage Status](https://coveralls.io/repos/openc/turbot-client/badge.png)](https://coveralls.io/r/openc/turbot-client)
 [![Code Climate](https://codeclimate.com/github/openc/turbot-client.png)](https://codeclimate.com/github/openc/turbot-client)
