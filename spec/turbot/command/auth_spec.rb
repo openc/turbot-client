@@ -200,17 +200,19 @@ STDERR
     end
   end
 
-  context 'with a bad .netrc file' do
-    before do
-      allow(Netrc).to receive(:default_path).and_return(fixture('bad_permissions', 0644))
-    end
+  unless RUBY_PLATFORM =~ /mswin32|mingw32/
+    context 'with a bad .netrc file' do
+      before do
+        allow(Netrc).to receive(:default_path).and_return(fixture('bad_permissions', 0644))
+      end
 
-    describe 'auth:whoami' do
-      it 'displays an error message' do
-        stderr, stdout = execute('auth:whoami')
+      describe 'auth:whoami' do
+        it 'displays an error message' do
+          stderr, stdout = execute('auth:whoami')
 
-        expect(stdout).to eq('')
-        expect(stderr).to match(%r{\A !    Permission bits for '.+/spec/fixtures/bad_permissions' should be 0600, but are 644\n\z})
+          expect(stdout).to eq('')
+          expect(stderr).to match(%r{\A !    Permission bits for '.+/spec/fixtures/bad_permissions' should be 0600, but are 644\n\z})
+        end
       end
     end
   end
