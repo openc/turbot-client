@@ -200,6 +200,7 @@ STDERR
     end
   end
 
+  # Windows NTFS and FAT don't support `File.chmod`.
   unless RUBY_PLATFORM =~ /mswin32|mingw32/
     context 'with a bad .netrc file' do
       before do

@@ -13,12 +13,12 @@ module Turbot
 
     def error(message)
       prefix = ' !    '
-      STDERR.puts(prefix + message.split("\n").join("\n#{prefix}"))
+      $stderr.puts(prefix + message.split("\n").join("\n#{prefix}"))
       exit(1)
     end
 
     def styled_error(error, message = 'Turbot client internal error.')
-      STDERR.puts(format_error(error, message))
+      $stderr.puts(format_error(error, message))
     end
 
     def format_error(error, message = 'Turbot client internal error.')

@@ -3,8 +3,8 @@ class Turbot::CLI
 
   def self.start(*args)
     begin
-      STDIN.sync = true
-      STDOUT.sync = true
+      $stdout.sync = true
+      $stderr.sync = true
 
       trap 'SIGINT' do
         # Script terminated by Control-C.
