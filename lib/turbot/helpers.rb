@@ -11,11 +11,6 @@ module Turbot
       ENV['TURBOT_HOST'] || DEFAULT_HOST
     end
 
-    def display(message = '')
-      puts message
-      $stdout.flush
-    end
-
     def error(message)
       prefix = ' !    '
       $stderr.puts(prefix + message.split("\n").join("\n#{prefix}"))

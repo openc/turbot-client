@@ -27,23 +27,10 @@ module Turbot
     end
 
     def ask_for_password
-      with_tty do
-        system 'stty -echo'
-      end
-
+      system 'stty -echo'
       password = ask
-
-      with_tty do
-        system 'stty echo'
-      end
-
+      system 'stty echo'
       password
-    end
-
-    def with_tty(&block)
-      if $stdin.isatty
-        yield
-      end
     end
   end
 end

@@ -29,10 +29,10 @@ class Turbot::Command::Bots < Turbot::Command::Base
     response = api.list_bots
     if response.is_a?(Turbot::API::SuccessResponse)
       if response.data.empty?
-        display 'You have no bots.'
+        puts 'You have no bots.'
       else
         response.data.each do |bot|
-          display bot[:bot_id]
+          puts bot[:bot_id]
         end
       end
     else
@@ -62,7 +62,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
     response = api.show_bot(bot)
     if response.is_a?(Turbot::API::SuccessResponse)
       response.data.each do |key,value|
-        display "#{key}: #{value}"
+        puts "#{key}: #{value}"
       end
     else
       error_message(response)
@@ -130,7 +130,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
       f.write(JSON.pretty_generate(JSON.load(manifest)))
     end
 
-    display "Created new bot template for #{bot}!"
+    puts "Created new bot template for #{bot}!"
   end
 
   # bots:register
@@ -149,7 +149,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
 
     response = api.create_bot(bot, parse_manifest)
     if response.is_a?(Turbot::API::SuccessResponse)
-      display "Registered #{bot}!"
+      puts "Registered #{bot}!"
     else
       error_message(response)
     end
@@ -173,8 +173,8 @@ class Turbot::Command::Bots < Turbot::Command::Base
     error_if_no_local_bot_found
 
     unless options[:yes]
-      display 'This will submit your bot and its data for review.'
-      display 'Are you happy your bot produces valid data (e.g. with `turbot bots:validate`)? [Y/n]'
+      puts 'This will submit your bot and its data for review.'
+      puts 'Are you happy your bot produces valid data (e.g. with `turbot bots:validate`)? [Y/n]'
       answer = ask
       unless ['', 'y'].include?(answer.downcase.strip)
         error 'Aborted.'
@@ -191,7 +191,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
       api.update_code(bot, f)
     end
     if response.is_a?(Turbot::API::SuccessResponse)
-      display 'Your bot has been pushed to Turbot and will be reviewed for inclusion as soon as we can. THANK YOU!'
+      puts 'Your bot has been pushed to Turbot and will be reviewed for inclusion as soon as we can. THANK YOU!'
     else
       error_message(response)
     end
@@ -220,7 +220,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
       'public_repository' => 'public_repo_url',
     }.each do |deprecated,field|
       if manifest[deprecated]
-        display %(WARNING: "#{deprecated}" is deprecated. Use "#{field}" instead.)
+        puts %(WARNING: "#{deprecated}" is deprecated. Use "#{field}" instead.)
       end
     end
 
@@ -261,9 +261,9 @@ class Turbot::Command::Bots < Turbot::Command::Base
     end
 
     if rc == TurbotRunner::Runner::RC_OK
-      display "Validated #{handler.count} records!"
+      puts "Validated #{handler.count} records!"
     else
-      display "Validated #{handler.count} records before bot failed!"
+      puts "Validated #{handler.count} records before bot failed!"
     end
   end
 
@@ -286,9 +286,9 @@ class Turbot::Command::Bots < Turbot::Command::Base
     rc = runner.run
 
     if rc == TurbotRunner::Runner::RC_OK
-      display 'Bot ran successfully!'
+      puts 'Bot ran successfully!'
     else
-      display 'Bot failed!'
+      puts 'Bot failed!'
     end
   end
 
@@ -317,7 +317,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
       error_message(response)
     end
 
-    display 'Sending to Turbot...'
+    puts 'Sending to Turbot...'
 
     handler = Turbot::Handlers::PreviewHandler.new(bot, api)
     runner = TurbotRunner::Runner.new(working_directory, :record_handler => handler)
@@ -327,15 +327,15 @@ class Turbot::Command::Bots < Turbot::Command::Base
       response = handler.submit_batch
       if response.is_a?(Turbot::API::SuccessResponse)
         if handler.count > 0
-          display "Submitted #{handler.count} records to Turbot.\nView your records at #{response.data[:url]}"
+          puts "Submitted #{handler.count} records to Turbot.\nView your records at #{response.data[:url]}"
         else
-          display 'No records sent.'
+          puts 'No records sent.'
         end
       else
         error_message(response)
       end
     else
-      display 'Bot failed!'
+      puts 'Bot failed!'
     end
   end
 

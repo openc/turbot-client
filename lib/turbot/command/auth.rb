@@ -28,7 +28,7 @@ class Turbot::Command::Auth < Turbot::Command::Base
       error 'Authentication failed.'
     end
     save_netrc_entry(email_address, api_key)
-    display 'Authentication successful.'
+    puts 'Authentication successful.'
   end
   alias_command 'login', 'auth:login'
 
@@ -44,7 +44,7 @@ class Turbot::Command::Auth < Turbot::Command::Base
   def logout
     validate_arguments!
     delete_netrc_entry
-    display 'Deleted Turbot credentials.'
+    puts 'Deleted Turbot credentials.'
   end
   alias_command 'logout', 'auth:logout'
 
@@ -61,7 +61,7 @@ class Turbot::Command::Auth < Turbot::Command::Base
     validate_arguments!
     result = email_address_and_api_key[1]
     if result
-      display result
+      puts result
     else
       error 'not logged in'
     end
@@ -80,7 +80,7 @@ class Turbot::Command::Auth < Turbot::Command::Base
     validate_arguments!
     result = email_address_and_api_key[0]
     if result
-      display result
+      puts result
     else
       error 'not logged in'
     end
@@ -95,7 +95,7 @@ private
   #
   # @return [Array<String>] the user's email address and API key
   def ask_for_email_address_and_password
-    display 'Enter your Turbot email and password.'
+    puts 'Enter your Turbot email and password.'
 
     print 'Email: '
     email_address = ask

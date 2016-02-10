@@ -5,12 +5,6 @@ module CommandHelper
     $stderr = captured_stderr = StringIO.new
     $stdout = captured_stdout = StringIO.new
 
-    class << captured_stdout
-      def tty?
-        true
-      end
-    end
-
     begin
       Turbot::CLI.start(*command_line.split(' '))
     rescue Exception => e

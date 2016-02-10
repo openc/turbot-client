@@ -102,7 +102,7 @@ private
   def help_for_command(name)
     command_alias = Turbot::Command.command_aliases[name]
     if command_alias
-      display "Alias: #{name} redirects to #{command_alias}"
+      puts "Alias: #{name} redirects to #{command_alias}"
       name = command_alias
     end
 
