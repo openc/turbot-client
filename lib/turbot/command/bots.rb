@@ -36,7 +36,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
         end
       end
     else
-      error response.message
+      error_message(response)
     end
   end
   alias_command 'list', 'bots'
@@ -65,7 +65,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
         display "#{key}: #{value}"
       end
     else
-      error response.message
+      error_message(response)
     end
   end
   alias_command 'info', 'bots:info'
@@ -151,7 +151,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
     if response.is_a?(Turbot::API::SuccessResponse)
       display "Registered #{bot}!"
     else
-      error response.message
+      error_message(response)
     end
   end
 
@@ -193,7 +193,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
     if response.is_a?(Turbot::API::SuccessResponse)
       display 'Your bot has been pushed to Turbot and will be reviewed for inclusion as soon as we can. THANK YOU!'
     else
-      error response.message
+      error_message(response)
     end
   end
   alias_command 'push', 'bots:push'
@@ -309,12 +309,12 @@ class Turbot::Command::Bots < Turbot::Command::Base
 
     response = api.update_bot(bot, parse_manifest)
     if response.is_a?(Turbot::API::FailureResponse)
-      error response.message
+      error_message(response)
     end
 
     response = api.destroy_draft_data(bot)
     if response.is_a?(Turbot::API::FailureResponse)
-      error response.message
+      error_message(response)
     end
 
     display 'Sending to Turbot...'
@@ -332,7 +332,7 @@ class Turbot::Command::Bots < Turbot::Command::Base
           display 'No records sent.'
         end
       else
-        error response.message
+        error_message(response)
       end
     else
       display 'Bot failed!'
@@ -351,6 +351,11 @@ private
     if api.show_bot(bot).is_a?(Turbot::API::SuccessResponse)
       error "There's already a bot named #{bot} in Turbot. Try another name."
     end
+  end
+
+  def error_message(response)
+    suffix = response.error_code && ": #{response.error_code}"
+    error "#{response.message} (HTTP #{response.code}#{suffix})"
   end
 
   def create_zip_archive(archive_path, basenames)
