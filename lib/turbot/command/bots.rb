@@ -273,6 +273,8 @@ class Turbot::Command::Bots < Turbot::Command::Base
   #
   #Execute the bot locally and write the bot's output to STDOUT.
   #
+  #  -q, --quiet # only output validation errors
+  #
   #Example:
   #
   #  $ turbot bots:dump
@@ -283,7 +285,11 @@ class Turbot::Command::Bots < Turbot::Command::Base
     validate_arguments!
     error_if_no_local_bot_found
 
-    handler = Turbot::Handlers::DumpHandler.new
+    if options[:quiet]
+      handler = Turbot::Handlers::BaseHandler.new
+    else
+      handler = Turbot::Handlers::DumpHandler.new
+    end
     runner = TurbotRunner::Runner.new(working_directory, :record_handler => handler)
     rc = runner.run
 

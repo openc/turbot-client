@@ -330,7 +330,7 @@ STDOUT
       it 'reports invalid records' do
         bot_directory = create_bot_directory
         create_manifest_file(bot_directory)
-        create_scraper_file(bot_directory, {'name' => 1})
+        create_scraper_file(bot_directory, [{'name' => 1}])
 
         stderr, stdout = execute_in_directory('bots:validate', bot_directory)
 
@@ -348,7 +348,7 @@ STDOUT
       it 'reports invalid JSON' do
         bot_directory = create_bot_directory
         create_manifest_file(bot_directory)
-        create_scraper_file(bot_directory, '{')
+        create_scraper_file(bot_directory, ['{'])
 
         stderr, stdout = execute_in_directory('bots:validate', bot_directory)
 
@@ -364,7 +364,7 @@ STDOUT
       it 'reports records without identifying fields' do
         bot_directory = create_bot_directory
         create_manifest_file(bot_directory)
-        create_scraper_file(bot_directory, {})
+        create_scraper_file(bot_directory, [{}])
 
         stderr, stdout = execute_in_directory('bots:validate', bot_directory)
 
@@ -547,6 +547,28 @@ STDOUT
         expect(stdout).to eq <<-STDOUT
 {"name":"foo"}
 Bot ran successfully!
+STDOUT
+      end
+
+      it 'reports only validation errors' do
+        set_turbot_runner_schemas
+
+        bot_directory = create_bot_directory
+        create_manifest_file(bot_directory)
+        create_scraper_file(bot_directory, [{'name' => 'foo'}, {'name' => 1}])
+
+        allow_any_instance_of(Turbot::Command::Base).to receive(:working_directory).and_return(bot_directory)
+        stderr, stdout = execute('bots:dump --quiet')
+        restore_working_directory_method
+
+        expect(stderr).to eq('')
+        expect(stdout).to eq <<-STDOUT
+
+The following record is invalid:
+{"name":1}
+ * Property of wrong type: name (must be of type string)
+
+Bot failed!
 STDOUT
       end
 

@@ -65,10 +65,12 @@ module BotHelper
     end
   end
 
-  def create_scraper_file(bot_directory, record = {'name' => 'foo'})
+  def create_scraper_file(bot_directory, records = [{'name' => 'foo'}])
     File.open(File.join(bot_directory, 'scraper.rb'), 'w') do |f|
       f.write("require 'json'\n")
-      f.write("puts JSON.dump(#{record.inspect})\n")
+      records.each do |record|
+        f.write("puts JSON.dump(#{record.inspect})\n")
+      end
     end
   end
 
