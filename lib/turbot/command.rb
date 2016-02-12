@@ -102,14 +102,8 @@ module Turbot
     end
 
     def self.run(command, arguments=[])
-      begin
-        object, method = prepare_run(command, arguments.dup)
-        object.send(method)
-      rescue Interrupt, StandardError, SystemExit => error
-        # load likely error classes, as they may not be loaded yet due to defered loads
-        require 'rest_client'
-        raise(error)
-      end
+      object, method = prepare_run(command, arguments.dup)
+      object.send(method)
     rescue SocketError => e
       error 'Unable to connect to Turbot API, please check internet connectivity and try again.'
     rescue OptionParser::ParseError
