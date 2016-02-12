@@ -57,8 +57,7 @@ module Turbot
     end
 
     def self.prepare_run(cmd, args=[])
-      command = parse(cmd)
-
+      command = commands[cmd] || commands[command_aliases[cmd]]
       @current_command = cmd
 
       opts = {}
@@ -66,12 +65,14 @@ module Turbot
 
       parser = OptionParser.new do |parser|
         # remove OptionParsers Officious['version'] to avoid conflicts
-        # see: https://github.com/ruby/ruby/blob/trunk/lib/optparse.rb#L814
+        # see: https://github.com/ruby/ruby/blob/6860034546808d4f67ba8f407f3d7aced0c54c5a/lib/optparse.rb#L989
         parser.base.long.delete('version')
-        (command && command[:options] || []).each do |option|
-          parser.on(*option[:args]) do |value|
-            opts[option[:name].gsub('-', '_').to_sym] = value
-            ARGV.join(' ') =~ /(#{option[:args].map {|arg| arg.split(' ', 2).first}.join('|')})/
+        if command && command[:options]
+          command[:options].each do |option|
+            parser.on(*option[:args]) do |value|
+              opts[option[:name].gsub('-', '_').to_sym] = value
+              ARGV.join(' ') =~ /(#{option[:args].map {|arg| arg.split(' ', 2).first}.join('|')})/
+            end
           end
         end
       end
@@ -86,12 +87,11 @@ module Turbot
       end
 
       args.concat(invalid_options)
-
       @invalid_arguments = invalid_options
 
       if command
         command_instance = command[:klass].new(args.dup, opts.dup)
-        [ command_instance, command[:method] ]
+        [command_instance, command[:method]]
       else
         error([
           "`#{cmd}` is not a turbot command.",
@@ -112,10 +112,6 @@ module Turbot
       else
         run('help')
       end
-    end
-
-    def self.parse(command)
-      commands[command] || commands[command_aliases[command]]
     end
 
     def self.extract_error(body, options = {})

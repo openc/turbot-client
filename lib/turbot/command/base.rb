@@ -43,7 +43,7 @@ protected
 
     help = extract_help_from_caller(caller.first)
     resolved_method = (method.to_s == "index") ? nil : method.to_s
-    command = [ self.namespace, resolved_method ].compact.join(":")
+    command = [self.namespace, resolved_method].compact.join(":")
     banner = extract_banner(help) || command
 
     Turbot::Command.register_command(

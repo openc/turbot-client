@@ -48,7 +48,7 @@ private
   def help_for(items, name_key, description_key)
     size = items.map { |namespace| namespace[name_key].size }.max
     items.sort_by { |namespace| namespace[name_key] }.each do |namespace|
-      puts "  %-#{size}s  # %s" % [ namespace[name_key], namespace[description_key] ]
+      puts "  %-#{size}s  # %s" % [namespace[name_key], namespace[description_key]]
     end
   end
 
