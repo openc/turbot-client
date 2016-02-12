@@ -65,13 +65,6 @@ STDERR
     end
   end
 
-  it 'correctly resolves commands' do
-    expect(Turbot::Command.parse('unknown')).to be_nil
-    expect(Turbot::Command.parse('list')).to include(:klass => Turbot::Command::Bots, :method => :index)
-    expect(Turbot::Command.parse('bots')).to include(:klass => Turbot::Command::Bots, :method => :index)
-    expect(Turbot::Command.parse('bots:info')).to include(:klass => Turbot::Command::Bots, :method => :info)
-  end
-
   context 'when no commands match' do
     it 'suggests one command' do
       stderr, stdout = execute('bot')
