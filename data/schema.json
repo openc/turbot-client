@@ -31,7 +31,7 @@
     "frequency": {
       "type": "string",
       "enum": [
-        "oneoff",
+        "once",
         "daily",
         "weekly",
         "monthly",
