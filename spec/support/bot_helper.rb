@@ -6,7 +6,7 @@ module BotHelper
       'files' => ['scraper.rb'],
       'identifying_fields' => ['name'],
       'language' => 'ruby',
-      'publisher' => {},
+      'missions_dataset' => 'http://missions.opencorporates.com/datasets/123',
     }
   end
 
