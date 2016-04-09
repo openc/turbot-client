@@ -11,12 +11,19 @@
     "description": {
       "type": "string"
     },
+    "missions_dataset": {
+      "type": "string",
+      "format": "uri"
+    },
     "language": {
       "type": "string",
       "enum": [
         "python",
         "ruby"
       ]
+    },
+    "language_version": {
+      "type": "string"
     },
     "data_type": {
       "type": "string"
@@ -29,6 +36,17 @@
       "minItems": 1
     },
     "frequency": {
+      "type": "string",
+      "enum": [
+        "once",
+        "daily",
+        "weekly",
+        "monthly",
+        "yearly",
+        "never"
+      ]
+    },
+    "suggested_frequency": {
       "type": "string",
       "enum": [
         "once",
