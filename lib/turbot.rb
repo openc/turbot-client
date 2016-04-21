@@ -2,6 +2,7 @@ require 'fileutils'
 require 'optparse'
 require 'set'
 require 'shellwords'
+require 'socket'
 
 require 'netrc'
 require 'text/levenshtein'
