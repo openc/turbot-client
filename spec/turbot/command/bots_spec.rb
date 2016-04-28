@@ -416,7 +416,7 @@ STDERR
         expect(stderr).to eq('')
         expect(stdout).to eq <<-STDOUT
 WARNING: "allow_duplicates" is deprecated. Use "duplicates_allowed" instead.
-WARNING: "author" is deprecated. Use "publisher" instead.
+WARNING: "author" is deprecated. Use "missions_dataset" instead.
 WARNING: "incremental" is deprecated. Use "manually_end_run" instead.
 WARNING: "public_repository" is deprecated. Use "public_repo_url" instead.
 Validated 1 records!

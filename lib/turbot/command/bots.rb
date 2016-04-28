@@ -217,9 +217,11 @@ class Turbot::Command::Bots < Turbot::Command::Base
     manifest = parse_manifest
 
     { 'allow_duplicates' => 'duplicates_allowed',
-      'author' => 'publisher',
+      'author' => 'missions_dataset',
+      'publisher' => 'missions_dataset',
       'incremental' => 'manually_end_run',
       'public_repository' => 'public_repo_url',
+      'frequency' => 'suggested_frequency',
     }.each do |deprecated,field|
       if manifest[deprecated]
         puts %(WARNING: "#{deprecated}" is deprecated. Use "#{field}" instead.)
